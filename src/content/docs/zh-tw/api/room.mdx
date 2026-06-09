@@ -1,0 +1,92 @@
+---
+title: 房間管理
+description: 房間信息、直播狀態、訂閱與設定 API
+---
+
+## 獲取房間信息
+
+```http
+GET /room/:roomID/info
+```
+
+```json
+{
+  "room_id": 123,
+  "short_id": 456,
+  "title": "房間標題",
+  "description": "房間描述",
+  "live_status": 1,
+  "followers": 10000,
+  "cover": "https://example.com/cover.jpg"
+}
+```
+
+## 批量獲取房間信息
+
+```http
+POST /room/infos
+Content-Type: application/json
+
+{ "roomIDs": [123, 456, 789] }
+```
+
+支持 query：`?roomIDs=123,456,789` 或 JSON `{"roomIDs":[...]}`（也接受 `room_ids`、`roomIds`）。
+
+## 檢查直播狀態
+
+```http
+GET /room/:roomID/live
+```
+
+```json
+{ "room_id": 123, "is_live": true }
+```
+
+## 批量檢查直播狀態
+
+```http
+POST /room/lives
+```
+
+支持 query 或 JSON payload，響應：`{"123": true, "456": false}`
+
+## 訂閱管理
+
+| 方法 | 路徑 | 說明 |
+|------|------|------|
+| `POST` | `/room/:roomID` | 訂閱房間（`200` 成功，`409` 已訂閱） |
+| `DELETE` | `/room/:roomID` | 取消訂閱 |
+| `GET` | `/room/subscribe/:roomID` | 檢查訂閱狀態 |
+| `GET` | `/room/subscribe` | 列出所有訂閱（`{"room_ids": [123, 456]}`） |
+
+## 房間設定
+
+**獲取：**
+
+```http
+GET /room/:roomID/config
+```
+
+```json
+{
+  "room_id": 123,
+  "auto_record": true,
+  "notify": true,
+  "record_duration_minutes": 120
+}
+```
+
+**更新：**
+
+```http
+PUT /room/:roomID/config
+Content-Type: application/json
+
+{
+  "auto_record": true,
+  "notify": true,
+  "record_duration_minutes": 120
+}
+```
+
+`record_duration_minutes`：`0`=系統預設，`-1`=無限，正整數=N 分鐘。僅在 `auto_record: true` 時生效。

@@ -1,0 +1,55 @@
+---
+title: 設定概述
+description: 環境變量加載順序與 .env 檔案機制
+---
+
+所有設定通過**環境變量**設置。bilirec 支持多種設定來源，按以下優先級加載：
+
+## 加載順序
+
+1. **`.env.local`** — 當前工作目錄下（若存在，最高優先級）
+2. **`.env`** — 可執行檔案同目錄（首次運行自動生成模板）
+3. **環境變量** — 覆蓋檔案中的值
+4. **Docker 環境** — 檢測到 `/.dockerenv` 時跳過 `.env` 加載，僅使用環境變量
+
+## 修改設定
+
+**二進制模式：**
+
+編輯 `.env.local` 或 `.env` 檔案，或直接設置環境變量：
+
+```bash
+export MAX_CONCURRENT_RECORDINGS=5
+./bilirec-linux-amd64
+```
+
+**Docker 模式：**
+
+通過 `-e` 傳入環境變量：
+
+```bash
+docker run -e MAX_CONCURRENT_RECORDINGS=5 ...
+```
+
+## 設定分類
+
+| 分類 | 頁面 |
+|------|------|
+| 完整變量列表 | [環境變量參考](/zh-tw/configuration/env-reference/) |
+| 可複製示例 | [設定示例](/zh-tw/configuration/examples/) |
+| 服務器與網絡 | [服務器與網絡](/zh-tw/configuration/server-network/) |
+| FRP 內網穿透 | [FRP 設定](/zh-tw/configuration/frp/) |
+| 錄製參數 | [錄製設定](/zh-tw/configuration/recording/) |
+| 格式轉換 | [轉換設定](/zh-tw/configuration/conversion/) |
+| 認證與安全 | [認證與安全](/zh-tw/configuration/auth-security/) |
+| 通知 | [通知設定](/zh-tw/configuration/notifications/) |
+| I/O 調優 | [I/O 調優](/zh-tw/configuration/io-tuning/) |
+| 樹莓派默認 | [樹莓派 5B 默認設定](/zh-tw/configuration/pi5-defaults/) |
+| SSD 調優 | [SSD/NVMe 調優](/zh-tw/configuration/ssd-tuning/) |
+| HDD/NAS 調優 | [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/) |
+| Android 默認 | [Android 默認設定](/zh-tw/configuration/android-defaults/) |
+
+## 重要說明
+
+- `PUBLIC_BASE_URL` 為空或無效時，預簽名 URL 會回退為相對地址；CloudConvert 在該情況下會拒絕創建任務
+- Web Push 的 VAPID key 在啟動時自動生成並寫入 `SECRET_DIR`，後續重啟會複用已有 key

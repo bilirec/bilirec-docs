@@ -1,0 +1,70 @@
+---
+title: Bilibili 登录
+description: controller 模式下的 B 站扫码登录 API
+---
+
+当 `BILIBILI_LOGIN_MODE=controller` 时，通过 `/auth/bilibili` 接口在服务运行后触发扫码登录。
+
+## 查询认证状态
+
+```http
+GET /auth/bilibili/status
+```
+
+返回当前认证状态（`idle` / `awaiting_qr` / `authenticating` / `authenticated` / `failed`）。
+
+**已登录：**
+
+```json
+{
+  "authenticated": true,
+  "state": "authenticated",
+  "account": {
+    "mid": 123456789,
+    "uname": "bilibili_user"
+  }
+}
+```
+
+**等待扫码：**
+
+```json
+{
+  "authenticated": false,
+  "state": "awaiting_qr",
+  "qr": {
+    "url": "https://api.bilibili.com/x/web-interface/qrcode/generate?qrcode_key=abc123..."
+  }
+}
+```
+
+## 初始化二维码登录
+
+```http
+POST /auth/bilibili/init
+```
+
+创建新的二维码登录会话。支持账号切换，即使已登录也可重新发起。
+
+- 成功：`201 Created`
+- `400` — 未启用 controller 模式
+- `409` — 已存在未完成的登录会话
+- `500` — 获取二维码失败
+
+## 典型流程
+
+1. `POST /login`（若启用了 `USERNAME` / `PASSWORD`）
+2. `POST /auth/bilibili/init` 获取二维码
+3. 用户扫码后，轮询 `GET /auth/bilibili/status` 直到 `state=authenticated`
+
+```bash
+curl -i -c cookies.txt -X POST http://127.0.0.1:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{"user":"admin","pass":"changeme"}'
+
+curl -i -b cookies.txt -X POST http://127.0.0.1:8080/auth/bilibili/init
+
+curl -s -b cookies.txt http://127.0.0.1:8080/auth/bilibili/status
+```
+
+已登录用户可随时调用 `POST /auth/bilibili/init` 切换到新账号。

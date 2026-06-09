@@ -1,0 +1,45 @@
+---
+title: Android App
+description: 使用 bilirec-mobile 在手机上运行录制后端
+---
+
+import { LinkCard, Aside } from '@astrojs/starlight/components';
+
+推荐使用官方 Android 客户端 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile)，在手机上直接运行 bilirec 后端，无需额外服务器。
+
+## 安装
+
+从 [bilirec-mobile Releases](https://github.com/bilirec/bilirec-mobile/releases) 下载并安装 APK。
+
+<LinkCard title="bilirec-mobile" href="https://github.com/bilirec/bilirec-mobile">
+  官方 Android 客户端，内嵌 libbilirec.so 在手机上运行录制后端。
+</LinkCard>
+
+## 使用流程
+
+1. 打开 App，点击界面中的**启动按钮**
+2. 启动成功后出现「**打开录制程序**」按钮
+3. 点击后跳转到 [app.bilirec.org](https://app.bilirec.org/)，若已安装 PWA 则优先打开 PWA
+4. 进入页面后直接点击「登入」即可
+
+{/* TODO: 請提供 App 主界面截圖 */}
+{/* TODO: 請提供啟動按鈕與打開 PWA 截圖 */}
+
+<Aside type="note">
+Android 默认连接 `http://localhost:8080`，且默认不启用账号密码认证。后端在 App 进程内运行，仅本机可访问。
+</Aside>
+
+## 默认行为
+
+Android 模式下会强制启用以下配置（与服务器版不同）：
+
+- `BILIBILI_LOGIN_MODE=controller`
+- `FRP_ENABLED=false`
+- `SILENT_ACCESS_LOG=true`
+- `CONVERT_TO_MP4=false`
+
+并使用更保守的移动端 I/O / 内存参数。完整默认值见 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
+
+## 自行开发或定制
+
+若需源码构建或库集成，请参阅 bilirec-mobile 文档。库模式可先执行 `make android` 生成 `libbilirec.so`，集成方法见 [Android 库接口](/zh-cn/guides/android-library/)。

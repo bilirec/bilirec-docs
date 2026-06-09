@@ -1,0 +1,78 @@
+---
+title: 快速開始
+description: 首次啟動 bilirec、設定環境變量與 B 站登錄
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+完成[安裝](/zh-tw/guides/installation/)後，按以下步驟啟動服務並開始使用。
+
+## 啟動服務
+
+```bash
+export BILIBILI_LOGIN_MODE=controller
+export PORT=8080
+export FRONTEND_URL=http://localhost:8080
+./bilirec-linux-amd64
+```
+
+首次運行時，程序會在可執行檔案同目錄生成 `.env` 模板檔案，你可以直接編輯它修改設定。
+
+{/* TODO: 請提供首次啟動終端日誌截圖 */}
+
+## B 站登錄模式
+
+<Tabs>
+
+<TabItem label="controller（默認）">
+
+服務啟動後，打開 [app.bilirec.org](https://app.bilirec.org/)（或你設定的 `FRONTEND_URL`），點擊「登入」，再到右上角點擊頭像按鈕完成 B 站掃碼登錄。
+
+```bash
+export BILIBILI_LOGIN_MODE=controller
+```
+
+{/* TODO: 請提供 B 站掃碼登入介面截圖 */}
+
+</TabItem>
+
+<TabItem label="startup">
+
+啟動時在終端顯示二維碼，用手機 B 站 App 掃碼登錄：
+
+```bash
+export BILIBILI_LOGIN_MODE=startup
+```
+
+</TabItem>
+
+<TabItem label="anonymous">
+
+直接匿名登錄，無需掃碼。未登錄可能無法錄製 1080p 及以上畫質：
+
+```bash
+export BILIBILI_LOGIN_MODE=anonymous
+```
+
+</TabItem>
+
+</Tabs>
+
+## 設定檔案加載順序
+
+1. 當前工作目錄下的 `.env.local`（若存在，優先）
+2. 可執行檔案同目錄的 `.env`（首次運行自動生成）
+3. 環境變量（覆蓋檔案中的值）
+4. Docker 環境：僅使用環境變量，不加載 `.env`
+
+詳見[設定概述](/zh-tw/configuration/overview/)。
+
+## 下一步
+
+- [Web 介面使用](/zh-tw/guides/web-ui/) — 通過 PWA 管理錄製任務
+- [錄製直播間](/zh-tw/guides/recording/) — 手動或自動錄製
+- [設定與調優](/zh-tw/configuration/overview/) — 調整環境變量
+
+<Aside type="caution">
+若計劃將後端暴露到公網（如啟用 FRP），請務必設置 `USERNAME` 和 `PASSWORD` 保護 API 訪問。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
+</Aside>

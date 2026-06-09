@@ -1,0 +1,26 @@
+---
+title: 开发与调试
+description: DEBUG 模式与 pprof 性能分析
+---
+
+## 启用调试
+
+```bash
+export DEBUG=true
+```
+
+服务器启动时会在日志中打印一个临时十六进制令牌（hex token）。
+
+## pprof 性能分析
+
+调试模式下在 `/debug/pprof` 挂载 pprof。该路由受保护：需在请求头 `Authorization` 中填入启动日志中的 hex token。
+
+实现位于 `internal/modules/rest/rest.go`。
+
+## 本地开发
+
+```bash
+make dev    # go run ./cmd/backend
+```
+
+详见[从源码构建](/zh-cn/development/build-from-source/)。

@@ -1,0 +1,37 @@
+---
+title: Android 默認設定
+description: Android 模式下強制注入的默認值
+---
+
+Android 模式（`libbilirec.so`）會先注入一組移動端默認值，再套用 `env` 覆蓋。
+
+## 強制行為
+
+以下設定在 Android 模式下**不可覆蓋**：
+
+| 變量 | 強制值 | 原因 |
+|------|--------|------|
+| `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登錄 |
+| `FRP_ENABLED` | `false` | 手機無需內網穿透 |
+| `SILENT_ACCESS_LOG` | `true` | 減少日誌輸出 |
+| `CONVERT_TO_MP4` | `false` | 避免前臺卡頓 |
+
+## 自動注入
+
+| 變量 | 默認值 |
+|------|--------|
+| `HOST` | `127.0.0.1` |
+| `PORT` | `8080` |
+| `OUTPUT_DIR` | `{basePath}/records` |
+| `SECRET_DIR` | `{basePath}/secrets` |
+| `DATABASE_DIR` | `{basePath}/database` |
+| `FRONTEND_URL` | `https://app.bilirec.org` |
+
+## I/O 保守參數
+
+使用更小的寫入緩衝和更低的磁盤空間閾值，避免前臺卡頓：
+
+- 較小 `LIVE_STREAM_WRITER_BUFFER_SIZE`
+- 較低 `MIN_DISK_SPACE_BYTES`（默認 2 GB）
+
+集成方法見 [Android 庫接口](/zh-tw/guides/android-library/)，使用流程見 [Android App](/zh-tw/guides/android/)。

@@ -1,0 +1,59 @@
+---
+title: 設定示例
+description: 完整的 bilirec 環境變量設定示例
+---
+
+以下是一份完整的設定示例，可直接複製到 `.env` 檔案或作為 `export` 腳本使用：
+
+```bash
+export BILIBILI_LOGIN_MODE=controller
+# export HOST=0.0.0.0
+export PORT=8080
+# export SERVER_CRT=/path/to/server.crt
+# export SERVER_KEY=/path/to/server.key
+export FRP_ENABLED=true
+export FRP_SERVER=tunnel.bilirec.org:7000
+export FRP_BASE_DOMAIN=tunnel.bilirec.org
+export TRUSTED_PROXIES=161.33.159.26
+export FRP_HTTPS=false
+export FRP_SCHEME_HTTPS=true
+export MAX_CONCURRENT_RECORDINGS=3
+export MAX_RECORDING_HOURS=10
+export MAX_RECOVERY_ATTEMPTS=5
+export MAX_RETRY_MINUTES=10
+export OUTPUT_DIR=/path/to/records
+export SECRET_DIR=/path/to/secrets
+export NO_CONVERT_IF_INVALID=false
+export DATABASE_DIR=/path/to/database
+export CONVERT_TO_MP4=false
+export DELETE_SOURCE_AFTER_CONVERT=false
+export CLOUDCONVERT_THRESHOLD=1073741824
+export CLOUDCONVERT_API_KEY=
+export CLOUDCONVERT_CHECK_INTERVAL_SECS=180
+export CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS=1
+export FFMPEG_CHECK_INTERVAL_SECS=60
+export FFMPEG_MAX_CONCURRENT_TASKS=1
+export FFMPEG_ALLOW_DURING_RECORDING=false
+export FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS=1
+export PUBLIC_BASE_URL=http://localhost:8080
+export FRONTEND_URL=http://localhost:8080
+export WEBPUSH_SUBSCRIBER=mailto:webpush@example.com
+export UPLOAD_BUFFER_SIZE=5242880
+export DOWNLOAD_BUFFER_SIZE=5242880
+export STREAM_WRITER_BUFFER_SIZE=1048576
+export READ_STREAM_BYTES_POOL_SIZE=524288
+export READ_STREAM_CHAN_BUFFER_SIZE=16
+export LIVE_STREAM_WRITER_BUFFER_SIZE=8388608
+export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0
+export LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10
+export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64
+export LIVE_STREAM_WRITER_BYTES_POOL_SIZE=524288
+export SKIP_SMALL_FLUSH=true
+export JWT_SECRET=bilirec_secret
+export DEBUG=false
+export USERNAME=admin
+export PASSWORD=changeme
+export PRODUCTION_MODE=false
+```
+
+各變量的詳細說明見[環境變量參考](/zh-tw/configuration/env-reference/)。針對不同硬件的調優方案見 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

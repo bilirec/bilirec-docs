@@ -1,0 +1,55 @@
+---
+title: 遠程訪問（FRP）
+description: 通過 FRP 內網穿透在外網訪問 bilirec 後端
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 內置 FRP 客戶端，無需公網 IP 即可在外網安全訪問後端管理任務與檔案。
+
+## 啟用 FRP
+
+最簡單的方式——使用官方免費公共服務：
+
+```bash
+export FRP_ENABLED=true
+```
+
+僅設置 `FRP_ENABLED=true` 即可，程序會自動使用 bilirec.org 官方 FRP 服務。
+
+## 操作流程
+
+1. **啟動後端**並確認 FRP 已啟用
+2. **查看日誌**，找到公網訪問地址，例如：
+
+   ```
+   FRP enabled in official-public mode
+   https://abc1234567.tunnel.bilirec.org
+   ```
+
+   {/* TODO: 請提供日誌中公網地址截圖 */}
+
+3. **打開** [app.bilirec.org](https://app.bilirec.org/)
+4. 在登錄介面的**服務器地址**欄填入公網地址（如 `https://abc1234567.tunnel.bilirec.org`）
+5. 使用 `USERNAME` 和 `PASSWORD` 登錄
+
+   {/* TODO: 請提供 PWA 填入伺服器地址截圖 */}
+
+<Aside type="caution">
+暴露到公網後**務必**設置 `USERNAME` 和 `PASSWORD`，否則 API 將完全公開訪問。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
+</Aside>
+
+## 自建 FRP 服務器
+
+若你有自己的 FRP 服務，可自定義設定：
+
+```bash
+export FRP_ENABLED=true
+export FRP_SERVER=your-frp-ip:7000
+export FRP_TOKEN=your-token
+export FRP_BASE_DOMAIN=your-domain.com
+```
+
+啟動日誌會顯示 `FRP enabled in custom-selfhost mode`。
+
+技術細節、協議約束與完整參數說明見 [FRP 設定](/zh-tw/configuration/frp/)。

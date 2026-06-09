@@ -1,49 +1,44 @@
-# Starlight Starter Kit: Basics
+# bilirec-docs
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+[Bilirec](https://github.com/bilirec/bilirec) 官方文檔站，基於 [Astro Starlight](https://starlight.astro.build/) 構建。
 
-```
-pnpm create astro@latest -- --template starlight
-```
+線上地址：[www.bilirec.org](https://www.bilirec.org)
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 開發
 
-## 🚀 Project Structure
+需安裝 [pnpm](https://pnpm.io/)。本地開發直接用終端指令即可，無需 VS Code `launch.json`：
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+pnpm install
+pnpm dev        # http://localhost:4321
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## 構建
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+```bash
+pnpm build
+pnpm preview
+```
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## 簡繁轉換
 
-## 🧞 Commands
+繁體中文內容由簡體自動轉換生成：
 
-All commands are run from the root of the project, from a terminal:
+```bash
+pnpm convert:zh-tw
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+## 部署
 
-## 👀 Want to learn more?
+推送到 `main` 分支後，GitHub Actions 自動部署至 Cloudflare Pages。
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+需在倉庫 Secrets 中配置：
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+## 相關項目
+
+- [bilirec](https://github.com/bilirec/bilirec) — 錄播後端
+- [bilirec-web](https://github.com/bilirec/bilirec-web) — Web 管理界面（PWA）
+- [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) — Android 客戶端

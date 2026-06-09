@@ -1,0 +1,98 @@
+---
+title: 錄製管理
+description: 開始/停止錄製、查詢狀態與統計
+---
+
+## 開始錄製
+
+```http
+POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<quality>&only_audio=<bool>
+```
+
+### duration_minutes
+
+| 值 | 說明 |
+| -- | ---- |
+| 不傳 / `0` | 使用系統預設（`MAX_RECORDING_HOURS`） |
+| `-1` | 無限錄製 |
+| 正整數 | N 分鐘後自動停止 |
+
+### stream_profile
+
+| 值 | 說明 |
+| -- | ---- |
+| 不傳 | 自動選擇 |
+| `http-flv` | HTTP-FLV |
+| `hls-ts` | HLS-TS |
+| `hls-fmp4` | HLS-fMP4 |
+
+### qn（畫質碼）
+
+| 值 | 畫質 |
+| -- | ---- |
+| `80` | 流暢 |
+| `150` | 高清 |
+| `250` | 超清 |
+| `400` | 藍光 |
+| `10000` | 原畫 |
+| `20000` | 4K |
+| `30000` | 杜比 |
+
+### only_audio
+
+| 值 | 說明 |
+| -- | ---- |
+| 不傳 / `false` | 錄製音視頻 |
+| `true` | 僅錄製音頻 |
+
+```bash
+curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true"
+```
+
+## 停止錄製
+
+```http
+POST /record/:roomID/stop
+```
+
+## 批量獲取狀態
+
+```http
+POST /record/statuses
+Content-Type: application/json
+
+{ "roomIDs": [123, 456, 789] }
+```
+
+也支持 query：`?roomIDs=123,456,789`
+
+```json
+{ "123": "recording", "456": "idle", "789": "stopped" }
+```
+
+## 批量獲取統計
+
+```http
+POST /record/stats
+Content-Type: application/json
+
+{ "roomIDs": [123, 456, 789] }
+```
+
+```json
+{
+  "123": {
+    "bytes_written": 1048576,
+    "status": "recording",
+    "start_time": 1234567890,
+    "elapsed_seconds": 120,
+    "output_path": "records/tester-123/live-title.flv"
+  }
+}
+```
+
+## 列出所有任務
+
+```http
+GET /record/list
+```

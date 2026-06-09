@@ -1,0 +1,103 @@
+---
+title: Bilirec
+description: 專為低配設備優化的高性能 Bilibili 直播錄製後端
+template: splash
+hero:
+  tagline: 高性能、低功耗、邊緣設備優先的 Bilibili 直播錄製後端。
+  actions:
+    - text: 開始使用
+      link: /zh-tw/guides/installation/
+      icon: right-arrow
+      variant: primary
+    - text: 快速設定
+      link: /zh-tw/configuration/overview/
+      icon: right-arrow
+      variant: secondary
+    - text: GitHub
+      link: https://github.com/bilirec/bilirec
+      icon: external
+      variant: minimal
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import IconLinkCardGrid from '../../../components/IconLinkCardGrid.astro';
+
+## Bilirec 適合誰？
+
+<IconLinkCardGrid
+  items={[
+    {
+      icon: '🧩',
+      title: '只有低配設備',
+      href: '/zh-tw/configuration/pi5-defaults/',
+      description: '你只有樹莓派 / 舊筆記本 / NAS，也能穩定 24 小時掛機錄製，不必再專門開一臺高配電腦。',
+    },
+    {
+      icon: '📱',
+      title: '沒有電腦，只能掛手機',
+      href: '/zh-tw/guides/android/',
+      description: '用 bilirec-mobile 可在 Android 手機上直接跑後端並錄製直播，不需要額外主機。',
+    },
+    {
+      icon: '🌐',
+      title: '想出門也能隨時接入',
+      href: '/zh-tw/guides/frp/',
+      description: '啟用 FRP 後可從外網訪問，配合 PWA 與推送通知，外出也能隨時管理錄製狀態。',
+    },
+    {
+      icon: '⏱️',
+      title: '需要長期無人值守',
+      href: '/zh-tw/guides/recording/',
+      description: '開播自動錄製、異常恢復、轉碼與檔案管理流程都可自動化，適合長期值守成本高的場景。',
+    },
+  ]}
+/>
+
+## 核心能力
+
+- **錄製引擎穩定**：完整支持 HTTP-FLV / HLS-TS / HLS-fMP4，自動處理流中斷與時間戳異常。  
+- **錄製策略靈活**：支持手動錄製、開播自動錄製、定時停止與無限時長錄製。  
+- **存儲管理友好**：支持檔案瀏覽、批量刪除、瀏覽器內預覽 MP4。  
+- **UI 簡單易用**：提供直觀的 Web 管理介面，新手也能快速完成登錄、訂閱與錄製管理。  
+- **手機端適配（PWA）**：支持以 PWA 形式安裝到手機主屏，移動端訪問與操作體驗更友好。  
+- **接入方式完整**：REST API、Web 介面（PWA）、Android App 多端協同。  
+
+## 3 分鐘上手路徑
+
+1. 先看 [安裝說明](/zh-tw/guides/installation/) 部署 bilirec。  
+2. 按 [快速開始](/zh-tw/guides/quick-start/) 添加房間並啟動錄製。  
+3. 進階調優請看 [設定與調優](/zh-tw/configuration/overview/) 與 [I/O 調優](/zh-tw/configuration/io-tuning/)。  
+
+## 生態項目
+
+<IconLinkCardGrid
+  items={[
+    {
+      icon: '🖥️',
+      title: 'bilirec（後端）',
+      href: 'https://github.com/bilirec/bilirec',
+      description: '錄製核心與 REST API，本文檔主要圍繞該項目展開。',
+    },
+    {
+      icon: '🌍',
+      title: 'bilirec-web（PWA）',
+      href: 'https://github.com/bilirec/bilirec-web',
+      description: 'Web 管理端，支持 PWA 安裝，適合桌面端和移動端日常管理。',
+    },
+    {
+      icon: '📲',
+      title: 'bilirec-mobile（Android）',
+      href: 'https://github.com/bilirec/bilirec-mobile',
+      description: 'Android 設備一體化客戶端，可直接運行後端並完成錄製管理。',
+    },
+  ]}
+  columnsClass="md:grid-cols-3"
+  titleClass="text-base"
+  cardClass="shadow-none"
+/>
+
+## 性能實測
+
+<Aside type="note">
+完整性能截圖與測試說明已整理到[性能實測](/zh-tw/guides/performance-benchmark/)，可在側欄目錄中直接進入。
+</Aside>

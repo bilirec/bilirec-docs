@@ -1,0 +1,54 @@
+---
+title: Web 介面（PWA）
+description: 使用 bilirec-web PWA 管理錄製任務
+---
+
+import { LinkCard, Aside } from '@astrojs/starlight/components';
+
+bilirec 的 Web 管理介面由 [bilirec-web](https://github.com/bilirec/bilirec-web) 提供，線上地址為 [app.bilirec.org](https://app.bilirec.org/)。它是一個通用前端，可連接任何 bilirec 後端實例。
+
+## 訪問 Web 介面
+
+1. 確保 bilirec 後端已啟動（默認監聽 `http://localhost:8080`）
+2. 打開 [app.bilirec.org](https://app.bilirec.org/)
+
+{/* TODO: 請提供登入介面截圖 */}
+
+3. 在登錄介面填入後端地址（本地使用可留空或填 `http://localhost:8080`）
+4. 若設置了 `USERNAME` 和 `PASSWORD`，輸入賬號密碼登錄；未設置則直接進入
+
+## B 站登錄
+
+進入主介面後，點擊「登入」，再點擊右上角頭像按鈕完成 B 站掃碼登錄。
+
+{/* TODO: 請提供主控臺介面截圖 */}
+
+## 連接自架後端
+
+若後端不在本機運行，在登錄介面的**服務器地址**欄填入後端 URL，例如：
+
+- 局域網：`http://192.168.1.100:8080`
+- FRP 公網：`https://abc123.tunnel.bilirec.org`
+
+## 安裝 PWA
+
+bilirec-web 支持 PWA（Progressive Web App），可安裝到桌面或手機主屏幕，獲得接近原生 App 的體驗。
+
+**桌面瀏覽器（Chrome / Edge）：**
+- 地址欄右側點擊「安裝」圖標，或菜單 →「安裝 bilirec」
+
+**手機瀏覽器：**
+- iOS Safari：分享 →「添加到主屏幕」
+- Android Chrome：菜單 →「安裝應用」或「添加到主屏幕」
+
+{/* TODO: 請提供 PWA 安裝提示截圖 */}
+
+安裝後，PWA 會記住上次連接的後端地址，下次打開直接進入管理介面。
+
+<LinkCard title="bilirec-web 源碼" href="https://github.com/bilirec/bilirec-web">
+  Web 前端開源倉庫，支持自行部署或定製。
+</LinkCard>
+
+<Aside type="tip">
+Android 用戶可通過 [bilirec-mobile](/zh-tw/guides/android/) 啟動後端後，點擊「打開錄製程序」自動跳轉到 PWA。若已安裝 PWA，會優先打開 PWA 而非瀏覽器標籤頁。
+</Aside>

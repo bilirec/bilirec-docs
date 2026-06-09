@@ -1,0 +1,88 @@
+---
+title: 錄製直播間
+description: 手動錄製、自動錄製、訂閱房間與畫質選擇
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+通過 [Web 介面](/zh-tw/guides/web-ui/) 或 [REST API](/zh-tw/api/record/) 管理錄製任務。
+
+## 手動錄製
+
+在 Web 介面中輸入直播間房間號，選擇畫質與時長，點擊開始錄製。
+
+也可通過 API 啟動：
+
+```bash
+curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150"
+```
+
+### 畫質碼（qn）
+
+| 值 | 畫質 |
+|----|------|
+| `80` | 流暢 |
+| `150` | 高清 |
+| `250` | 超清 |
+| `400` | 藍光 |
+| `10000` | 原畫 |
+| `20000` | 4K |
+| `30000` | 杜比 |
+
+### 流格式（stream_profile）
+
+| 值 | 說明 |
+|----|------|
+| 不傳 | 自動選擇可用流 |
+| `http-flv` | HTTP-FLV（支持 PK 自動分段） |
+| `hls-ts` | HLS-TS |
+| `hls-fmp4` | HLS-fMP4 |
+
+### 錄製時長（duration_minutes）
+
+| 值 | 說明 |
+|----|------|
+| 不傳 / `0` | 使用系統預設（`MAX_RECORDING_HOURS`） |
+| `-1` | 無限錄製 |
+| 正整數 | N 分鐘後自動停止 |
+
+{/* TODO: 請提供開始錄製介面截圖 */}
+
+## 訂閱房間
+
+訂閱直播間後，可設定開播自動錄製與開播通知：
+
+1. 在 Web 介面添加房間訂閱
+2. 設定自動錄製與通知選項
+
+通過 API：
+
+```bash
+# 訂閱房間
+curl -X POST http://127.0.0.1:8080/room/12345
+
+# 設定自動錄製
+curl -X PUT http://127.0.0.1:8080/room/12345/config \
+  -H "Content-Type: application/json" \
+  -d '{"auto_record":true,"notify":true,"record_duration_minutes":120}'
+```
+
+{/* TODO: 請提供訂閱房間介面截圖 */}
+
+## 自動錄製
+
+啟用 `auto_record: true` 後，後臺會定期檢查訂閱房間的直播狀態，開播時自動啟動錄製。
+
+`record_duration_minutes` 控制自動錄製的時長上限（僅在 `auto_record: true` 時生效）。
+
+<Aside type="note">
+手動觸發的錄製不受房間 `record_duration_minutes` 設定影響，需在調用 `/record/:roomID/start` 時自行傳入 `duration_minutes` 參數。
+</Aside>
+
+## 停止錄製
+
+```bash
+curl -X POST http://127.0.0.1:8080/record/12345/stop
+```
+
+完整 API 參考見 [錄製管理 API](/zh-tw/api/record/)。

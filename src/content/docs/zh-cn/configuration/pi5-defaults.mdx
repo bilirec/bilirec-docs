@@ -1,0 +1,21 @@
+---
+title: 树莓派 5B 默认配置
+description: 针对树莓派 5B + microSD 的默认优化参数
+---
+
+Bilirec 当前默认配置已针对**树莓派 5B + microSD** 场景优化，在「降低写入次数」和「控制内存占用」之间取平衡。
+
+| 优化项 | 值 | 说明 |
+| ----- | ---- | ---- |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | 禁用周期性 fsync，仅在录制结束时 sync。权衡：意外断电可能丢失最后一段数据 |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 8 MB | 降低 flush 频率。@1080p30fps 约每 14 秒触发一次满缓冲写入 |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `10` | 10 秒 flush，优先降低 SD 卡磨损 |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 单录制约 32MB 队列数据，适合 4GB 设备 |
+| `SKIP_SMALL_FLUSH` | `true` | 低比特率流跳过小块 flush |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 512 KB | 与常见 stream chunk 大小一致 |
+| `SEQUENTIAL_WRITE` | `true` | 序列化多路写入，保护 microSD |
+| `MAX_CONCURRENT_RECORDINGS` | `3` | 保守并发上限，限制 RAM 峰值 |
+
+容器运行时同步：`GOMEMLIMIT=768MiB`、`GOGC=100`。
+
+若你的存储介质是 SSD 或 HDD/NAS，请参阅对应的[调优方案](/zh-cn/configuration/ssd-tuning/)。

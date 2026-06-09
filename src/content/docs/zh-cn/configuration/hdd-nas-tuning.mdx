@@ -1,0 +1,32 @@
+---
+title: HDD/NAS 调优
+description: 机械硬盘与 DIY NAS 环境下的 I/O 配置方案
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+机械硬盘的物理弱点是**磁头寻道延迟**。多路并发录制时频繁随机写入会导致严重卡顿。调整核心在于**合并大块数据**并**强制顺序写入**。
+
+## 推荐配置
+
+```bash
+export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45
+export SKIP_SMALL_FLUSH=false
+export SEQUENTIAL_WRITE=true
+export LIVE_STREAM_WRITER_BUFFER_SIZE=16777216
+export MAX_CONCURRENT_RECORDINGS=5
+```
+
+| 参数 | 调整 | 原因 |
+|------|------|------|
+| `SYNC_PERIOD_SECS=45` | 适当拉长 sync | 避免频繁打断顺序写入 |
+| `SKIP_SMALL_FLUSH=false` | 保障完整性 | — |
+| `SEQUENTIAL_WRITE=true` | **保持全局写锁** | 多路并发强制顺序写入，降低寻道延迟 |
+| `BUFFER_SIZE=16MB` | 增大单次落盘 | 文件在磁盘上分布更连续 |
+| `MAX_CONCURRENT_RECORDINGS=5` | 适度并发 | 视硬盘转速调整 |
+
+<Aside type="tip">
+**混合部署建议：**
+- **ZFS 文件系统：** 可将 `SYNC_PERIOD_SECS` 设为 `0` 或 `60`，交由 ARC 缓存接管
+- **与私有云服务共存：** 若硬盘同时运行 Cloudreve、影音服务器等，强烈建议保持 `SEQUENTIAL_WRITE=true`，避免磁头争抢
+</Aside>

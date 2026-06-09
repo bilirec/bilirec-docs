@@ -1,0 +1,40 @@
+---
+title: API 概述
+description: REST API 概览、Swagger UI 与认证说明
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 提供完整的 RESTful API，供程序调用、脚本控制或自行集成。
+
+## Swagger UI
+
+服务器运行时，在根路径 `/` 提供 Swagger UI — 在浏览器中打开 `http://your-host:8080/` 即可查看与测试所有 API。
+
+## 认证
+
+若设置了 `USERNAME` 与 `PASSWORD`，API 启用基于 JWT 的认证。详见 [认证 API](/zh-cn/api/auth/)。
+
+未设置用户名/密码时，API 默认为公开访问。
+
+## API 分类
+
+| 分类 | 页面 |
+|------|------|
+| 认证 | [认证](/zh-cn/api/auth/) |
+| B 站登录 | [Bilibili 登录](/zh-cn/api/bilibili-auth/) |
+| 录制 | [录制管理](/zh-cn/api/record/) |
+| 房间 | [房间管理](/zh-cn/api/room/) |
+| 文件 | [文件管理](/zh-cn/api/files/) |
+| 转换 | [转换任务](/zh-cn/api/convert/) |
+| 通知 | [实时通知](/zh-cn/api/notify/) |
+
+## 通用约定
+
+- 基础 URL：`http://host:port`（默认 `http://localhost:8080`）
+- 需要认证时，先 `POST /login` 获取 `jwtToken` cookie，后续请求携带该 cookie
+- 错误响应通常为 JSON：`{"error": "描述信息"}`
+
+<Aside type="tip">
+推荐使用 Swagger UI 交互式测试 API。本文档提供详细的端点说明与 curl 示例。
+</Aside>

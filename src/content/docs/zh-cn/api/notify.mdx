@@ -1,0 +1,46 @@
+---
+title: 实时通知
+description: Web Push 与 SSE 通知 API
+---
+
+## Web Push
+
+### 获取公钥
+
+```http
+GET /notify/public-key
+```
+
+返回前端订阅 Web Push 所需的 VAPID 公钥。
+
+### 注册订阅
+
+```http
+POST /notify/subscribe
+Content-Type: application/json
+```
+
+请求体为浏览器 Push API 产生的 subscription JSON（包含 `endpoint` 与 `keys`）。
+
+### 取消订阅
+
+```http
+DELETE /notify/subscribe
+```
+
+可通过 query `endpoint` 或 JSON body 提供 endpoint。
+
+## SSE 实时订阅
+
+```http
+GET /notify/sse?token=YOUR_NOTIFY_SSE_TOKEN
+Accept: text/event-stream
+```
+
+- 用于无法依赖 Google FCM 的场景（如中国大陆）
+- Android 后端通过 SSE 获取通知后创建本地通知
+- `token` 来源于 `NOTIFY_SSE_TOKEN` 环境变量
+- 为空时返回 `503`（禁用）
+- 建议通过 HTTPS 使用
+
+配置详见 [通知配置](/zh-cn/configuration/notifications/)。

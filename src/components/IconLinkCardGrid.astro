@@ -1,0 +1,42 @@
+---
+interface CardItem {
+	icon: string;
+	title: string;
+	description: string;
+	href: string;
+}
+
+interface Props {
+	items: CardItem[];
+	columnsClass?: string;
+	titleClass?: string;
+	cardClass?: string;
+}
+
+const {
+	items,
+	columnsClass = 'md:grid-cols-2',
+	titleClass = 'text-lg',
+	cardClass = '',
+} = Astro.props as Props;
+---
+
+<div class:list={['not-content grid gap-4', columnsClass]}>
+	{
+		items.map((item) => (
+			<a
+				href={item.href}
+				class:list={[
+					'group rounded-xl border border-slate-700/70 bg-slate-900/60 px-5 py-4 text-white no-underline shadow-lg shadow-slate-950/20 transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-400/55 hover:shadow-sky-900/25',
+					cardClass,
+				]}
+			>
+				<div class="grid grid-cols-[1.4rem_minmax(0,1fr)] gap-x-2">
+					<span class="mt-0.5 text-base leading-none">{item.icon}</span>
+					<div class:list={['font-semibold leading-6', titleClass]}>{item.title}</div>
+					<p class="col-start-2 mt-1.5 m-0 text-sm leading-6 text-slate-300">{item.description}</p>
+				</div>
+			</a>
+		))
+	}
+</div>

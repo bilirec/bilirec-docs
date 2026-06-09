@@ -1,0 +1,92 @@
+---
+title: 房间管理
+description: 房间信息、直播状态、订阅与配置 API
+---
+
+## 获取房间信息
+
+```http
+GET /room/:roomID/info
+```
+
+```json
+{
+  "room_id": 123,
+  "short_id": 456,
+  "title": "房间标题",
+  "description": "房间描述",
+  "live_status": 1,
+  "followers": 10000,
+  "cover": "https://example.com/cover.jpg"
+}
+```
+
+## 批量获取房间信息
+
+```http
+POST /room/infos
+Content-Type: application/json
+
+{ "roomIDs": [123, 456, 789] }
+```
+
+支持 query：`?roomIDs=123,456,789` 或 JSON `{"roomIDs":[...]}`（也接受 `room_ids`、`roomIds`）。
+
+## 检查直播状态
+
+```http
+GET /room/:roomID/live
+```
+
+```json
+{ "room_id": 123, "is_live": true }
+```
+
+## 批量检查直播状态
+
+```http
+POST /room/lives
+```
+
+支持 query 或 JSON payload，响应：`{"123": true, "456": false}`
+
+## 订阅管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/room/:roomID` | 订阅房间（`200` 成功，`409` 已订阅） |
+| `DELETE` | `/room/:roomID` | 取消订阅 |
+| `GET` | `/room/subscribe/:roomID` | 检查订阅状态 |
+| `GET` | `/room/subscribe` | 列出所有订阅（`{"room_ids": [123, 456]}`） |
+
+## 房间配置
+
+**获取：**
+
+```http
+GET /room/:roomID/config
+```
+
+```json
+{
+  "room_id": 123,
+  "auto_record": true,
+  "notify": true,
+  "record_duration_minutes": 120
+}
+```
+
+**更新：**
+
+```http
+PUT /room/:roomID/config
+Content-Type: application/json
+
+{
+  "auto_record": true,
+  "notify": true,
+  "record_duration_minutes": 120
+}
+```
+
+`record_duration_minutes`：`0`=系统预设，`-1`=无限，正整数=N 分钟。仅在 `auto_record: true` 时生效。

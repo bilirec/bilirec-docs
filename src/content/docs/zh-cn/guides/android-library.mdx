@@ -1,0 +1,59 @@
+---
+title: Android 库接口
+description: 将 libbilirec.so 集成到自定义 Android 项目
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+若你正在将 `libbilirec.so` 集成到自己的 Android 项目，该库导出两个 C 方法：
+
+- `Start(configJson)` — 启动服务（传入 JSON 配置），返回 `C.int`
+- `Stop()` — 停止服务，返回 `C.int`
+
+## Start 配置格式
+
+```json
+{
+  "basePath": "/data/user/0/your.app/files",
+  "env": {
+    "PORT": "8080",
+    "HOST": "127.0.0.1",
+    "FRONTEND_URL": "https://app.bilirec.org",
+    "USERNAME": "admin",
+    "PASSWORD": "changeme",
+    "MAX_CONCURRENT_RECORDINGS": "3"
+  }
+}
+```
+
+- `basePath` **必填** — 数据目录根路径
+- `env` **可选** — 覆盖默认环境变量
+
+## 移动端默认行为
+
+Android 模式下会先注入一组移动端默认值，再套用 `env` 覆盖，并强制：
+
+- `BILIBILI_LOGIN_MODE=controller`
+- `FRP_ENABLED=false`
+- `SILENT_ACCESS_LOG=true`
+- `CONVERT_TO_MP4=false`
+
+完整参数见 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
+
+## 构建 libbilirec.so
+
+```bash
+# Linux 主机
+make android os=linux
+
+# Windows 主机
+make android os=windows
+```
+
+需要 Android NDK 24+ 及 `./lib/<abi>/libffmpegkit.so`。输出目录：`dist/android/<abi>/libbilirec.so`。
+
+详见[从源码构建](/zh-cn/development/build-from-source/)。
+
+<Aside type="tip">
+推荐先参考 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 源码了解完整集成方式，再基于此定制。
+</Aside>

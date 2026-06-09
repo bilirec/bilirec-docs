@@ -1,0 +1,63 @@
+---
+title: FRP 配置
+description: FRP 内网穿透参数、协议约束与配置示例
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+启用 FRP (`FRP_ENABLED=true`) 时，bilirec 作为内网穿透客户端连接到 FRP 服务器。
+
+仅设置 `FRP_ENABLED=true` 时，程序默认使用官方免费公共 FRP 服务；设置 `FRP_SERVER`、`FRP_BASE_DOMAIN` 或 `FRP_TOKEN` 时切换为自定义配置。
+
+## 基础参数
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `FRP_ENABLED` | 是否启用 FRP | `false` |
+| `FRP_SERVER` | FRP 服务器地址（`host:port`） | `tunnel.bilirec.org:7000` |
+| `FRP_TOKEN` | FRP 认证 Token | (空) |
+| `FRP_BASE_DOMAIN` | 公网基础域名 | `tunnel.bilirec.org` |
+| `TRUSTED_PROXIES` | 受信任代理列表 | `161.33.159.26` |
+
+## 协议配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `FRP_HTTPS` | FRP 代理协议（`true`=HTTPS） | `false` |
+| `FRP_SCHEME_HTTPS` | 公网 URL scheme | `true` |
+
+<Aside type="caution">
+**协议约束：**
+- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 时，**必须**同时设置 `SERVER_CRT` + `SERVER_KEY`
+- 同时设置 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 时，`FRP_HTTPS` **不能**为 `false`
+
+违反约束会导致协议不匹配，程序在启动阶段直接报错退出。
+</Aside>
+
+## 配置示例
+
+**官方公共服务（推荐）：**
+
+```bash
+export FRP_ENABLED=true
+```
+
+**自定义 FRP：**
+
+```bash
+export FRP_ENABLED=true
+export FRP_SERVER=your-frp-ip:7000
+export FRP_TOKEN=your-token
+export FRP_BASE_DOMAIN=your-domain.com
+export FRP_HTTPS=false
+export FRP_SCHEME_HTTPS=true
+```
+
+## 启动日志
+
+```
+FRP enabled in official-public mode    # 官方公共服务
+FRP enabled in custom-selfhost mode    # 自定义 FRP
+```
+
+操作流程见 [远程访问指南](/zh-cn/guides/frp/)。

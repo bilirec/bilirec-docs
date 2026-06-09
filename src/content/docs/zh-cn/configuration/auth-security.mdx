@@ -1,0 +1,42 @@
+---
+title: 认证与安全
+description: JWT、账号密码与生产模式配置
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## REST API 认证
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `USERNAME` | 管理员用户名 | (未设置) |
+| `PASSWORD` | 管理员密码 | (未设置) |
+| `VIEWER_USERNAME` | 只读访客用户名 | (未设置) |
+| `VIEWER_PASSWORD` | 只读访客密码 | (未设置) |
+| `JWT_SECRET` | JWT 签名密钥 | `bilirec_secret` |
+
+设置 `USERNAME` 和 `PASSWORD` 后，REST API 启用基于 JWT 的认证。登录通过 `POST /login` 获取 `jwtToken` cookie。
+
+`VIEWER_USERNAME` / `VIEWER_PASSWORD` 提供只读账号，写操作仍需 admin 角色。
+
+<Aside type="caution">
+暴露到公网（如启用 FRP）后**务必**设置 `USERNAME` 和 `PASSWORD`。未设置时 API 完全公开访问。
+</Aside>
+
+## 运行模式
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `DEBUG` | 调试模式（pprof + hex token） | `false` |
+| `PRODUCTION_MODE` | 生产模式（影响 cookie 与 CORS） | `false` |
+| `SILENT_ACCESS_LOG` | 静默访问日志（仅 4xx/5xx） | `false` |
+
+`DEBUG=true` 时在 `/debug/pprof` 挂载 pprof，需 Authorization 头填入启动日志中的 hex token。详见[开发与调试](/zh-cn/development/debugging/)。
+
+## B 站登录
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `BILIBILI_LOGIN_MODE` | `startup` / `controller` / `anonymous` | `controller` |
+
+详见[快速开始](/zh-cn/guides/quick-start/)中的登录模式说明。

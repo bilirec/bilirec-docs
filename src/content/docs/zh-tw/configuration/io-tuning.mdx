@@ -1,0 +1,44 @@
+---
+title: I/O 調優
+description: 緩衝區、flush、sync 與寫入序列化參數
+---
+
+這些參數控制 bilirec 的磁盤 I/O 行為，對 microSD 卡壽命和多路併發性能有顯著影響。
+
+## 通用緩衝區
+
+| 變量 | 說明 | 默認值 |
+|------|------|--------|
+| `UPLOAD_BUFFER_SIZE` | 上傳/外部傳輸緩衝區（字節） | `5242880` (5 MB) |
+| `DOWNLOAD_BUFFER_SIZE` | 檔案下載緩衝區（字節） | `5242880` (5 MB) |
+| `STREAM_WRITER_BUFFER_SIZE` | 流寫入器緩衝區（字節） | `1048576` (1 MB) |
+| `READ_STREAM_BYTES_POOL_SIZE` | 讀取流字節池單塊大小（字節） | `524288` (512 KB) |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 讀取流通道緩衝區（chunk 數） | `16` |
+
+## 實時流寫入
+
+| 變量 | 說明 | 默認值 |
+|------|------|--------|
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（字節） | `8388608` (8 MB) |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 週期性 fsync 週期（秒），`0`=禁用 | `0` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 週期性 flush 週期（秒） | `10` |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道緩衝區（數據塊數） | `64` |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 內存池單塊大小（字節） | `524288` (512 KB) |
+
+### 關鍵參數說明
+
+- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性 fsync（最昂貴的操作），僅在錄製結束時 sync。大幅降低 SD 卡磨損，但意外斷電可能丟失最後一段數據
+- **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大緩衝降低 flush 頻率。@1080p30fps (4.5Mbps) 約每 14 秒觸發一次滿緩衝寫入
+- **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10`** — 10 秒 flush 一次，優先降低 SD 卡磨損
+
+## 寫入保護
+
+| 變量 | 說明 | 默認值 |
+|------|------|--------|
+| `SKIP_SMALL_FLUSH` | 總寫入量 < 緩衝區大小時跳過 flush | `true` |
+| `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
+
+- **`SKIP_SMALL_FLUSH`** — 對低比特率流（如 240p）特別有效，防止多次小塊寫入磨損
+- **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；SSD 環境建議禁用
+
+針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

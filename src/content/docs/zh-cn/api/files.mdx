@@ -1,0 +1,79 @@
+---
+title: 文件管理
+description: 浏览、下载、播放、预签名与批量删除 API
+---
+
+## 浏览文件
+
+```http
+GET /files/browse/*
+```
+
+| 参数 | 说明 | 默认值 |
+| ---- | ---- | ------ |
+| `offset` | 分页偏移量 | `0` |
+| `limit` | 每页最大条数（0=不限制，最大 200） | `0` |
+| `search` | 按文件名搜索（大小写不敏感） | (不过滤) |
+
+```json
+{
+  "total": 42,
+  "items": [
+    { "name": "title.flv", "is_dir": false, "path": "room123/title.flv", "size": 1048576 }
+  ]
+}
+```
+
+## 下载文件
+
+```http
+GET /files/download/*
+```
+
+直接返回存储的文件。
+
+## 预签名下载
+
+```http
+POST /files/presigned/{path}?ttl=<seconds>
+```
+
+需要 JWT 认证。`ttl` 默认 3600 秒。返回临时令牌后：
+
+```http
+GET /files/tempdownload?presigned=<token>
+```
+
+无需认证，过期后失效。
+
+## 批量删除
+
+```http
+DELETE /files/batch
+Content-Type: application/json
+
+["room123/20250101.flv", "room456/20250102.flv"]
+```
+
+## 删除目录
+
+```http
+DELETE /files/{path}
+```
+
+## 在线播放
+
+```http
+GET /files/playback/{path}
+```
+
+返回 MP4 视频流，浏览器直接播放。支持 Range 请求（快进/快退）。
+
+- 仅支持 MP4 格式
+- 无法播放进行中的录制文件
+
+```html
+<video controls width="100%">
+  <source src="/files/playback/username-roomID/20250101.mp4" type="video/mp4">
+</video>
+```

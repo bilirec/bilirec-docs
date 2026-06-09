@@ -1,0 +1,47 @@
+---
+title: 項目架構
+description: bilirec 項目結構與核心實現
+---
+
+## 項目結構
+
+```text
+.
+├── cmd/
+│   ├── backend/          # 後端可執行入口
+│   └── androidlib/       # Android c-shared 動態庫
+├── internal/
+│   ├── controllers/      # HTTP 控制器（auth, convert, file, notify, record, room）
+│   ├── modules/          # 核心模塊（bilibili, config, rest）
+│   ├── processors/       # 流處理器
+│   └── services/         # 業務邏輯（recorder, convert, expose, notify, room, stream...）
+├── pkg/                  # 可複用庫（ffmpeg, flv, hls, cloudconvert, pool, swr...）
+└── docs/                 # Swagger 規範
+```
+
+## 錄製流程
+
+1. 通過 `bilibili.Client` 獲取直播流地址
+2. `stream.Service` 讀取流數據
+3. `recorder.Service` 管理錄製任務（自動重連與恢復）
+4. 數據寫入錄製檔案（`.flv`、`.ts` 或 `.fmp4`）
+
+- **HTTP-FLV**：檢測到 PK 等檔案頭變更時自動分段輪轉
+- **HLS-TS / HLS-fMP4**：不執行檔案輪轉，流中斷時重連繼續寫入同一檔案
+
+## 關鍵特性
+
+- **自動恢復** — 流中斷時自動重連
+- **自動分段輪轉** — 僅 HTTP-FLV，PK/分辨率切換時輪轉新檔案
+- **自動錄製** — 訂閱房間開播自動啟動錄製
+- **實時通知** — Web Push + SSE
+- **內存池** — `pool.BufferPool` 減少 GC 壓力
+- **SWR 緩存** — 房間信息 Stale-While-Revalidate（軟 TTL 5 分鐘，硬 TTL 30 分鐘）
+- **實時修復** — FLV Tag 時間戳修復與重複 Tag 去重
+
+## 依賴項
+
+- [Fiber v3](https://github.com/gofiber/fiber) — Web 框架
+- [bilibili/v2](https://github.com/CuteReimu/bilibili) — B 站 API 客戶端
+- [Uber Fx](https://github.com/uber-go/fx) — 依賴注入
+- [logrus](https://github.com/sirupsen/logrus) — 日誌

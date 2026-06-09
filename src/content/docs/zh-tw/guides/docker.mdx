@@ -1,0 +1,57 @@
+---
+title: Docker 部署
+description: 使用 Docker 鏡像運行 bilirec
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## 從源碼構建
+
+```bash
+docker build -t bilirec:latest .
+docker run -d \
+  --name bilirec \
+  -p 8080:8080 \
+  -e BILIBILI_LOGIN_MODE=controller \
+  -e PORT=8080 \
+  -e FRONTEND_URL=http://localhost:8080 \
+  -v /path/to/records:/app/records \
+  -v /path/to/secrets:/app/secrets \
+  -v /path/to/database:/app/database \
+  bilirec:latest
+```
+
+## 從 Docker Hub 拉取
+
+```bash
+docker pull eric1008818/bilirec:latest   # 測試版用 :edge
+docker run -d \
+  --name bilirec \
+  -p 8080:8080 \
+  -e BILIBILI_LOGIN_MODE=controller \
+  -e PORT=8080 \
+  -e FRONTEND_URL=http://localhost:8080 \
+  -v /path/to/records:/app/records \
+  -v /path/to/secrets:/app/secrets \
+  -v /path/to/database:/app/database \
+  eric1008818/bilirec:latest
+```
+
+## 掛載卷說明
+
+| 容器路徑 | 說明 |
+|---------|------|
+| `/app/records` | 錄製檔案（`OUTPUT_DIR`） |
+| `/app/secrets` | Cookie、Token、VAPID 密鑰（`SECRET_DIR`） |
+| `/app/database` | bbolt 數據庫（`DATABASE_DIR`） |
+
+## Docker 環境特點
+
+- **跳過 `.env` 加載** — 檢測到 `/.dockerenv` 時僅使用環境變量
+- **內置 FFmpeg** — 鏡像包含 FFmpeg 8.1.1，無需額外安裝
+- **默認運行時限制** — `GOMEMLIMIT=768MiB`、`GOGC=100`
+- **默認時區** — `TZ=Asia/Hong_Kong`
+
+<Aside type="note">
+Docker 環境下建議通過 `-e` 傳入所有需要的設定。完整環境變量列表見[環境變量參考](/zh-tw/configuration/env-reference/)，示例設定見[設定示例](/zh-tw/configuration/examples/)。
+</Aside>

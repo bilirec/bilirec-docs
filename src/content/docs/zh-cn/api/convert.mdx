@@ -1,0 +1,23 @@
+---
+title: 转换任务
+description: MP4 转换任务查询与取消 API
+---
+
+启用 `CONVERT_TO_MP4` 后，录制完成的可转换文件（FLV/TS）自动加入转换队列。
+
+## 列出进行中的任务
+
+```http
+GET /convert/tasks
+```
+
+## 取消任务
+
+```http
+DELETE /convert/tasks/:task_id
+```
+
+- `204 No Content` — 取消成功
+- `404` — 任务不存在
+
+转换配置详见 [转换配置](/zh-cn/configuration/conversion/)。

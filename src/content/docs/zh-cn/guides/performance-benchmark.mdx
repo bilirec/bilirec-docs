@@ -1,0 +1,60 @@
+---
+title: 性能实测
+description: 树莓派 5B 16GB 下 bilirec 多路并发录制的实测数据与截图
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+本文记录 bilirec 在低配设备上的实测表现，便于你评估是否适合自己的部署环境。
+
+## 测试环境
+
+- 设备：树莓派 5B 16GB
+- 场景：默认配置，同时录制多个直播间
+- 指标：CPU 峰值占用、内存占用
+
+## 监控截图
+
+### 初始闲置
+
+![初始闲置](/images/performance/idle-initial.png)
+
+### 录制单个直播间
+
+![1 路并发](/images/performance/recording-1.png)
+
+### 同时录制 2 个直播间
+
+![2 路并发](/images/performance/recording-2.png)
+
+### 同时录制 3 个直播间
+
+![3 路并发](/images/performance/recording-3.png)
+
+### 同时录制 4 个直播间
+
+![4 路并发](/images/performance/recording-4.png)
+
+### 同时录制 5 个直播间
+
+![5 路并发](/images/performance/recording-5.png)
+
+### 恢复闲置时
+
+![恢复闲置](/images/performance/idle-recovered.png)
+
+## 数据汇总
+
+| 并发路数 | CPU 峰值占用 | 内存占用 |
+|---------|------------|---------|
+| 初始闲置 | ~0.0% | ~7MB |
+| 1 路并发 | ~0.8% | ~42MB |
+| 2 路并发 | ~2.6% | ~76MB |
+| 3 路并发 | ~3.0% | ~96MB |
+| 4 路并发 | ~3.4% | ~129MB |
+| 5 路并发 | ~4.1% | ~142MB |
+| 恢复闲置 | ~0.0% | ~54MB |
+
+<Aside type="note">
+bilirec 使用了较多内存池以降低 GC 压力，因此部分内存会被池化复用而非立即归还系统。默认配置也偏向减少 microSD 写入磨损，内存占用会更高一些。若要进一步压低占用，请参考[配置与调优](/zh-cn/configuration/overview/)。
+</Aside>

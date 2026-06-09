@@ -1,0 +1,65 @@
+---
+title: 檔案管理
+description: 瀏覽、下載、播放錄製檔案與 MP4 轉換
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 將錄製檔案保存在 `OUTPUT_DIR`（默認 `records`）目錄下，可通過 Web 介面或 REST API 管理。
+
+## 瀏覽檔案
+
+在 Web 介面的檔案管理頁面瀏覽錄製目錄，支持按檔案名搜索與分頁。
+
+{/* TODO: 請提供檔案瀏覽介面截圖 */}
+
+API：
+
+```bash
+curl "http://127.0.0.1:8080/files/browse/?offset=0&limit=50&search=title"
+```
+
+## 下載檔案
+
+```bash
+curl -O "http://127.0.0.1:8080/files/download/room123/title.flv"
+```
+
+## 在線播放
+
+已轉換為 MP4 的檔案可在瀏覽器中直接播放：
+
+```bash
+curl "http://127.0.0.1:8080/files/playback/username-roomID/20250101.mp4"
+```
+
+{/* TODO: 請提供播放預覽截圖 */}
+
+<Aside type="note">
+在線播放僅支持 MP4 格式。啟用 `CONVERT_TO_MP4` 後，錄製完成會自動加入轉換隊列。無法播放正在進行中的錄製檔案。
+</Aside>
+
+## 預簽名下載
+
+需要認證，創建臨時下載鏈接：
+
+```bash
+curl -X POST "http://127.0.0.1:8080/files/presigned/room123/title.mp4?ttl=3600" \
+  -b cookies.txt
+```
+
+## 批量刪除
+
+```bash
+curl -X DELETE http://127.0.0.1:8080/files/batch \
+  -H "Content-Type: application/json" \
+  -d '["room123/20250101.flv","room456/20250102.flv"]'
+```
+
+## MP4 轉換
+
+啟用 `CONVERT_TO_MP4=true` 後，錄製完成的 FLV/TS 檔案會自動加入轉換隊列。大檔案（≥ `CLOUDCONVERT_THRESHOLD`，默認 1 GB）優先使用 CloudConvert 雲端轉換。
+
+轉換任務狀態查詢見 [轉換任務 API](/zh-tw/api/convert/)，設定見 [轉換設定](/zh-tw/configuration/conversion/)。
+
+完整 API 參考見 [檔案管理 API](/zh-tw/api/files/)。

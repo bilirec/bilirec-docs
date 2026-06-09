@@ -1,0 +1,89 @@
+---
+title: 安装
+description: 下载预编译二进制、Docker 镜像或从源码构建 bilirec
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+请先完成安装，再参阅[快速开始](/zh-cn/guides/quick-start/)启动服务。
+
+<Tabs>
+
+<TabItem label="Linux 二进制">
+
+从 [GitHub Releases](https://github.com/bilirec/bilirec/releases) 下载预编译二进制：
+
+| 文件 | 适用平台 |
+|------|---------|
+| `bilirec-linux-amd64` | x86_64 Linux |
+| `bilirec-linux-arm64` | ARM64 Linux（树莓派 5 等） |
+
+```bash
+chmod +x bilirec-linux-amd64
+./bilirec-linux-amd64
+# 或 ARM64 版本
+./bilirec-linux-arm64
+```
+
+</TabItem>
+
+<TabItem label="Windows">
+
+从 [GitHub Releases](https://github.com/bilirec/bilirec/releases) 下载 `bilirec-windows.exe`，直接双击启动服务。
+
+</TabItem>
+
+<TabItem label="Docker">
+
+**从源码构建：**
+
+```bash
+docker build -t bilirec:latest .
+docker run -d \
+  --name bilirec \
+  -p 8080:8080 \
+  -e BILIBILI_LOGIN_MODE=controller \
+  -e PORT=8080 \
+  -e FRONTEND_URL=http://localhost:8080 \
+  -v /path/to/records:/app/records \
+  -v /path/to/secrets:/app/secrets \
+  -v /path/to/database:/app/database \
+  bilirec:latest
+```
+
+**从 Docker Hub 拉取：**
+
+```bash
+docker pull eric1008818/bilirec:latest   # 测试版用 :edge
+docker run -d \
+  --name bilirec \
+  -p 8080:8080 \
+  -e BILIBILI_LOGIN_MODE=controller \
+  -e PORT=8080 \
+  -e FRONTEND_URL=http://localhost:8080 \
+  -v /path/to/records:/app/records \
+  -v /path/to/secrets:/app/secrets \
+  -v /path/to/database:/app/database \
+  eric1008818/bilirec:latest
+```
+
+详细 Docker 配置见 [Docker 指南](/zh-cn/guides/docker/)。
+
+</TabItem>
+
+<TabItem label="Android 库">
+
+| 文件 | 说明 |
+|------|------|
+| `libbilirec-android-arm64-v8a.so` | ARM64 Android |
+| `libbilirec-android-x86_64.so` | x86_64 Android 模拟器 |
+
+由 `cmd/androidlib` 以 c-shared 方式编译。构建方法见[从源码构建](/zh-cn/development/build-from-source/)，集成方法见 [Android 库接口](/zh-cn/guides/android-library/)。
+
+</TabItem>
+
+</Tabs>
+
+<Aside type="note">
+首次启动时，程序会在可执行文件同目录自动生成 `.env` 配置文件。Docker 环境下跳过 `.env` 加载，主要使用容器环境变量。
+</Aside>

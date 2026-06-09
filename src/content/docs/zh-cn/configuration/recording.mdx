@@ -1,0 +1,39 @@
+---
+title: 录制配置
+description: 并发限制、时长、路径与磁盘空间配置
+---
+
+## 并发与时长
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `MAX_CONCURRENT_RECORDINGS` | 最大同时录制数 | `3` |
+| `MAX_RECORDING_HOURS` | 单次录制最长时间（小时） | `5` |
+| `MAX_RECOVERY_ATTEMPTS` | 单次录制最大重连尝试次数 | `5` |
+| `MAX_RETRY_MINUTES` | 直播中断后判断容忍时间（分钟） | `10` |
+
+`MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`，SSD 环境可放宽至 `10`。详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
+
+## 存储路径
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `OUTPUT_DIR` | 录制文件保存目录 | `records` |
+| `SECRET_DIR` | Cookie、Token、VAPID 密钥目录 | `secrets` |
+| `DATABASE_DIR` | bbolt 数据库目录 | `database` |
+
+Docker 部署时建议挂载为卷：
+
+```bash
+-v /path/to/records:/app/records
+-v /path/to/secrets:/app/secrets
+-v /path/to/database:/app/database
+```
+
+## 磁盘空间
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `MIN_DISK_SPACE_BYTES` | 录制所需最小磁盘空间（字节） | `5368709120` (5 GB) |
+
+低于此值将拒绝新录制任务。Android 默认使用更低的阈值。

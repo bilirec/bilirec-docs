@@ -1,0 +1,30 @@
+---
+title: SSD/NVMe 调优
+description: 固态硬盘环境下的 I/O 配置方案
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+SSD 具备极高的随机读写性能，无需过度担忧小块文件写入磨损，且开启应用层写入序列化反而会限制并发优势。
+
+## 推荐配置
+
+```bash
+export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30
+export SKIP_SMALL_FLUSH=false
+export SEQUENTIAL_WRITE=false
+export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128
+export MAX_CONCURRENT_RECORDINGS=10
+```
+
+| 参数 | 调整 | 原因 |
+|------|------|------|
+| `SYNC_PERIOD_SECS=30` | 恢复周期性 sync | 降低断电数据丢失风险 |
+| `SKIP_SMALL_FLUSH=false` | 不跳过小块 flush | 优先保障录制完整性 |
+| `SEQUENTIAL_WRITE=false` | **禁用全局 flush 锁** | 解放 SSD 多路并发 I/O |
+| `CHAN_BUFFER_SIZE=128` | 提高队列深度 | 容忍更高网络突发流量 |
+| `MAX_CONCURRENT_RECORDINGS=10` | 放宽并发 | 视 CPU 与内存调整 |
+
+<Aside type="tip">
+若底层使用 ZFS 等自带 ARC 缓存的文件系统，频繁应用层 sync 可能引发写入放大。可将 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 设为 `0` 或 `60`，将落盘调度交由底层系统接管。
+</Aside>

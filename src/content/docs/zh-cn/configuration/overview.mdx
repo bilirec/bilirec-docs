@@ -1,0 +1,55 @@
+---
+title: 配置概述
+description: 环境变量加载顺序与 .env 文件机制
+---
+
+所有配置通过**环境变量**设置。bilirec 支持多种配置来源，按以下优先级加载：
+
+## 加载顺序
+
+1. **`.env.local`** — 当前工作目录下（若存在，最高优先级）
+2. **`.env`** — 可执行文件同目录（首次运行自动生成模板）
+3. **环境变量** — 覆盖文件中的值
+4. **Docker 环境** — 检测到 `/.dockerenv` 时跳过 `.env` 加载，仅使用环境变量
+
+## 修改配置
+
+**二进制模式：**
+
+编辑 `.env.local` 或 `.env` 文件，或直接设置环境变量：
+
+```bash
+export MAX_CONCURRENT_RECORDINGS=5
+./bilirec-linux-amd64
+```
+
+**Docker 模式：**
+
+通过 `-e` 传入环境变量：
+
+```bash
+docker run -e MAX_CONCURRENT_RECORDINGS=5 ...
+```
+
+## 配置分类
+
+| 分类 | 页面 |
+|------|------|
+| 完整变量列表 | [环境变量参考](/zh-cn/configuration/env-reference/) |
+| 可复制示例 | [配置示例](/zh-cn/configuration/examples/) |
+| 服务器与网络 | [服务器与网络](/zh-cn/configuration/server-network/) |
+| FRP 内网穿透 | [FRP 配置](/zh-cn/configuration/frp/) |
+| 录制参数 | [录制配置](/zh-cn/configuration/recording/) |
+| 格式转换 | [转换配置](/zh-cn/configuration/conversion/) |
+| 认证与安全 | [认证与安全](/zh-cn/configuration/auth-security/) |
+| 通知 | [通知配置](/zh-cn/configuration/notifications/) |
+| I/O 调优 | [I/O 调优](/zh-cn/configuration/io-tuning/) |
+| 树莓派默认 | [树莓派 5B 默认配置](/zh-cn/configuration/pi5-defaults/) |
+| SSD 调优 | [SSD/NVMe 调优](/zh-cn/configuration/ssd-tuning/) |
+| HDD/NAS 调优 | [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/) |
+| Android 默认 | [Android 默认配置](/zh-cn/configuration/android-defaults/) |
+
+## 重要说明
+
+- `PUBLIC_BASE_URL` 为空或无效时，预签名 URL 会回退为相对地址；CloudConvert 在该情况下会拒绝创建任务
+- Web Push 的 VAPID key 在启动时自动生成并写入 `SECRET_DIR`，后续重启会复用已有 key

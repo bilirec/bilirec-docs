@@ -1,0 +1,29 @@
+---
+title: 通知配置
+description: Web Push 与 SSE 实时通知参数
+---
+
+## Web Push
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `WEBPUSH_SUBSCRIBER` | VAPID subject（建议 `mailto:you@example.com`） | `mailto:webpush@example.com` |
+
+VAPID 公钥/私钥在启动时自动生成并写入 `SECRET_DIR`（`_webpush_public_key`、`_webpush_private_key`），后续重启复用已有 key。
+
+前端通过 `GET /notify/public-key` 获取公钥后订阅。详见 [通知 API](/zh-cn/api/notify/)。
+
+## SSE 通知
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `NOTIFY_SSE_TOKEN` | SSE 订阅 token | (空字符串) |
+
+为空时 SSE 端点返回 `503`（禁用）。
+
+```http
+GET /notify/sse?token=YOUR_NOTIFY_SSE_TOKEN
+Accept: text/event-stream
+```
+
+推荐用于无法依赖 Google FCM 的场景（如中国大陆网络），Android 后端通过 SSE 获取通知后创建本地通知。建议通过 HTTPS 使用以避免 token 明文暴露。
