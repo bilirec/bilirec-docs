@@ -21,6 +21,11 @@ GET /room/:roomID/info
 }
 ```
 
+- `200`：成功
+- `400`：無效房間 ID
+- `404`：房間不存在
+- `500`：服務器內部錯誤
+
 ## 批量獲取房間信息
 
 ```http
@@ -32,6 +37,13 @@ Content-Type: application/json
 
 支持 query：`?roomIDs=123,456,789` 或 JSON `{"roomIDs":[...]}`（也接受 `room_ids`、`roomIds`）。
 
+```json
+{
+  "123": { "room_id": 123, "title": "標題1" },
+  "456": { "room_id": 456, "title": "標題2" }
+}
+```
+
 ## 檢查直播狀態
 
 ```http
@@ -42,6 +54,11 @@ GET /room/:roomID/live
 { "room_id": 123, "is_live": true }
 ```
 
+- `200`：成功
+- `400`：無效房間 ID
+- `404`：房間不存在
+- `500`：服務器內部錯誤
+
 ## 批量檢查直播狀態
 
 ```http
@@ -49,6 +66,14 @@ POST /room/lives
 ```
 
 支持 query 或 JSON payload，響應：`{"123": true, "456": false}`
+
+```json
+{
+  "123": true,
+  "456": false,
+  "789": true
+}
+```
 
 ## 訂閱管理
 
@@ -90,3 +115,5 @@ Content-Type: application/json
 ```
 
 `record_duration_minutes`：`0`=系統預設，`-1`=無限，正整數=N 分鐘。僅在 `auto_record: true` 時生效。
+
+若希望手動錄製也使用該時長，請在 `POST /record/:roomID/start` 時顯式傳入 `duration_minutes`；否則手動錄製仍按系統預設或本次請求參數執行。

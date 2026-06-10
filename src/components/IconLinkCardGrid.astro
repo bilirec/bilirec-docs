@@ -26,15 +26,14 @@ const {
 		items.map((item) => (
 			<a
 				href={item.href}
-				class:list={[
-					'group rounded-xl border border-slate-700/70 bg-slate-900/60 px-5 py-4 text-white no-underline shadow-lg shadow-slate-950/20 transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-400/55 hover:shadow-sky-900/25',
-					cardClass,
-				]}
+				class:list={['icon-link-card group px-5 py-4', cardClass]}
 			>
-				<div class="grid grid-cols-[1.4rem_minmax(0,1fr)] gap-x-2">
-					<span class="mt-0.5 text-base leading-none">{item.icon}</span>
-					<div class:list={['font-semibold leading-6', titleClass]}>{item.title}</div>
-					<p class="col-start-2 mt-1.5 m-0 text-sm leading-6 text-slate-300">{item.description}</p>
+				<div class="flex flex-col gap-1.5">
+					<div class="flex items-center gap-2">
+						<span class="icon-link-card__icon">{item.icon}</span>
+						<div class:list={['font-semibold leading-6', titleClass]}>{item.title}</div>
+					</div>
+					<p class="icon-link-card__description pl-7.5 m-0 text-sm">{item.description}</p>
 				</div>
 			</a>
 		))

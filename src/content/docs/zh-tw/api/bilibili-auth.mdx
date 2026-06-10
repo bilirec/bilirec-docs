@@ -51,6 +51,32 @@ POST /auth/bilibili/init
 - `409` — 已存在未完成的登錄會話
 - `500` — 獲取二維碼失敗
 
+**成功響應示例：**
+
+```json
+{
+  "qr": {
+    "url": "https://api.bilibili.com/x/web-interface/qrcode/generate?qrcode_key=def456..."
+  }
+}
+```
+
+**`400 Bad Request` 示例：**
+
+```json
+{
+  "error": "後端沒有啟用 controller 模式"
+}
+```
+
+**`500 Internal Server Error` 示例：**
+
+```json
+{
+  "error": "failed to get QR code: ..."
+}
+```
+
 ## 典型流程
 
 1. `POST /login`（若啟用了 `USERNAME` / `PASSWORD`）

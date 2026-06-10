@@ -3,26 +3,47 @@ title: Web 介面（PWA）
 description: 使用 bilirec-web PWA 管理錄製任務
 ---
 
-import { LinkCard, Aside } from '@astrojs/starlight/components';
+import { LinkCard, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 bilirec 的 Web 管理介面由 [bilirec-web](https://github.com/bilirec/bilirec-web) 提供，線上地址為 [app.bilirec.org](https://app.bilirec.org/)。它是一個通用前端，可連接任何 bilirec 後端實例。
 
 ## 訪問 Web 介面
 
-1. 確保 bilirec 後端已啟動（默認監聽 `http://localhost:8080`）
+1. 確保 bilirec 後端已啟動（默認端口為 `8080`，`HOST` 默認為空值即監聽所有網卡）
 2. 打開 [app.bilirec.org](https://app.bilirec.org/)
 
-{/* TODO: 請提供登入介面截圖 */}
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端登錄介面](/images/web-ui/desktop-login.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端登錄介面](/images/web-ui/mobile-login.png)
+
+</TabItem>
+</Tabs>
 
 3. 在登錄介面填入後端地址（本地使用可留空或填 `http://localhost:8080`）
 4. 若設置了 `USERNAME` 和 `PASSWORD`，輸入賬號密碼登錄；未設置則直接進入
 
 ## B 站登錄
 
-進入主介面後，點擊「登入」，再點擊右上角頭像按鈕完成 B 站掃碼登錄。
+進入主介面後，點擊「登錄」，再點擊右上角頭像按鈕完成 B 站掃碼登錄。
 
-{/* TODO: 請提供主控臺介面截圖 */}
+<Tabs>
+<TabItem label="桌面端">
 
+![桌面端B站登錄介面](/images/web-ui/desktop-b-login.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端B站登錄介面](/images/web-ui/mobile-b-login.png)
+
+</TabItem>
+</Tabs>
 ## 連接自架後端
 
 若後端不在本機運行，在登錄介面的**服務器地址**欄填入後端 URL，例如：
@@ -41,9 +62,69 @@ bilirec-web 支持 PWA（Progressive Web App），可安裝到桌面或手機主
 - iOS Safari：分享 →「添加到主屏幕」
 - Android Chrome：菜單 →「安裝應用」或「添加到主屏幕」
 
-{/* TODO: 請提供 PWA 安裝提示截圖 */}
-
 安裝後，PWA 會記住上次連接的後端地址，下次打開直接進入管理介面。
+
+## 頁面預覽
+
+### 錄製管理
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端錄製管理](/images/web-ui/desktop-recording.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端錄製管理](/images/web-ui/mobile-recording.png)
+
+</TabItem>
+</Tabs>
+
+### 錄製檔案
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端錄製檔案](/images/web-ui/desktop-files.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端錄製檔案](/images/web-ui/mobile-files.png)
+
+</TabItem>
+</Tabs>
+
+### 轉換任務
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端轉換任務](/images/web-ui/desktop-convert.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端轉換任務](/images/web-ui/mobile-convert.png)
+
+</TabItem>
+</Tabs>
+
+### 訂閱管理
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端訂閱管理](/images/web-ui/desktop-subscription.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端訂閱管理](/images/web-ui/mobile-subscription.png)
+
+</TabItem>
+</Tabs>
 
 <LinkCard title="bilirec-web 源碼" href="https://github.com/bilirec/bilirec-web">
   Web 前端開源倉庫，支持自行部署或定製。

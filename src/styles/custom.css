@@ -1,37 +1,50 @@
 :root {
 	--sl-color-accent-low: #0f2840;
-	--sl-color-accent: #4ea9ff;
-	--sl-color-accent-high: #b8ddff;
+	--sl-color-accent: #3b92f7;
+	--sl-color-accent-high: #c6e2ff;
+	--surface-border: color-mix(in srgb, var(--sl-color-accent) 18%, var(--sl-color-gray-5) 82%);
+	--surface-glow: 0 10px 26px color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
 	--sl-font: "Inter", "Noto Sans SC", "Noto Sans TC", "Segoe UI", sans-serif;
 }
 
 :root[data-theme="light"] {
-	--sl-color-accent-low: #d8ebff;
-	--sl-color-accent: #2477d4;
-	--sl-color-accent-high: #0e3d73;
+	--sl-color-accent-low: #e8f3ff;
+	--sl-color-accent: #1f78dd;
+	--sl-color-accent-high: #0f3e74;
+	--surface-border: color-mix(in srgb, var(--sl-color-accent) 24%, #dbe5ef 76%);
+	--surface-glow: 0 8px 20px rgb(16 58 102 / 10%);
 }
 
 :root[data-theme="dark"] {
-	--sl-color-accent-low: #0f2840;
-	--sl-color-accent: #4ea9ff;
+	--sl-color-accent-low: #10263d;
+	--sl-color-accent: #56a8ff;
 	--sl-color-accent-high: #d7ecff;
+	--surface-border: color-mix(in srgb, var(--sl-color-accent) 22%, #293445 78%);
+	--surface-glow: 0 10px 28px rgb(2 8 20 / 32%);
 }
 
 /* Home hero: make the first screen feel like a recorder dashboard */
 [data-has-hero] .hero {
 	position: relative;
 	overflow: hidden;
-	border: 1px solid color-mix(in srgb, var(--sl-color-accent) 38%, transparent);
+	border: 1px solid var(--surface-border);
 	border-radius: 1.25rem;
-	max-width: 72rem;
+	max-width: 82rem;
 	margin-inline: auto;
 	padding: clamp(1.25rem, 2.8vw, 2.35rem);
 	background:
-		radial-gradient(950px 420px at 88% -8%, color-mix(in srgb, var(--sl-color-accent) 18%, transparent), transparent 68%),
-		radial-gradient(760px 360px at 5% 115%, color-mix(in srgb, var(--sl-color-accent) 14%, transparent), transparent 63%),
-		linear-gradient(145deg, color-mix(in srgb, var(--sl-color-accent-low) 45%, var(--sl-color-black) 55%) 0%, var(--sl-color-bg-nav) 100%);
-	box-shadow: 0 18px 45px rgb(2 8 20 / 35%);
-	animation: hero-enter 560ms ease-out both, hero-glow 9s ease-in-out infinite;
+		radial-gradient(720px 240px at 88% -20%, color-mix(in srgb, var(--sl-color-accent) 17%, transparent), transparent 72%),
+		linear-gradient(160deg, color-mix(in srgb, var(--sl-color-accent-low) 30%, var(--sl-color-bg-nav) 70%) 0%, var(--sl-color-bg) 100%);
+	box-shadow: var(--surface-glow);
+	animation: hero-enter 420ms ease-out both;
+}
+
+/* Widen splash homepage content area. */
+[data-has-hero] .sl-markdown-content,
+[data-has-hero] .main-pane {
+	width: 100%;
+	max-width: min(82rem, calc(100vw - 5rem));
+	margin-inline: auto;
 }
 
 [data-has-hero] .hero::after {
@@ -40,14 +53,45 @@
 	inset: 0;
 	background-image: linear-gradient(
 		90deg,
-		color-mix(in srgb, var(--sl-color-accent-high) 8%, transparent) 1px,
+		color-mix(in srgb, var(--sl-color-accent-high) 10%, transparent) 1px,
 		transparent 1px
 	);
-	background-size: 52px 100%;
+	background-size: 44px 100%;
 	mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-	opacity: 0.7;
+	opacity: 0.45;
 	pointer-events: none;
-	animation: hero-grid-pan 14s linear infinite;
+}
+
+/* Easter-egg copy: reveal on hover/press. */
+[data-has-hero] .hero::before {
+	content: "为录制擦边主播而生 😈";
+	position: absolute;
+	right: 1rem;
+	bottom: 0.85rem;
+	padding: 0.22rem 0.52rem;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--sl-color-bg) 78%, var(--sl-color-accent-low) 22%);
+	color: color-mix(in srgb, var(--sl-color-text) 80%, var(--sl-color-accent-high) 20%);
+	font-size: 0.74rem;
+	line-height: 1.35;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+	opacity: 0;
+	transform: translateY(4px);
+	transition: opacity 180ms ease, transform 180ms ease;
+	pointer-events: none;
+	z-index: 3;
+}
+
+html[lang="zh-TW"] [data-has-hero] .hero::before {
+	content: "為錄製擦邊主播而生 😈";
+}
+
+[data-has-hero] .hero:hover::before,
+[data-has-hero] .hero:active::before,
+[data-has-hero] .hero:focus-within::before {
+	opacity: 1;
+	transform: translateY(0);
 }
 
 [data-has-hero] .hero .tagline {
@@ -62,8 +106,54 @@
 
 @media (max-width: 50rem) {
 	[data-has-hero] .hero {
-		padding: 1rem;
-		border-radius: 1rem;
+		padding: 1.25rem 0.9rem 0.95rem;
+		border-radius: 1.1rem;
+		border-color: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+		background:
+			radial-gradient(460px 170px at 50% -20%, color-mix(in srgb, var(--sl-color-accent) 16%, transparent), transparent 68%),
+			linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent-low) 20%, transparent), var(--sl-color-bg));
+		box-shadow: 0 8px 20px color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+	}
+
+	[data-has-hero] .hero::after {
+		opacity: 0.25;
+		background-size: 56px 100%;
+	}
+
+	[data-has-hero] .hero h1 {
+		font-size: clamp(2rem, 9vw, 2.35rem);
+		line-height: 1.05;
+		letter-spacing: 0;
+		text-align: center;
+		margin-bottom: 0.25rem;
+	}
+
+	[data-has-hero] .hero .tagline {
+		font-size: 1.02rem;
+		line-height: 1.55;
+		text-align: center;
+		max-width: 22ch;
+		margin-inline: auto;
+		margin-bottom: 0.5rem;
+	}
+
+	[data-has-hero] .hero .actions {
+		flex-direction: column;
+		gap: 0.52rem;
+	}
+
+	[data-has-hero] .hero .actions .sl-link-button {
+		width: 100%;
+		justify-content: center;
+		min-height: 3.15rem;
+		font-size: 1.1rem;
+		border-radius: 0.78rem;
+	}
+
+	.hero .actions .sl-link-button:nth-child(1),
+	.hero .actions .sl-link-button:nth-child(2),
+	.hero .actions .sl-link-button:nth-child(3) {
+		animation: none;
 	}
 }
 
@@ -74,12 +164,12 @@
 }
 
 .hero .sl-link-button {
-	border-radius: 0.8rem;
+	border-radius: 0.7rem;
 	font-weight: 600;
 	display: inline-flex;
 	align-items: center;
 	gap: 0.48rem;
-	padding-inline: 1.05rem;
+	padding-inline: 1rem;
 	transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
 
@@ -121,28 +211,56 @@
 	animation: button-pop 420ms ease-out 210ms both;
 }
 
-.sl-link-card {
-	border-radius: 0.95rem;
-	border: 1px solid color-mix(in srgb, var(--sl-color-accent) 22%, var(--sl-color-gray-6) 78%);
+.sl-link-card,
+.icon-link-card {
+	border-radius: 0.9rem;
+	border: 1px solid var(--surface-border);
 	background:
 		linear-gradient(
 			180deg,
-			color-mix(in srgb, var(--sl-color-accent-low) 24%, transparent),
-			transparent 42%
+			color-mix(in srgb, var(--sl-color-accent-low) 16%, transparent),
+			transparent 56%
 		),
 		var(--sl-color-bg);
+	color: var(--sl-color-text);
+	text-decoration: none;
 	transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.icon-link-card {
+	border-radius: 0.75rem;
+	box-shadow: var(--surface-glow);
+}
+
+.icon-link-card:hover {
+	transform: translateY(-1px);
+	border-color: color-mix(in srgb, var(--sl-color-accent) 48%, var(--sl-color-gray-5) 52%);
+	box-shadow: 0 14px 30px color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+}
+
+.icon-link-card__description {
+	color: color-mix(in srgb, var(--sl-color-text) 80%, var(--sl-color-gray-3) 20%);
+	line-height: 1.5;
+}
+
+.icon-link-card__icon {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1rem;
+	line-height: 1;
+}
+
 .sl-link-card p {
-	color: color-mix(in srgb, var(--sl-color-white) 82%, var(--sl-color-gray-3) 18%);
+	color: color-mix(in srgb, var(--sl-color-text) 82%, var(--sl-color-gray-3) 18%);
 	line-height: 1.55;
 }
 
 .sl-link-card:hover {
-	transform: translateY(-2px);
+	transform: translateY(-1px);
 	border-color: color-mix(in srgb, var(--sl-color-accent) 40%, var(--sl-color-gray-5) 60%);
-	box-shadow: 0 14px 30px rgb(2 8 20 / 14%);
+	box-shadow: 0 14px 30px color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
 }
 
 main .expressive-code,

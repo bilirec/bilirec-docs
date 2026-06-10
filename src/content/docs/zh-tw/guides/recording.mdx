@@ -3,13 +3,28 @@ title: 錄製直播間
 description: 手動錄製、自動錄製、訂閱房間與畫質選擇
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 通過 [Web 介面](/zh-tw/guides/web-ui/) 或 [REST API](/zh-tw/api/record/) 管理錄製任務。
 
 ## 手動錄製
 
 在 Web 介面中輸入直播間房間號，選擇畫質與時長，點擊開始錄製。
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端錄製管理-1](/images/web-ui/desktop-add-record-1.png)
+![桌面端錄製管理-2](/images/web-ui/desktop-add-record-2.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端錄製管理-1](/images/web-ui/mobile-add-record-1.png)
+![移動端錄製管理-2](/images/web-ui/mobile-add-record-2.png)
+
+</TabItem>
+</Tabs>
 
 也可通過 API 啟動：
 
@@ -46,14 +61,25 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 | `-1` | 無限錄製 |
 | 正整數 | N 分鐘後自動停止 |
 
-{/* TODO: 請提供開始錄製介面截圖 */}
-
 ## 訂閱房間
 
 訂閱直播間後，可設定開播自動錄製與開播通知：
 
 1. 在 Web 介面添加房間訂閱
 2. 設定自動錄製與通知選項
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端訂閱管理](/images/web-ui/desktop-sub-config.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端訂閱管理](/images/web-ui/mobile-sub-config.png)
+
+</TabItem>
+</Tabs>
 
 通過 API：
 
@@ -66,8 +92,6 @@ curl -X PUT http://127.0.0.1:8080/room/12345/config \
   -H "Content-Type: application/json" \
   -d '{"auto_record":true,"notify":true,"record_duration_minutes":120}'
 ```
-
-{/* TODO: 請提供訂閱房間介面截圖 */}
 
 ## 自動錄製
 

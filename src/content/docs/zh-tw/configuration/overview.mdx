@@ -18,9 +18,18 @@ description: 環境變量加載順序與 .env 檔案機制
 
 編輯 `.env.local` 或 `.env` 檔案，或直接設置環境變量：
 
+**Linux / macOS：**
+
 ```bash
 export MAX_CONCURRENT_RECORDINGS=5
 ./bilirec-linux-amd64
+```
+
+**Windows PowerShell：**
+
+```powershell
+$env:MAX_CONCURRENT_RECORDINGS="5"
+.\bilirec-windows.exe
 ```
 
 **Docker 模式：**
@@ -38,7 +47,7 @@ docker run -e MAX_CONCURRENT_RECORDINGS=5 ...
 | 完整變量列表 | [環境變量參考](/zh-tw/configuration/env-reference/) |
 | 可複製示例 | [設定示例](/zh-tw/configuration/examples/) |
 | 服務器與網絡 | [服務器與網絡](/zh-tw/configuration/server-network/) |
-| FRP 內網穿透 | [FRP 設定](/zh-tw/configuration/frp/) |
+| 遠程訪問（FRP） | [遠程訪問設定](/zh-tw/configuration/frp/) |
 | 錄製參數 | [錄製設定](/zh-tw/configuration/recording/) |
 | 格式轉換 | [轉換設定](/zh-tw/configuration/conversion/) |
 | 認證與安全 | [認證與安全](/zh-tw/configuration/auth-security/) |

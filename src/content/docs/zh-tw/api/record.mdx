@@ -30,6 +30,7 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 | 值 | 畫質 |
 | -- | ---- |
+| 不傳 | 原畫（`10000`） |
 | `80` | 流暢 |
 | `150` | 高清 |
 | `250` | 超清 |
@@ -44,6 +45,11 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 | -- | ---- |
 | 不傳 / `false` | 錄製音視頻 |
 | `true` | 僅錄製音頻 |
+
+**注意：**
+
+- 不傳 `qn` 時默認請求原畫（`10000`），默認緩衝參數也按該檔位設計
+- 錄製 4K / 杜比等高碼率流時，建議同步調大 `READ_STREAM_BYTES_POOL_SIZE` 與 `READ_STREAM_CHAN_BUFFER_SIZE`
 
 ```bash
 curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true"

@@ -1,11 +1,14 @@
 ---
-title: FRP 配置
-description: FRP 内网穿透参数、协议约束与配置示例
+title: 远程访问配置
+description: 远程访问基础说明、FRP 参数、协议约束与配置示例
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-启用 FRP (`FRP_ENABLED=true`) 时，bilirec 作为内网穿透客户端连接到 FRP 服务器。
+远程访问是指：让运行在内网（如家庭宽带、NAS、树莓派）的服务在没有公网 IP 的情况下，也能被外网访问。
+对 bilirec 来说，这通常通过 FRP 内网穿透实现；启用后，你可以在外出时通过公网地址访问自己的录制后端。
+
+启用 FRP (`FRP_ENABLED=true`) 时，bilirec 作为远程访问客户端连接到 FRP 服务器。
 
 仅设置 `FRP_ENABLED=true` 时，程序默认使用官方免费公共 FRP 服务；设置 `FRP_SERVER`、`FRP_BASE_DOMAIN` 或 `FRP_TOKEN` 时切换为自定义配置。
 
