@@ -1,20 +1,19 @@
 ---
 title: Android 默認設定
-description: Android 模式下強制注入的默認值
+description: Android 模式下的默認行為與默認值
 ---
 
 Android 模式（`libbilirec.so`）會先注入一組移動端默認值，再套用 `env` 覆蓋。
 
-## 強制行為
+## 默認行為
 
-以下設定在 Android 模式下**不可覆蓋**：
+以下設定是 Android 模式下的默認行為（可通過 `env` 覆蓋）：
 
-| 變量 | 強制值 | 原因 |
+| 變量 | 默認值 | 原因 |
 |------|--------|------|
 | `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登錄 |
 | `FRP_ENABLED` | `false` | 手機無需內網穿透 |
 | `SILENT_ACCESS_LOG` | `true` | 減少日誌輸出 |
-| `CONVERT_TO_MP4` | `false` | 避免前臺卡頓 |
 
 ## 自動注入
 

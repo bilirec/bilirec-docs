@@ -1,20 +1,19 @@
 ---
 title: Android 默认配置
-description: Android 模式下强制注入的默认值
+description: Android 模式下的默认行为与默认值
 ---
 
 Android 模式（`libbilirec.so`）会先注入一组移动端默认值，再套用 `env` 覆盖。
 
-## 强制行为
+## 默认行为
 
-以下配置在 Android 模式下**不可覆盖**：
+以下配置是 Android 模式下的默认行为（可通过 `env` 覆盖）：
 
-| 变量 | 强制值 | 原因 |
+| 变量 | 默认值 | 原因 |
 |------|--------|------|
 | `BILIBILI_LOGIN_MODE` | `controller` | 通过 Web UI 扫码登录 |
 | `FRP_ENABLED` | `false` | 手机无需内网穿透 |
 | `SILENT_ACCESS_LOG` | `true` | 减少日志输出 |
-| `CONVERT_TO_MP4` | `false` | 避免前台卡顿 |
 
 ## 自动注入
 

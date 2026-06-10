@@ -31,12 +31,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 移動端默認行為
 
-Android 模式下會先注入一組移動端默認值，再套用 `env` 覆蓋，並強制：
+Android 模式下會先注入一組移動端默認值，再套用 `env` 覆蓋。默認行為如下（可覆蓋）：
 
 - `BILIBILI_LOGIN_MODE=controller`
 - `FRP_ENABLED=false`
 - `SILENT_ACCESS_LOG=true`
-- `CONVERT_TO_MP4=false`
 
 完整參數見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
 
