@@ -1,9 +1,12 @@
 ---
 title: 環境變量參考
 description: bilirec 完整環境變量一覽表
+tableOfContents: false
 ---
 
 所有環境變量及其默認值。部分變量有別名，標註在說明中。
+
+<div class="env-table-scroll">
 
 | 環境變量 | 說明 | 默認值 |
 | ------- | ---- | ------ |
@@ -37,7 +40,7 @@ description: bilirec 完整環境變量一覽表
 | `VIEWER_USERNAME` | 只讀訪客用戶名 | (未設置) |
 | `VIEWER_PASSWORD` | 只讀訪客密碼 | (未設置) |
 | `JWT_SECRET` | JWT 簽名密鑰 | `bilirec_secret` |
-| `DEBUG` | 啟用調試模式（pprof + hex token） | `false` |
+| `DEBUG` | 啟用調試模式（pprof + 十六進制令牌） | `false` |
 | `PRODUCTION_MODE` | 生產模式（影響 cookie 與 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 靜默訪問日誌（僅記錄 4xx/5xx） | `false` |
 | `DATABASE_DIR` | bbolt 數據庫目錄 | `database` |
@@ -62,5 +65,7 @@ description: bilirec 完整環境變量一覽表
 | `SKIP_SMALL_FLUSH` | microSD 磨損保護：跳過小塊 flush | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需最小磁盤空間（字節） | `5368709120` (5 GB) |
+
+</div>
 
 各分類的詳細說明請參閱對應專題頁面。

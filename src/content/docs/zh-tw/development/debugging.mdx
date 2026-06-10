@@ -9,11 +9,11 @@ description: DEBUG 模式與 pprof 性能分析
 export DEBUG=true
 ```
 
-服務器啟動時會在日誌中打印一個臨時十六進制令牌（hex token）。
+服務器啟動時會在日誌中打印一個臨時十六進制令牌。
 
 ## pprof 性能分析
 
-調試模式下在 `/debug/pprof` 掛載 pprof。該路由受保護：需在請求頭 `Authorization` 中填入啟動日誌中的 hex token。
+調試模式下在 `/debug/pprof` 掛載 pprof。該路由受保護：需在請求頭 `Authorization` 中填入啟動日誌中的十六進制令牌。
 
 實現位於 `internal/modules/rest/rest.go`。
 

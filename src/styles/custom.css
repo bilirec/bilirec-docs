@@ -158,12 +158,68 @@ main :not(pre) > code {
 }
 
 .sl-markdown-content table {
-	border-radius: 0.75rem;
-	overflow: hidden;
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
 }
 
 .sl-markdown-content thead {
 	background: color-mix(in srgb, var(--sl-color-accent-low) 45%, var(--sl-color-bg-nav) 55%);
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+	vertical-align: top;
+	white-space: normal;
+	overflow-wrap: break-word;
+	word-break: normal;
+}
+
+.sl-markdown-content td code,
+.sl-markdown-content th code {
+	white-space: nowrap;
+	overflow-wrap: normal;
+	word-break: normal;
+}
+
+@media (max-width: 50rem) {
+	/* On phones, prefer horizontal scroll instead of squeezing into vertical text. */
+	.sl-markdown-content th,
+	.sl-markdown-content td {
+		white-space: nowrap;
+	}
+}
+
+.sl-markdown-content table th:first-child,
+.sl-markdown-content table td:first-child {
+	padding-left: 1rem;
+}
+
+.sl-markdown-content table th:last-child,
+.sl-markdown-content table td:last-child {
+	padding-right: 1rem;
+}
+
+.sl-markdown-content .env-table-scroll {
+	padding-inline: 0.75rem;
+	overflow: visible;
+}
+
+.sl-markdown-content .env-table-scroll > table {
+	min-width: 100%;
+	width: 100%;
+}
+
+/* On env reference pages, let the table area break out wider than prose width. */
+@media (min-width: 72rem) {
+	.sl-markdown-content .env-table-scroll {
+		width: min(64rem, calc(100vw - 24rem));
+		margin-left: 50%;
+		transform: translateX(-50%);
+	}
 }
 
 .sl-markdown-content blockquote {

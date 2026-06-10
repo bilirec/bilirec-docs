@@ -7,15 +7,19 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 ## 通用緩衝區
 
+`READ_STREAM_*` 這組參數用於**讀取直播流**階段（網路讀取與管道緩衝）。
+
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
 | `UPLOAD_BUFFER_SIZE` | 上傳/外部傳輸緩衝區（字節） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 檔案下載緩衝區（字節） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流寫入器緩衝區（字節） | `1048576` (1 MB) |
-| `READ_STREAM_BYTES_POOL_SIZE` | 讀取流字節池單塊大小（字節） | `524288` (512 KB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 讀取流通道緩衝區（chunk 數） | `16` |
+| `READ_STREAM_BYTES_POOL_SIZE` | 讀取直播流字節池單塊大小（字節） | `524288` (512 KB) |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 讀取直播流通道緩衝區（chunk 數） | `16` |
 
 ## 實時流寫入
+
+`LIVE_STREAM_WRITER_*` 這組參數用於**寫入直播流**到磁盤階段（flush/sync/隊列）。
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|

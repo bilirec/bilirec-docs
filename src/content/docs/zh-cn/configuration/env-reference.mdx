@@ -1,9 +1,12 @@
 ---
 title: 环境变量参考
 description: bilirec 完整环境变量一览表
+tableOfContents: false
 ---
 
 所有环境变量及其默认值。部分变量有别名，标注在说明中。
+
+<div class="env-table-scroll">
 
 | 环境变量 | 说明 | 默认值 |
 | ------- | ---- | ------ |
@@ -37,7 +40,7 @@ description: bilirec 完整环境变量一览表
 | `VIEWER_USERNAME` | 只读访客用户名 | (未设置) |
 | `VIEWER_PASSWORD` | 只读访客密码 | (未设置) |
 | `JWT_SECRET` | JWT 签名密钥 | `bilirec_secret` |
-| `DEBUG` | 启用调试模式（pprof + hex token） | `false` |
+| `DEBUG` | 启用调试模式（pprof + 十六进制令牌） | `false` |
 | `PRODUCTION_MODE` | 生产模式（影响 cookie 与 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 静默访问日志（仅记录 4xx/5xx） | `false` |
 | `DATABASE_DIR` | bbolt 数据库目录 | `database` |
@@ -62,5 +65,7 @@ description: bilirec 完整环境变量一览表
 | `SKIP_SMALL_FLUSH` | microSD 磨损保护：跳过小块 flush | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路写入 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 录制所需最小磁盘空间（字节） | `5368709120` (5 GB) |
+
+</div>
 
 各分类的详细说明请参阅对应专题页面。

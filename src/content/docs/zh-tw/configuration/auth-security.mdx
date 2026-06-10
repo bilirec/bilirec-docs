@@ -27,11 +27,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `DEBUG` | 調試模式（pprof + hex token） | `false` |
+| `DEBUG` | 調試模式（pprof + 十六進制令牌） | `false` |
 | `PRODUCTION_MODE` | 生產模式（影響 cookie 與 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 靜默訪問日誌（僅 4xx/5xx） | `false` |
 
-`DEBUG=true` 時在 `/debug/pprof` 掛載 pprof，需 Authorization 頭填入啟動日誌中的 hex token。詳見[開發與調試](/zh-tw/development/debugging/)。
+`DEBUG=true` 時在 `/debug/pprof` 掛載 pprof，需 Authorization 頭填入啟動日誌中的十六進制令牌。詳見[開發與調試](/zh-tw/development/debugging/)。
 
 ## B 站登錄
 
