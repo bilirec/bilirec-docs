@@ -8,13 +8,13 @@ import { Aside } from '@astrojs/starlight/components';
 ## 从源码构建
 
 ```bash
+# 在仓库根目录构建镜像
 docker build -t bilirec:latest .
+
+# 运行容器（示例）
 docker run -d \
   --name bilirec \
   -p 8080:8080 \
-  -e BILIBILI_LOGIN_MODE=controller \
-  -e PORT=8080 \
-  -e FRONTEND_URL=http://localhost:8080 \
   -v /path/to/records:/app/records \
   -v /path/to/secrets:/app/secrets \
   -v /path/to/database:/app/database \
@@ -24,13 +24,10 @@ docker run -d \
 ## 从 Docker Hub 拉取
 
 ```bash
-docker pull eric1008818/bilirec:latest   # 测试版用 :edge
+docker pull eric1008818/bilirec:latest # 最新测试版本请用 :edge
 docker run -d \
   --name bilirec \
   -p 8080:8080 \
-  -e BILIBILI_LOGIN_MODE=controller \
-  -e PORT=8080 \
-  -e FRONTEND_URL=http://localhost:8080 \
   -v /path/to/records:/app/records \
   -v /path/to/secrets:/app/secrets \
   -v /path/to/database:/app/database \
