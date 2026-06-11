@@ -44,6 +44,7 @@ const sidebar = [
 			{ slug: 'configuration/notifications' },
 			{ slug: 'configuration/io-tuning' },
 			{ slug: 'configuration/pi5-defaults' },
+			{ slug: 'configuration/high-bitrate-tuning' },
 			{ slug: 'configuration/ssd-tuning' },
 			{ slug: 'configuration/hdd-nas-tuning' },
 			{ slug: 'configuration/android-defaults' },

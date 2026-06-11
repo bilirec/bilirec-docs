@@ -1,0 +1,50 @@
+---
+title: 高碼率 / 4K 調參
+description: 錄製 4K、杜比或極高碼率 HLS 時的內存池與緩衝參數建議
+---
+
+默認 `READ_STREAM_*` 與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE=512 KB` 面向 **1080p 原畫**（含 30/60fps）。該設定下 FLV 單次讀塊上限為 512 KB，1080p 場景通常**不會**出現數 MB 級別的單塊數據，無需額外調整。
+
+錄製 **4K（`qn=20000`）**、**杜比（`qn=30000`）** 或極高碼率 HLS 時，單塊數據（FLV 讀塊或 HLS 整段 segment）可能超過默認內存池最大桶（約 2 MB），從而觸發池外分配。此時應**同時**調大讀取池與寫入池。
+
+## 三個變量分工
+
+| 變量 | 作用 |
+| ---- | ---- |
+| `READ_STREAM_BYTES_POOL_SIZE` | FLV 每次 `Read` 的上限；也影響讀側在途內存 |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | Writer 入隊拷貝時的分桶池；決定「多大以內的塊可以複用緩衝」 |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫檔案的 bufio 緩衝；影響 flush 頻次與 SD 磨損，**不解決**大塊池外分配 |
+
+## 推薦起點
+
+按設備內存酌情調大/調小：
+
+| 場景 | `READ_STREAM_BYTES_POOL_SIZE` | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `READ_STREAM_CHAN_BUFFER_SIZE` | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 說明 |
+| ---- | ----------------------------- | -------------------------------------- | ------------------------------ | ------------------------------------- | ---- |
+| 1080p 原畫（默認） | `524288` (512 KB) | `524288` (512 KB) | `16` | `64` | 樹莓派 5B / 4GB 默認即可 |
+| 4K / 杜比 FLV | `1048576` (1 MB) | `1048576` (1 MB) | `16`～`24` | `64` | 讀寫池保持一致；`base=1 MB` 時最大池桶約 4 MB |
+| 4K / 杜比 HLS | `1048576` (1 MB) | `1048576` (1 MB) | `16` | `64` | HLS 按整段 segment 入隊，**寫入池**比讀池更關鍵 |
+| 4GB 設備多路 4K | `1048576` (1 MB) | `1048576` (1 MB) | `16` | `48`～`64` | 優先控制 `CHAN` 深度，避免隊列內存線性膨脹 |
+| SSD / NAS 單路 4K | `1048576`～`2097152` (1～2 MB) | 與 read **相同** | `24` | `128` | 存儲較快時可略增隊列深度 |
+
+## 示例（4K FLV 原畫）
+
+```bash
+export READ_STREAM_BYTES_POOL_SIZE=1048576
+export READ_STREAM_CHAN_BUFFER_SIZE=16
+export LIVE_STREAM_WRITER_BYTES_POOL_SIZE=1048576
+# 以下與池大小無關，按存儲介質沿用默認或 HDD/SSD 章節建議即可
+export LIVE_STREAM_WRITER_BUFFER_SIZE=8388608
+export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64
+```
+
+## 粗算單路在途內存
+
+上限估算：
+
+- 讀側：`READ_STREAM_CHAN_BUFFER_SIZE × READ_STREAM_BYTES_POOL_SIZE`（FLV；HLS 讀側佔用通常更小）
+- 寫側：`LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE ×` 典型塊大小（FLV 約等於 read 塊；HLS 約等於 segment 大小）
+
+例：默認 1080p 寫隊列約 `64 × 512 KB ≈ 32 MB`；若改為 4K 且 `1 MB` 塊、`CHAN=64`，寫隊列上限約 `64 MB`，多路錄製時請相應降低 `MAX_CONCURRENT_RECORDINGS` 或 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`。
+
+通過 API 啟動高畫質錄製時，請顯式傳 `qn` 參數，詳見[錄製管理 API](/zh-tw/api/record/)。

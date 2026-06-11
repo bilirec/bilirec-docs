@@ -56,5 +56,5 @@ import { Aside } from '@astrojs/starlight/components';
 | 恢復閒置 | ~0.0% | ~54MB |
 
 <Aside type="note">
-bilirec 使用了較多內存池以降低 GC 壓力，因此部分內存會被池化複用而非立即歸還系統。默認設定也偏向減少 microSD 寫入磨損，內存佔用會更高一些。若要進一步壓低佔用，請參考[設定與調優](/zh-tw/configuration/overview/)。
+bilirec 使用了較多內存池以降低 GC 壓力，因此部分內存會被池化複用而非立即歸還系統。默認設定也偏向減少 microSD 寫入磨損，內存佔用會更高一些。`SKIP_SMALL_FLUSH=true` 時，是否落盤由 `SKIP_SMALL_FLUSH_THRESHOLD` 決定（默認 1MB，獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`）。若要進一步壓低佔用，請參考[設定與調優](/zh-tw/configuration/overview/)。
 </Aside>

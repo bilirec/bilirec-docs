@@ -19,8 +19,10 @@ description: 缓冲区、flush、sync 与写入序列化参数
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `READ_STREAM_BYTES_POOL_SIZE` | 读取直播流字节池单块大小（字节） | `524288` (512 KB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 读取直播流通道缓冲区（chunk 数） | `16` |
+| `READ_STREAM_BYTES_POOL_SIZE` | 读取直播流字节池单块大小（字节）；FLV / HLS 共用，建议与常见 chunk 大小一致 | `524288` (512 KB) |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 读取直播流通道缓冲区（chunk 数）；更大值可容忍网络/写入短时抖动，但会增加在途内存 | `16` |
+
+默认面向 **1080p 原画**；录制 4K、杜比或极高码率 HLS 时需调大读写池，详见[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。
 
 ## 直播流写入文件
 
@@ -32,7 +34,7 @@ description: 缓冲区、flush、sync 与写入序列化参数
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 周期性 fsync 周期（秒），`0`=禁用 | `0` |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 周期性 flush 周期（秒） | `10` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道缓冲区（数据块数） | `64` |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 内存池单块大小（字节） | `524288` (512 KB) |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 内存池单块大小（字节）；应与实际流 chunk 大小相匹配 | `524288` (512 KB) |
 
 ### 关键参数说明
 
@@ -48,7 +50,7 @@ description: 缓冲区、flush、sync 与写入序列化参数
 | `SKIP_SMALL_FLUSH` | 启用后在达到阈值前仅缓存内存，不创建文件 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路写入 | `true` |
 
-- **`SKIP_SMALL_FLUSH`** — 对低比特率流（如 240p）特别有效，在小流量短时录制时减少无意义落盘；阈值由 `SKIP_SMALL_FLUSH_THRESHOLD` 控制，且独立于 `LIVE_STREAM_WRITER_BUFFER_SIZE`
+- **`SKIP_SMALL_FLUSH`** — 在达到 `SKIP_SMALL_FLUSH_THRESHOLD`（默认 1MB）之前仅缓存内存、不创建文件；对低比特率流（如 240p）特别有效。该阈值独立于 `LIVE_STREAM_WRITER_BUFFER_SIZE`
 - **`SEQUENTIAL_WRITE`** — 多路并发写入同一物理磁盘时显著降低 I/O 峰值；SSD 环境建议禁用
 
-针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。
+针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。
