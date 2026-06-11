@@ -1,0 +1,14 @@
+---
+description: Prefer MCP tools over web fetch/search for documentation and research
+alwaysApply: true
+---
+
+# MCP Tools First
+
+When looking up documentation, APIs, or external information for this project:
+
+1. **Use MCP tools first** — check enabled MCP servers (e.g. Astro docs, Cloudflare docs, GitHub) before any other lookup method.
+2. **Fall back only when MCP cannot help** — use `WebFetch` or `WebSearch` only if no relevant MCP tool exists or MCP calls fail to answer the question.
+3. **Read MCP tool schemas** — list and read tool descriptors in the MCP filesystem before calling tools.
+
+Do not skip MCP and go straight to web search when an applicable MCP server is available.

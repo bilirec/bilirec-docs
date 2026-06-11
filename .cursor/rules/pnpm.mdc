@@ -1,0 +1,27 @@
+---
+description: Use pnpm as the package manager for this project
+alwaysApply: true
+---
+
+# Package Manager: pnpm
+
+This project uses **pnpm**, not npm or yarn.
+
+## Commands
+
+Use `pnpm` for install, scripts, and dependency management:
+
+```bash
+pnpm install
+pnpm dev
+pnpm build
+pnpm preview
+pnpm convert:zh-tw
+```
+
+Do **not** use `npm install`, `npm run …`, or `npx` unless the user explicitly asks for npm.
+
+## Notes
+
+- Lockfile: `pnpm-lock.yaml`
+- Local store: `.pnpm-store/` (see `.npmrc`)

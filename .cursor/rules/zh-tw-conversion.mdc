@@ -1,0 +1,24 @@
+---
+description: zh-tw docs are generated from zh-cn; never edit zh-tw MDX directly
+alwaysApply: true
+---
+
+# Traditional Chinese (zh-tw) Workflow
+
+`src/content/docs/zh-tw/` is **auto-generated** from `src/content/docs/zh-cn/`. Do not treat zh-tw as a hand-edited locale.
+
+## Rules
+
+1. **Never edit zh-tw MDX files directly** — including fixes, new pages, or wording tweaks.
+2. **Edit zh-cn only**, then regenerate Traditional Chinese:
+
+   ```bash
+   pnpm convert:zh-tw
+   ```
+
+3. **If conversion output is wrong** (bad OpenCC results, wrong terminology), fix `scripts/convert-zh-tw.mjs` (e.g. `termFixes`) — not individual zh-tw files.
+
+## Workflow
+
+- New or updated docs → write in `zh-cn` → run `pnpm convert:zh-tw`.
+- Wrong 繁體用詞 or conversion artifacts → adjust `scripts/convert-zh-tw.mjs` → re-run convert.
