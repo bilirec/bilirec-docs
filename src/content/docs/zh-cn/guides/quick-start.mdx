@@ -35,19 +35,17 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 <TabItem label="Docker">
 
 ```bash
+docker pull eric1008818/bilirec:latest
 docker run -d \
   --name bilirec \
   -p 8080:8080 \
-  -e BILIBILI_LOGIN_MODE=controller \
-  -e PORT=8080 \
-  -e FRONTEND_URL=http://localhost:8080 \
   -v /path/to/records:/app/records \
   -v /path/to/secrets:/app/secrets \
   -v /path/to/database:/app/database \
   eric1008818/bilirec:latest
 ```
 
-更多参数见 [Docker 指南](/zh-cn/guides/docker/)。
+更多配置（环境变量、卷挂载说明、测试版本标签）见 [Docker 指南](/zh-cn/guides/docker/)。
 
 </TabItem>
 
