@@ -44,10 +44,11 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `SKIP_SMALL_FLUSH` | 總寫入量 < 緩衝區大小時跳過 flush | `true` |
+| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存內存的閾值（字節） | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH` | 啟用後在達到閾值前僅緩存內存，不創建檔案 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
 
-- **`SKIP_SMALL_FLUSH`** — 對低比特率流（如 240p）特別有效，防止多次小塊寫入磨損
+- **`SKIP_SMALL_FLUSH`** — 對低比特率流（如 240p）特別有效，在小流量短時錄製時減少無意義落盤；閾值由 `SKIP_SMALL_FLUSH_THRESHOLD` 控制，且獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`
 - **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；SSD 環境建議禁用
 
 針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

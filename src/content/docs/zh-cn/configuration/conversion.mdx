@@ -9,9 +9,7 @@ description: FFmpeg 本地转换与 CloudConvert 云端转换参数
 |------|------|--------|
 | `CONVERT_TO_MP4` | 录制完成后转为 MP4 | `false` |
 | `DELETE_SOURCE_AFTER_CONVERT` | 转换后删除原始源文件 | `false` |
-| `NO_CONVERT_IF_INVALID` | 源文件缺少音视频流时停止转码 | `false` |
-
-别名：`CONVERT_FLV_TO_MP4`、`DELETE_FLV_AFTER_CONVERT`。
+| `NO_CONVERT_IF_INVALID` | 源文件缺少音视频流时是否停止转码；若系统未安装 `ffprobe`，检查会自动放行 | `false` |
 
 启用 `CONVERT_TO_MP4` 后，录制完成的 FLV/TS 文件自动加入转换队列，由后台异步转换为 MP4。
 

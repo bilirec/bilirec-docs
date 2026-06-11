@@ -4,7 +4,7 @@ description: bilirec 完整环境变量一览表
 tableOfContents: false
 ---
 
-所有环境变量及其默认值。部分变量有别名，标注在说明中。
+所有环境变量及其默认值。
 
 <div class="env-table-scroll">
 
@@ -28,10 +28,10 @@ tableOfContents: false
 | `MAX_RETRY_MINUTES` | 直播中断后判断容忍时间（分钟） | `10` |
 | `OUTPUT_DIR` | 录制文件保存目录 | `records` |
 | `SECRET_DIR` | Cookie 和 Token 保存目录 | `secrets` |
-| `CONVERT_TO_MP4` | 录制完成后转为 MP4（别名：`CONVERT_FLV_TO_MP4`） | `false` |
-| `DELETE_SOURCE_AFTER_CONVERT` | 转换后删除原始源文件（别名：`DELETE_FLV_AFTER_CONVERT`） | `false` |
-| `NO_CONVERT_IF_INVALID` | 源文件缺少音视频流时停止转码 | `false` |
-| `PUBLIC_BASE_URL` | 后端公开基址（别名：`BACKEND_HOST`） | (空字符串) |
+| `CONVERT_TO_MP4` | 录制完成后是否将可转换源文件（如 FLV/TS）转为 MP4 | `false` |
+| `DELETE_SOURCE_AFTER_CONVERT` | 转换后是否删除原始源文件 | `false` |
+| `NO_CONVERT_IF_INVALID` | 源文件缺少音视频流时是否停止转码；若系统未安装 `ffprobe`，原始视频检查会自动放行 | `false` |
+| `PUBLIC_BASE_URL` | 后端公开基址（仅用于生成预签名 URL，需为完整 URL） | (空字符串) |
 | `FRONTEND_URL` | 前端 URL（用于 CORS） | `http://localhost:8080` |
 | `WEBPUSH_SUBSCRIBER` | Web Push VAPID subject | `mailto:webpush@example.com` |
 | `NOTIFY_SSE_TOKEN` | SSE 通知订阅 token | (空字符串) |
@@ -62,7 +62,8 @@ tableOfContents: false
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 周期性 flush 周期（秒） | `10` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 实时流写入器通道缓冲区 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 实时流写入器内存池单块大小 | `524288` (512 KB) |
-| `SKIP_SMALL_FLUSH` | microSD 磨损保护：跳过小块 flush | `true` |
+| `SKIP_SMALL_FLUSH_THRESHOLD` | 启用 `SKIP_SMALL_FLUSH` 后，延迟创建文件并缓存内存的阈值（字节） | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH` | microSD 磨损保护：写入量小于 `SKIP_SMALL_FLUSH_THRESHOLD` 时不创建录制文件，仅缓存内存 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路写入 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 录制所需最小磁盘空间（字节） | `5368709120` (5 GB) |
 
