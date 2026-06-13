@@ -48,8 +48,9 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 **注意：**
 
-- 不傳 `qn` 時默認請求原畫，是為了配合 `READ_STREAM_*` 的默認緩衝大小——高碼率流（如 4K、杜比）更容易把讀取緩衝撐滿
-- 若要錄這類畫質，請顯式傳 `qn`，並參照[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)調整 `READ_STREAM_BYTES_POOL_SIZE`、`LIVE_STREAM_WRITER_BYTES_POOL_SIZE`（建議與 read 同值）及 `READ_STREAM_CHAN_BUFFER_SIZE`
+- 錄 4K / 杜比請顯式傳 `qn`（如 `qn=20000`、`qn=30000`）
+- `qn ≥ 20000` 時自動啟用 `*_HIGH` 高畫質內存池，一般無需改環境變量
+- 若遇卡頓或內存不足，參見 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/) 與 [內存佔用估算](/zh-tw/configuration/memory-estimation/)
 
 ```bash
 curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true"

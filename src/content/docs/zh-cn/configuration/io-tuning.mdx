@@ -15,14 +15,19 @@ description: 缓冲区、flush、sync 与写入序列化参数
 
 ## 直播流读取
 
-这组参数用于**直播流读取阶段**（网络读取与读取管道缓冲）。
+这组参数用于**直播流读取阶段**（网络读取与读取管道缓冲）。bilirec 为 **1080p** 与 **高画质（2K/4K/杜比）** 各准备了一套内存池，录制时根据实际流的 `qn` 自动选用。
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `READ_STREAM_BYTES_POOL_SIZE` | 读取直播流字节池单块大小（字节）；FLV / HLS 共用，建议与常见 chunk 大小一致 | `524288` (512 KB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 读取直播流通道缓冲区（chunk 数）；更大值可容忍网络/写入短时抖动，但会增加在途内存 | `16` |
+| `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下 FLV 每次读取的缓冲块大小（字节） | `524288` (512 KB) |
+| `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 读块大小（`qn ≥ 20000` 时自动启用） | `1048576` (1 MB) |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下读侧 channel 深度（chunk 数） | `16` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 读侧 channel 深度（`qn ≥ 20000` 时自动启用） | `48` |
 
-默认面向 **1080p 原画**；录制 4K、杜比或极高码率 HLS 时需调大读写池，详见[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。
+补充说明：
+
+- **懒加载**：只有真的在录高画质时才初始化 `*_HIGH` 池；不录 4K 时不会常驻占内存
+- **HLS 读侧**：不走 bytes pool，但 `qn ≥ 20000` 时同样使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`
 
 ## 直播流写入文件
 
@@ -33,14 +38,24 @@ description: 缓冲区、flush、sync 与写入序列化参数
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 实时流写入缓冲区（字节） | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 周期性 fsync 周期（秒），`0`=禁用 | `0` |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 周期性 flush 周期（秒） | `10` |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道缓冲区（数据块数） | `64` |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 内存池单块大小（字节）；应与实际流 chunk 大小相匹配 | `524288` (512 KB) |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道缓冲区（数据块数）；1080p 与 4K 共用 | `64` |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下写侧缓冲块大小（字节） | `524288` (512 KB) |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 写侧块大小（`qn ≥ 20000` 时自动启用） | `1048576` (1 MB) |
 
 ### 关键参数说明
 
 - **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用周期性 fsync（最昂贵的操作），仅在录制结束时 sync。大幅降低 SD 卡磨损，但意外断电可能丢失最后一段数据
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大缓冲降低 flush 频率。@1080p30fps (4.5Mbps) 约每 14 秒触发一次满缓冲写入
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10`** — 10 秒 flush 一次，优先降低 SD 卡磨损
+
+## 2K/4K 双池一览
+
+| 画质 | 判定（`qn`） | FLV 读块 | 读侧 channel | 写侧块 |
+| ---- | ------------ | -------- | ------------ | ------ |
+| 1080p 及以下 | `< 20000` | `READ_STREAM_BYTES_POOL_SIZE`（512 KB） | `READ_STREAM_CHAN_BUFFER_SIZE`（16） | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE`（512 KB） |
+| 2K / 4K / 杜比 | `≥ 20000` | `READ_STREAM_BYTES_POOL_SIZE_HIGH`（1 MB） | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`（48） | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（1 MB） |
+
+高规格专用变量共三个：`READ_STREAM_BYTES_POOL_SIZE_HIGH`、`READ_STREAM_CHAN_BUFFER_SIZE_HIGH`、`LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（读写块大小建议保持一致）。详见[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。
 
 ## 写入保护
 
@@ -53,4 +68,4 @@ description: 缓冲区、flush、sync 与写入序列化参数
 - **`SKIP_SMALL_FLUSH`** — 在达到 `SKIP_SMALL_FLUSH_THRESHOLD`（默认 1MB）之前仅缓存内存、不创建文件；对低比特率流（如 240p）特别有效。该阈值独立于 `LIVE_STREAM_WRITER_BUFFER_SIZE`
 - **`SEQUENTIAL_WRITE`** — 多路并发写入同一物理磁盘时显著降低 I/O 峰值；SSD 环境建议禁用
 
-针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。
+针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[内存占用估算](/zh-cn/configuration/memory-estimation/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。

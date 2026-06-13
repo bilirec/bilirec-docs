@@ -10,8 +10,13 @@ import { Aside } from '@astrojs/starlight/components';
 ## 測試環境
 
 - 設備：樹莓派 5B 16GB
-- 場景：默認設定，同時錄製多個直播間
-- 指標：CPU 峰值佔用、內存佔用
+- 容器：Docker（1 GB 內存限制）
+- 場景：默認設定，每路直播 1080p，同時錄製多個直播間
+- 指標：CPU 峰值佔用、內存峰值佔用
+
+<Aside type="note">
+以下數據僅供參考（實測快照，改設定或版本後會有偏差）。下表為默認設定下的**常見實測峰值**；按環境變量規劃容器上限請用 [內存佔用估算](/zh-tw/configuration/memory-estimation/)（偏保守，通常高於本表）。
+</Aside>
 
 ## 監控截圖
 
@@ -45,16 +50,16 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 數據彙總
 
-| 併發路數 | CPU 峰值佔用 | 內存佔用 |
-|---------|------------|---------|
+| 併發路數 | CPU 峰值佔用 | 內存峰值佔用 |
+|---------|------------|-------------|
 | 初始閒置 | ~0.0% | ~7MB |
-| 1 路併發 | ~0.8% | ~42MB |
-| 2 路併發 | ~2.6% | ~76MB |
-| 3 路併發 | ~3.0% | ~96MB |
-| 4 路併發 | ~3.4% | ~129MB |
-| 5 路併發 | ~4.1% | ~142MB |
+| 1 路併發 | ~1.8% | ~72MB |
+| 2 路併發 | ~2.7% | ~117MB |
+| 3 路併發 | ~3.1% | ~141MB |
+| 4 路併發 | ~3.8% | ~165MB |
+| 5 路併發 | ~4.6% | ~191MB |
 | 恢復閒置 | ~0.0% | ~54MB |
 
 <Aside type="note">
-bilirec 使用了較多內存池以降低 GC 壓力，因此部分內存會被池化複用而非立即歸還系統。默認設定也偏向減少 microSD 寫入磨損，內存佔用會更高一些。`SKIP_SMALL_FLUSH=true` 時，是否落盤由 `SKIP_SMALL_FLUSH_THRESHOLD` 決定（默認 1MB，獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`）。若要進一步壓低佔用，請參考[設定與調優](/zh-tw/configuration/overview/)。
+bilirec 使用了大量內存池以降低 GC 壓力，停止錄製後部分內存會保留複用（見上表「恢復閒置」），以減輕 GC 壓力。內存佔用與緩衝設定、錄製路數相關；**真實佔用請按 [內存佔用估算](/zh-tw/configuration/memory-estimation/) 計算**，勿直接套用上表數字。
 </Aside>

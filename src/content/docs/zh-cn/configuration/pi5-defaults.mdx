@@ -14,8 +14,8 @@ Bilirec 当前默认配置已针对**树莓派 5B + microSD** 场景优化，在
 | `SKIP_SMALL_FLUSH` | `true` | 启用小块跳过保护；在达到 `SKIP_SMALL_FLUSH_THRESHOLD`（默认 1MB）之前仅缓存内存，不创建文件，对低比特率流（如 240p）特别有效 |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 与常见 stream chunk 大小一致，减少额外分配与拷贝 |
 | `SEQUENTIAL_WRITE` | `true` | 序列化多路写入，多路并发时有效降低 I/O 峰值，默认启用以保护 microSD |
-| `MAX_CONCURRENT_RECORDINGS` | `3` | 保守并发上限，直接限制 RAM 峰值 |
+| `MAX_CONCURRENT_RECORDINGS` | `3` | 默认同时录制上限（保守值）；树莓派 5B + 1 GB 容器、1080p 默认缓冲下，生产环境可验证至 **5 路**（见[性能实测](/zh-cn/guides/performance-benchmark/)），按需调大 |
 
 容器运行时同步：`GOMEMLIMIT=768MiB`、`GOGC=100`。
 
-若录制 4K / 杜比等高码率流，请参阅[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。若你的存储介质是 SSD 或 HDD/NAS，请参阅对应的[调优方案](/zh-cn/configuration/ssd-tuning/)。
+若录制 4K / 杜比等高码率流，程序会根据 `qn` 自动启用 `*_HIGH` 双池，一般无需改 1080p 基础变量；仅在卡顿时参阅[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。规划容器内存请参阅[内存占用估算](/zh-cn/configuration/memory-estimation/)。若你的存储介质是 SSD 或 HDD/NAS，请参阅对应的[调优方案](/zh-cn/configuration/ssd-tuning/)。

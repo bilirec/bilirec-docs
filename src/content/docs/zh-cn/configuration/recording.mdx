@@ -12,7 +12,7 @@ description: 并发限制、时长、路径与磁盘空间配置
 | `MAX_RECOVERY_ATTEMPTS` | 单次录制最大重连尝试次数 | `5` |
 | `MAX_RETRY_MINUTES` | 直播中断后判断容忍时间（分钟） | `10` |
 
-`MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`，SSD 环境可放宽至 `10`。详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
+`MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`（1080p 默认缓冲下可验证至 5 路），SSD 环境可放宽至 `10`。规划容器上限请参阅 [内存占用估算](/zh-cn/configuration/memory-estimation/)，详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
 
 ## 存储路径
 

@@ -55,13 +55,16 @@ tableOfContents: false
 | `UPLOAD_BUFFER_SIZE` | 上传缓冲区大小（字节） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 下载缓冲区大小（字节） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流写入器缓冲区大小（字节） | `1048576` (1 MB) |
-| `READ_STREAM_BYTES_POOL_SIZE` | 读取直播流字节池单块大小（字节）；FLV / HLS 共用，建议与常见 chunk 大小一致 | `524288` (512 KB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 读取直播流通道缓冲区大小（chunk 数）；更大值可容忍网络/写入短时抖动，但会增加在途内存 | `16` |
+| `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下 FLV 每次读取的缓冲块大小（字节） | `524288` (512 KB) |
+| `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 读块大小（`qn ≥ 20000` 时自动启用） | `1048576` (1 MB) |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下读侧 channel 深度（chunk 数） | `16` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 读侧 channel 深度（`qn ≥ 20000` 时自动启用） | `48` |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 实时流写入缓冲区（字节） | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 周期性 sync 周期（秒），`0`=禁用 | `0` |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 周期性 flush 周期（秒） | `10` |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 实时流写入器通道缓冲区 | `64` |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 实时流写入器内存池单块大小（字节）；应与实际流 chunk 大小相匹配 | `524288` (512 KB) |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 实时流写入器通道缓冲区（1080p 与 4K 共用） | `64` |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下写侧缓冲块大小（字节） | `524288` (512 KB) |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 写侧块大小（`qn ≥ 20000` 时自动启用） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 启用 `SKIP_SMALL_FLUSH` 后，延迟创建文件并缓存内存的阈值（字节）；达到阈值后才开始落盘，独立于 `LIVE_STREAM_WRITER_BUFFER_SIZE` | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | microSD 磨损保护：在达到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前仅缓存内存，不创建文件 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路录制写入；多路并发写入同一物理磁盘时可显著降低 I/O 峰值 | `true` |

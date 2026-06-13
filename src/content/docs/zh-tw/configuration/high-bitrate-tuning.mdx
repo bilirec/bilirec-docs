@@ -1,50 +1,65 @@
 ---
 title: 高碼率 / 4K 調參
-description: 錄製 4K、杜比或極高碼率 HLS 時的內存池與緩衝參數建議
+description: 錄製 4K、杜比或極高碼率 HLS 時的雙池內存與緩衝參數建議
 ---
 
-默認 `READ_STREAM_*` 與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE=512 KB` 面向 **1080p 原畫**（含 30/60fps）。該設定下 FLV 單次讀塊上限為 512 KB，1080p 場景通常**不會**出現數 MB 級別的單塊數據，無需額外調整。
+import { Aside } from '@astrojs/starlight/components';
 
-錄製 **4K（`qn=20000`）**、**杜比（`qn=30000`）** 或極高碼率 HLS 時，單塊數據（FLV 讀塊或 HLS 整段 segment）可能超過默認內存池最大桶（約 2 MB），從而觸發池外分配。此時應**同時**調大讀取池與寫入池。
+默認的 512 KB（1080p）+ 三個 `*_HIGH` 變量（高畫質）已覆蓋大多數場景：**錄 1080p 不用改**；錄 4K / 杜比時傳對應 `qn` 即可，程序會自動啟用高規格設定。
 
-## 三個變量分工
+只有出現卡頓、內存不足、或單塊數據（FLV 讀塊 / HLS segment）明顯偏大時，再按下表微調。
 
-| 變量 | 作用 |
+## 2K/4K 雙池機制
+
+bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套內存池。錄製時根據實際流的 `qn` 自動選用，無需在設定裡手動切換「4K 模式」。
+
+| 畫質 | 判定（`qn`） | FLV 讀塊 | 讀側 channel | 寫側塊 |
+| ---- | ------------ | -------- | ------------ | ------ |
+| 1080p 及以下 | `< 20000` | `READ_STREAM_BYTES_POOL_SIZE`（512 KB） | `READ_STREAM_CHAN_BUFFER_SIZE`（16） | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE`（512 KB） |
+| 2K / 4K / 杜比 | `≥ 20000` | `READ_STREAM_BYTES_POOL_SIZE_HIGH`（1 MB） | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`（48） | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（1 MB） |
+
+高規格專用變量共三個：`READ_STREAM_BYTES_POOL_SIZE_HIGH`、`READ_STREAM_CHAN_BUFFER_SIZE_HIGH`、`LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（讀寫塊大小建議保持一致）。
+
+| 要點 | 說明 |
 | ---- | ---- |
-| `READ_STREAM_BYTES_POOL_SIZE` | FLV 每次 `Read` 的上限；也影響讀側在途內存 |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | Writer 入隊拷貝時的分桶池；決定「多大以內的塊可以複用緩衝」 |
-| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫檔案的 bufio 緩衝；影響 flush 頻次與 SD 磨損，**不解決**大塊池外分配 |
+| 懶加載 | 只有真的在錄高畫質時才初始化 `*_HIGH` 池；不錄 4K 時不會常駐佔內存 |
+| HLS 讀側 | 不走 bytes pool，但 `qn ≥ 20000` 時同樣使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` |
+| 寫側 channel | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 不分檔，1080p 與 4K 共用 |
+
+## 常見場景
+
+| 場景 | 要不要改設定 | 建議 |
+| ---- | ------------ | ---- |
+| 1080p 原畫 | 否 | 保持默認 |
+| 首次錄 4K / 杜比 | 通常否 | API 傳 `qn=20000`（或 `30000`），自動走高畫質池 |
+| 4K FLV 塊被拆太碎、分配頻繁 | 是 | 同時加大 `READ_STREAM_BYTES_POOL_SIZE_HIGH` 與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（兩者保持一致） |
+| 4K HLS segment 很大 | 是 | 主要加大 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` |
+| 4K 網絡抖動、讀側阻塞 | 是 | 加大 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`（默認 48） |
+| 4GB 設備多路 4K | 視情況 | 優先減小 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`（如 `48`）或 `MAX_CONCURRENT_RECORDINGS` |
 
 ## 推薦起點
 
-按設備內存酌情調大/調小：
+三個 `*_HIGH` 默認值通常已夠用，下表供參考：
 
-| 場景 | `READ_STREAM_BYTES_POOL_SIZE` | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `READ_STREAM_CHAN_BUFFER_SIZE` | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 說明 |
-| ---- | ----------------------------- | -------------------------------------- | ------------------------------ | ------------------------------------- | ---- |
-| 1080p 原畫（默認） | `524288` (512 KB) | `524288` (512 KB) | `16` | `64` | 樹莓派 5B / 4GB 默認即可 |
-| 4K / 杜比 FLV | `1048576` (1 MB) | `1048576` (1 MB) | `16`～`24` | `64` | 讀寫池保持一致；`base=1 MB` 時最大池桶約 4 MB |
-| 4K / 杜比 HLS | `1048576` (1 MB) | `1048576` (1 MB) | `16` | `64` | HLS 按整段 segment 入隊，**寫入池**比讀池更關鍵 |
-| 4GB 設備多路 4K | `1048576` (1 MB) | `1048576` (1 MB) | `16` | `48`～`64` | 優先控制 `CHAN` 深度，避免隊列內存線性膨脹 |
-| SSD / NAS 單路 4K | `1048576`～`2097152` (1～2 MB) | 與 read **相同** | `24` | `128` | 存儲較快時可略增隊列深度 |
+| 場景 | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` |
+| ---- | ---------------------------------- | ----------------------------------- | ----------------------------------------- | ------------------------------------- |
+| 4K / 杜比 FLV 單路 | `1048576` (1 MB) | `48` | `1048576` (1 MB) | `64` |
+| 4K / 杜比 HLS 單路 | 對 FLV 讀塊無影響 | `48` | `1048576` (1 MB) | `64` |
+| SSD / NAS 單路極高碼率 | `1048576`～`2097152` | `48`～`64` | 與讀塊 `*_HIGH` 相同 | `64`～`128` |
 
-## 示例（4K FLV 原畫）
+<Aside type="caution">
+調 4K 請改帶 `_HIGH` 後綴的變量。不要動不帶 `_HIGH` 的基礎變量——那是 1080p 用的，改大隻會讓所有錄製都多佔內存。
+</Aside>
+
+## 示例（4K 默認仍不夠用時）
 
 ```bash
-export READ_STREAM_BYTES_POOL_SIZE=1048576
-export READ_STREAM_CHAN_BUFFER_SIZE=16
-export LIVE_STREAM_WRITER_BYTES_POOL_SIZE=1048576
-# 以下與池大小無關，按存儲介質沿用默認或 HDD/SSD 章節建議即可
-export LIVE_STREAM_WRITER_BUFFER_SIZE=8388608
-export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64
+export READ_STREAM_BYTES_POOL_SIZE_HIGH=2097152       # 2 MB，與寫側保持一致
+export READ_STREAM_CHAN_BUFFER_SIZE_HIGH=48
+export LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH=2097152
+export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64       # 多路 4K 可降到 48
 ```
 
-## 粗算單路在途內存
-
-上限估算：
-
-- 讀側：`READ_STREAM_CHAN_BUFFER_SIZE × READ_STREAM_BYTES_POOL_SIZE`（FLV；HLS 讀側佔用通常更小）
-- 寫側：`LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE ×` 典型塊大小（FLV 約等於 read 塊；HLS 約等於 segment 大小）
-
-例：默認 1080p 寫隊列約 `64 × 512 KB ≈ 32 MB`；若改為 4K 且 `1 MB` 塊、`CHAN=64`，寫隊列上限約 `64 MB`，多路錄製時請相應降低 `MAX_CONCURRENT_RECORDINGS` 或 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`。
+**內存粗算（單路上限）：** 見 [內存佔用估算](/zh-tw/configuration/memory-estimation/)；默認 4K 單路總峰值約 **165~172 MB**。
 
 通過 API 啟動高畫質錄製時，請顯式傳 `qn` 參數，詳見[錄製管理 API](/zh-tw/api/record/)。

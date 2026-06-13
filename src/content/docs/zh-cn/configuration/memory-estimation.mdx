@@ -1,0 +1,80 @@
+---
+title: 内存占用估算
+description: 根据缓冲配置与录制路数估算容器内存上限
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+录制时，直播数据会在内存里「排队」：先从网络读进来，再排队等待写入磁盘。用下面公式估算**规划容器时要留多少内存**即可（偏保守的上限，实际往往略低）。
+
+## 会影响在途内存的环境变量
+
+每路录制的在途内存，由**读侧排队**、**写侧排队**、**落盘缓冲**三块组成。录 **1080p** 用不带 `_HIGH` 的变量；录 **4K / 杜比**（`qn ≥ 20000`）自动改用带 `_HIGH` 的读侧变量，写侧块大小也用 `_HIGH`。
+
+| 作用 | 1080p 环境变量 | 4K / 杜比环境变量 | 默认值 |
+| ---- | -------------- | ----------------- | ------ |
+| 读侧能排多少「块」 | `READ_STREAM_CHAN_BUFFER_SIZE` | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 16 / 48 |
+| 读侧每块多大 | `READ_STREAM_BYTES_POOL_SIZE` | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
+| 写侧能排多少「块」 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | （两档共用） | 64 |
+| 写侧每块多大 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
+| 落盘前合并缓冲 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | （两档共用） | 8 MB |
+
+路数由 `MAX_CONCURRENT_RECORDINGS` 决定，直接代入下方公式里的 N。
+
+<Aside type="note">
+读侧和写侧各有一份数据拷贝，下面公式已把两侧都算上。
+</Aside>
+
+## 怎么算（HTTP-FLV，最常见）
+
+```
+总峰值 ≈ 43~50 MB + N × 单路在途峰值
+
+单路在途峰值 = 读侧排队 + 写侧排队 + 落盘缓冲
+
+读侧排队 = (READ_STREAM_CHAN_BUFFER_SIZE + 1) × READ_STREAM_BYTES_POOL_SIZE
+写侧排队 = (LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE + 1) × LIVE_STREAM_WRITER_BYTES_POOL_SIZE
+落盘缓冲 = LIVE_STREAM_WRITER_BUFFER_SIZE
+```
+
+其中 **43~50 MB** 是容器里程序本身 + 系统内核的固定开销（和缓冲配置几乎无关，也**不能通过环境变量调小**）。录 4K / 杜比时，读侧两个变量换成 `*_HIGH`，写侧块大小换成 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`。
+
+### 默认 1080p 示例
+
+| 路数 N | 计算 | 预计总峰值 |
+| ------ | ---- | ------ |
+| 1 | (43~50) + 1×49 | **约 92~99 MB** |
+| 3 | (43~50) + 3×49 | **约 190~197 MB** |
+| 5 | (43~50) + 5×49 | **约 288~295 MB** |
+
+（单路在途：读 8.5 MB + 写 32.5 MB + 落盘 8 MB ≈ 49 MB）
+
+### 默认 4K 单路
+
+(43~50) + 122 ≈ **165~172 MB**（单路在途 ≈ 122 MB）
+
+## HLS 怎么算
+
+HLS 读进来的是**一整段分片**（大小由 m3u8 决定，常见 2–6 MB），读侧用分片体积 `S` 估算：
+
+```
+总峰值 ≈ 43~50 MB + N × (读侧排队 + 写侧排队 + 落盘缓冲)
+
+读侧排队 ≈ (READ_STREAM_CHAN_BUFFER_SIZE + 3) × S
+```
+
+写侧仍按上一节的写侧排队 + 落盘缓冲计算。录 4K 时读侧 channel 使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`。
+
+## 其他说明
+
+- **容器总内存虚高**：写入磁盘后，系统可能额外缓存一份文件，容器监控显示的总用量会远高于上表，规划时以上表为准即可。
+- **停录后仍偏高**：内存池会保留部分已用过的块（见[性能实测](/zh-cn/guides/performance-benchmark/)「恢复闲置 ~54 MB」），属正常。
+
+## 想省内存，优先改哪几个
+
+按效果从大到小：
+
+1. `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`（默认 64 → 32，写侧排队约减半）
+2. `READ_STREAM_CHAN_BUFFER_SIZE`（仅 FLV；HLS 同理改读侧 channel 或 `_HIGH` 版）
+3. `LIVE_STREAM_WRITER_BUFFER_SIZE`（减小落盘缓冲，但 flush 更频繁，SD 磨损增加）
+4. `MAX_CONCURRENT_RECORDINGS`（直接减少同时录制的路数）

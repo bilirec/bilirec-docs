@@ -16,23 +16,27 @@ description: bilirec 項目結構與核心實現
 │   ├── processors/       # 流處理器
 │   └── services/         # 業務邏輯（recorder, convert, expose, notify, room, stream...）
 ├── pkg/                  # 可複用庫（ffmpeg, flv, hls, cloudconvert, pool, swr...）
-└── docs/                 # Swagger 規範
+└── utils/                # 工具函數庫
 ```
 
 ## 錄製流程
 
-1. 通過 `bilibili.Client` 獲取直播流地址
+1. 通過 `bilibili.Client` 獲取直播流地址（默認自動選擇可用 profile，也可按需指定 `stream_profile`）
 2. `stream.Service` 讀取流數據
 3. `recorder.Service` 管理錄製任務（自動重連與恢復）
 4. 數據寫入錄製檔案（`.flv`、`.ts` 或 `.fmp4`）
 
-- **HTTP-FLV**：檢測到 PK 等檔案頭變更時自動分段輪轉
-- **HLS-TS / HLS-fMP4**：不執行檔案輪轉，流中斷時重連繼續寫入同一檔案
+- **HTTP-FLV**：檢測到 PK 等 FLV 檔案頭變更（分辨率切換）時自動分段輪轉
+- **HLS-fMP4**：檢測到 init segment 重置（流不連續/服務器切換）時自動分段，確保每個檔案包含完整的 fMP4 結構
+- **HLS-TS**：不執行檔案輪轉，直播 PK 等不連續性由 HLS 播放列表層自然處理，流中斷時重連繼續寫入同一檔案
+
+首個檔案名形如 `標題-時間戳.ext`，後續分段（HTTP-FLV / HLS-fMP4 輪轉後）會命名為 `標題-時間戳-1.ext`、`標題-時間戳-2.ext`。
 
 ## 關鍵特性
 
 - **自動恢復** — 流中斷時自動重連
-- **自動分段輪轉** — 僅 HTTP-FLV，PK/分辨率切換時輪轉新檔案
+- **自動分段輪轉（HTTP-FLV / HLS-fMP4）** — FLV 在 PK/分辨率切換時輪轉；HLS-fMP4 在 init segment 重置時輪轉，避免 ffprobe 解析失敗
+- **2K/4K 雙池** — 根據 `qn` 自動選用 1080p 或高畫質內存池，高畫質池懶加載
 - **自動錄製** — 訂閱房間開播自動啟動錄製
 - **實時通知** — Web Push + SSE
 - **內存池** — `pool.BufferPool` 減少 GC 壓力
