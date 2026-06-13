@@ -1,0 +1,39 @@
+---
+const QQ_GROUP_NUMBER = '834229325';
+const QQ_GROUP_URL = 'https://qm.qq.com/q/oMTN3EsGBy';
+const QR_SRC = '/images/community/qq-group.png';
+---
+
+<div class="qq-community not-content">
+	<div class="qq-community__body">
+		<div class="qq-community__text">
+			<p class="qq-community__title">B站录播工具交流群</p>
+			<p class="qq-community__lead">
+				遇到问题、想交流使用经验或反馈建议，欢迎加入 QQ 群与社区一起讨论。
+			</p>
+			<p class="qq-community__meta">
+				群号：
+				<a href={QQ_GROUP_URL} target="_blank" rel="noopener noreferrer">{QQ_GROUP_NUMBER}</a>
+				<span aria-hidden="true"> · </span>
+				<a href={QQ_GROUP_URL} target="_blank" rel="noopener noreferrer">点击加入</a>
+			</p>
+		</div>
+		<a
+			class="qq-community__qr"
+			href={QQ_GROUP_URL}
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label="扫码加入 QQ 群 834229325"
+		>
+			<img
+				src={QR_SRC}
+				alt="B站录播工具交流群 QQ 二维码"
+				width="400"
+				height="400"
+				loading="lazy"
+				decoding="async"
+			/>
+			<span>扫一扫加入群聊</span>
+		</a>
+	</div>
+</div>
