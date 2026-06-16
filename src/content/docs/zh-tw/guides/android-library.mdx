@@ -21,13 +21,14 @@ import { Aside } from '@astrojs/starlight/components';
     "FRONTEND_URL": "https://app.bilirec.org",
     "USERNAME": "admin",
     "PASSWORD": "changeme",
-    "MAX_CONCURRENT_RECORDINGS": "3"
+    "MAX_CONCURRENT_RECORDINGS": "3",
+    "SEQUENTIAL_WRITE": "false"
   }
 }
 ```
 
 - `basePath` **必填** — 數據目錄根路徑
-- `env` **可選** — 覆蓋默認環境變量
+- `env` **可選** — 覆蓋默認環境變量（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
 
 ## 移動端默認行為
 

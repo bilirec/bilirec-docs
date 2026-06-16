@@ -14,6 +14,10 @@ Android 模式（`libbilirec.so`）會先注入一組移動端默認值，再套
 | `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登錄 |
 | `FRP_ENABLED` | `false` | 手機無需內網穿透 |
 | `SILENT_ACCESS_LOG` | `true` | 減少日誌輸出 |
+| `SKIP_SMALL_FLUSH` | `false` | 優先保障錄製完整性，不延遲建檔案 |
+| `SEQUENTIAL_WRITE` | `false` | 手機內置存儲隨機 I/O 較好，默認不序列化寫入 |
+
+[bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 可在 App 設置中選擇是否啟用序列化寫入（對應 `SEQUENTIAL_WRITE`）；也可在 `Start` 的 `env` 中傳入 `SEQUENTIAL_WRITE=true` 或 `false` 覆蓋。
 
 ## 自動注入
 
@@ -26,11 +30,26 @@ Android 模式（`libbilirec.so`）會先注入一組移動端默認值，再套
 | `DATABASE_DIR` | `{basePath}/database` |
 | `FRONTEND_URL` | `https://app.bilirec.org` |
 
-## I/O 保守參數
+## I/O 與磁盤
 
-使用更小的寫入緩衝和更低的磁盤空間閾值，避免前臺卡頓：
+與服務器版相比，Android 使用更保守的緩衝與更低的磁盤空間閾值，避免前臺卡頓：
 
-- 較小 `LIVE_STREAM_WRITER_BUFFER_SIZE`
-- 較低 `MIN_DISK_SPACE_BYTES`（默認 2 GB）
+| 變量 | Android 默認 | 服務器默認 |
+|------|-------------|-----------|
+| `MIN_DISK_SPACE_BYTES` | `2147483648` (2 GB) | `5368709120` (5 GB) |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | `4194304` (4 MB) | `8388608` (8 MB) |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `32` | `64` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | `32` | `48` |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | `0` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `10` | `10` |
+
+高畫質池（`READ_STREAM_BYTES_POOL_SIZE_HIGH`、`LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`）默認均為 1 MB，與服務器版一致。
+
+## 動態資源限制
+
+啟動時會根據 `MAX_CONCURRENT_RECORDINGS`（默認 `3`）自動調整：
+
+- **內存上限**：`60 MB + 36 MB × 最大錄製路數`（通過 Go `GOMEMLIMIT` 軟限制）
+- **CPU 核心數**：`GOMAXPROCS` 按錄製路數與設備物理核心數動態計算（至少 2 核，至多物理核心數的一半）
 
 集成方法見 [Android 庫接口](/zh-tw/guides/android-library/)，使用流程見 [Android App](/zh-tw/guides/android/)。

@@ -19,10 +19,12 @@ description: FFmpeg 本地转换与 CloudConvert 云端转换参数
 |------|------|--------|
 | `FFMPEG_CHECK_INTERVAL_SECS` | 转换任务轮询间隔（秒） | `60` |
 | `FFMPEG_MAX_CONCURRENT_TASKS` | 最大并发转换任务数 | `1` |
-| `FFMPEG_ALLOW_DURING_RECORDING` | 录制中是否允许转换 | `false` |
-| `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 允许转换的最大活跃录制数 | `1` |
+| `FFMPEG_ALLOW_DURING_RECORDING` | 录制进行中是否允许 FFmpeg 转换 | `false` |
+| `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `≤` 此值时才允许边录边转；`<1` 表示不设门槛（仍受 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
 
 Docker 镜像内置 FFmpeg 8.1.1。桌面环境需在 PATH 中安装 FFmpeg 和 ffprobe。
+
+遗留别名 `FFMPEG_ALLOW_DURING_RECORDING_BELOW_ACTIVE_RECORDINGS` 与 `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` 等效。
 
 ## CloudConvert 云端
 
@@ -32,5 +34,7 @@ Docker 镜像内置 FFmpeg 8.1.1。桌面环境需在 PATH 中安装 FFmpeg 和 
 | `CLOUDCONVERT_THRESHOLD` | 使用 CloudConvert 的文件大小阈值（字节） | `1073741824` (1 GB) |
 | `CLOUDCONVERT_CHECK_INTERVAL_SECS` | 任务状态轮询间隔（秒） | `180` |
 | `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | 最大并发下载数 | `1` |
+| `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 录制进行中是否允许 CloudConvert 转换 | `false` |
+| `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `≤` 此值时才允许边录边转；`<1` 表示不设门槛（仍受 `CLOUDCONVERT_ALLOW_DURING_RECORDING` 控制） | `1` |
 
 文件大小 ≥ 阈值时优先使用 CloudConvert。`PUBLIC_BASE_URL` 必须有效，否则 CloudConvert 会拒绝创建任务。

@@ -66,6 +66,6 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 | `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
 
 - **`SKIP_SMALL_FLUSH`** — 在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存內存、不創建檔案；對低比特率流（如 240p）特別有效。該閾值獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`
-- **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；SSD 環境建議禁用
+- **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；啟用後多路錄製的定時 flush 會經 round-robin 錯開。SSD 環境建議禁用
 
 針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[內存佔用估算](/zh-tw/configuration/memory-estimation/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

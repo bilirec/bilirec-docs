@@ -48,10 +48,12 @@ tableOfContents: false
 | `CLOUDCONVERT_API_KEY` | CloudConvert API Key | (未设置) |
 | `CLOUDCONVERT_CHECK_INTERVAL_SECS` | CloudConvert 轮询间隔（秒） | `180` |
 | `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | CloudConvert 最大并发下载数 | `1` |
+| `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 录制进行中是否允许 CloudConvert 转换 | `false` |
+| `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `≤` 此值时才允许边录边转；`<1` 表示不设门槛 | `1` |
 | `FFMPEG_CHECK_INTERVAL_SECS` | FFmpeg 转换轮询间隔（秒） | `60` |
 | `FFMPEG_MAX_CONCURRENT_TASKS` | FFmpeg 最大并发转换任务数 | `1` |
-| `FFMPEG_ALLOW_DURING_RECORDING` | 录制中是否允许 FFmpeg 转换 | `false` |
-| `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 允许转换的最大活跃录制数 | `1` |
+| `FFMPEG_ALLOW_DURING_RECORDING` | 录制进行中是否允许 FFmpeg 转换 | `false` |
+| `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `≤` 此值时才允许边录边转；`<1` 表示不设门槛 | `1` |
 | `UPLOAD_BUFFER_SIZE` | 上传缓冲区大小（字节） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 下载缓冲区大小（字节） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流写入器缓冲区大小（字节） | `1048576` (1 MB) |
@@ -67,7 +69,7 @@ tableOfContents: false
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 写侧块大小（`qn ≥ 20000` 时自动启用） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 启用 `SKIP_SMALL_FLUSH` 后，延迟创建文件并缓存内存的阈值（字节）；达到阈值后才开始落盘，独立于 `LIVE_STREAM_WRITER_BUFFER_SIZE` | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | microSD 磨损保护：在达到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前仅缓存内存，不创建文件 | `true` |
-| `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路录制写入；多路并发写入同一物理磁盘时可显著降低 I/O 峰值 | `true` |
+| `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路录制写入；多路并发时定时 flush 会 round-robin 错开，降低 I/O 峰值 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 录制所需最小磁盘空间（字节） | `5368709120` (5 GB) |
 
 </div>

@@ -13,7 +13,7 @@ Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 以 512KB chunk 估算，單錄製任務約 32MB 隊列數據；比 128（約 64MB）更適合 4GB 設備 |
 | `SKIP_SMALL_FLUSH` | `true` | 啟用小塊跳過保護；在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存內存，不創建檔案，對低比特率流（如 240p）特別有效 |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 與常見 stream chunk 大小一致，減少額外分配與拷貝 |
-| `SEQUENTIAL_WRITE` | `true` | 序列化多路寫入，多路併發時有效降低 I/O 峰值，默認啟用以保護 microSD |
+| `SEQUENTIAL_WRITE` | `true` | 序列化多路寫入；多路併發時定時 flush 經 round-robin 錯開，有效降低 I/O 峰值，默認啟用以保護 microSD |
 | `MAX_CONCURRENT_RECORDINGS` | `3` | 默認同時錄製上限（保守值）；樹莓派 5B + 1 GB 容器、1080p 默認緩衝下，生產環境可驗證至 **5 路**（見[性能實測](/zh-tw/guides/performance-benchmark/)），按需調大 |
 
 容器運行時同步：`GOMEMLIMIT=768MiB`、`GOGC=100`。
