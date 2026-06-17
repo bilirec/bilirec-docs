@@ -27,3 +27,5 @@ Accept: text/event-stream
 ```
 
 推薦用於無法依賴 Google FCM 的場景（如中國大陸網絡），Android 後端通過 SSE 獲取通知後創建本地通知。建議通過 HTTPS 使用以避免 token 明文暴露。
+
+訂閱房間開啟 **開播通知** 後，後臺會定期檢查直播狀態並在開播時推送；檢查頻率與分組方式見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。

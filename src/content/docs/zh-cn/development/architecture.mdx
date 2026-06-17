@@ -37,7 +37,8 @@ description: bilirec 项目结构与核心实现
 - **自动恢复** — 流中断时自动重连
 - **自动分段轮转（HTTP-FLV / HLS-fMP4）** — FLV 在 PK/分辨率切换时轮转；HLS-fMP4 在 init segment 重置时轮转，避免 ffprobe 解析失败
 - **2K/4K 双池** — 根据 `qn` 自动选用 1080p 或高画质内存池，高画质池懒加载
-- **自动录制** — 订阅房间开播自动启动录制
+- **自动录制** — 订阅房间开启 `auto_record` 后，检测到开播自动启动录制
+- **开播检测** — `subcheck` 分组轮询已开启通知或自动录制的房间，检测新场次并触发推送或录制
 - **实时通知** — Web Push + SSE
 - **内存池** — `pool.BufferPool` 减少 GC 压力
 - **SWR 缓存** — 房间信息 Stale-While-Revalidate（软 TTL 5 分钟，硬 TTL 30 分钟）

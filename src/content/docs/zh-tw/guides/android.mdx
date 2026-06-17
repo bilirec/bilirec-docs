@@ -37,7 +37,7 @@ Android 模式下默認啟用以下設定（與服務器版不同，可覆蓋）
 - `FRP_ENABLED=false`
 - `SILENT_ACCESS_LOG=true`
 
-並使用更保守的移動端 I/O / 內存參數（如較小寫入緩衝、默認關閉 `SEQUENTIAL_WRITE`）。可在 App 設置中切換序列化寫入，完整默認值見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
+並使用更保守的移動端 I/O / 內存參數（如較小寫入緩衝、默認關閉 `SEQUENTIAL_WRITE`）。在 **服務啟動前設置 → 存儲策略** 中可設定輸出路徑與 **序列化寫入**（microSD 卡建議開啟），完整默認值見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
 
 ## 自行開發或定製
 

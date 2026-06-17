@@ -17,7 +17,7 @@ Android 模式（`libbilirec.so`）会先注入一组移动端默认值，再套
 | `SKIP_SMALL_FLUSH` | `false` | 优先保障录制完整性，不延迟建文件 |
 | `SEQUENTIAL_WRITE` | `false` | 手机内置存储随机 I/O 较好，默认不序列化写入 |
 
-[bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 可在 App 设置中选择是否启用序列化写入（对应 `SEQUENTIAL_WRITE`）；也可在 `Start` 的 `env` 中传入 `SEQUENTIAL_WRITE=true` 或 `false` 覆盖。
+[bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 在 **服务启动前设置 → 存储策略 → 序列化写入** 中可切换 `SEQUENTIAL_WRITE`。若输出路径选择 microSD 卡，建议开启此项。也可在 `Start` 的 `env` 中传入 `SEQUENTIAL_WRITE=true` 或 `false` 覆盖。
 
 ## 自动注入
 
