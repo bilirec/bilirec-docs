@@ -48,10 +48,10 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 
 | 值 | 说明 |
 |----|------|
-| 不传 | 自动选择可用流 |
+| 不传 | 自动选择可用流（依次尝试 HTTP-FLV → HLS-fMP4 → HLS-TS，同格式内优先较高画质） |
 | `http-flv` | HTTP-FLV（PK/分辨率切换时自动分段） |
 | `hls-ts` | HLS-TS（不执行文件轮转） |
-| `hls-fmp4` | HLS-fMP4（init segment 重置时自动分段） |
+| `hls-fmp4` | HLS-fMP4（默认将 init 与媒体分片写入同一文件；仅 init 内容变更时分段） |
 
 ### 录制时长（duration_minutes）
 

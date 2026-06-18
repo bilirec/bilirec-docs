@@ -21,7 +21,7 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 | 值 | 说明 |
 | -- | ---- |
-| 不传 | 自动选择 |
+| 不传 | 自动选择（依次尝试 HTTP-FLV → HLS-fMP4 → HLS-TS） |
 | `http-flv` | HTTP-FLV |
 | `hls-ts` | HLS-TS |
 | `hls-fmp4` | HLS-fMP4 |
@@ -56,6 +56,18 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true"
 ```
 
+### 错误响应
+
+| HTTP | 说明 |
+| ---- | ---- |
+| `400` | 无效参数、房间未开播、已在录制、正在恢复流等 |
+| `409` | 该房间录制正在启动中（并发请求冲突） |
+| `410` | 无法连接到任何可用流 URL |
+| `429` | 已达到 `MAX_CONCURRENT_RECORDINGS` 上限 |
+| `507` | 磁盘可用空间低于 `MIN_DISK_SPACE_BYTES` |
+
+常见 `400` 消息：`该房间已在录制中`、`该房间正在恢复流`、`房间并非直播状态`、`无可用的视频流 URL`。
+
 ## 停止录制
 
 ```http
@@ -74,8 +86,10 @@ Content-Type: application/json
 也支持 query：`?roomIDs=123,456,789`
 
 ```json
-{ "123": "recording", "456": "idle", "789": "stopped" }
+{ "123": "recording", "456": "idle", "789": "recovering" }
 ```
+
+状态值：`idle`（未录制）、`recording`（录制中）、`recovering`（流中断，正在重连恢复）。
 
 ## 批量获取统计
 

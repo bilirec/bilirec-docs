@@ -9,8 +9,8 @@ description: 併發限制、時長、路徑與磁盤空間設定
 |------|------|--------|
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
-| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數 | `5` |
-| `MAX_RETRY_MINUTES` | 直播中斷後判斷容忍時間（分鐘） | `10` |
+| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `5` |
+| `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘）；下線期間持續重試，超時後結束錄製 | `10` |
 
 `MAX_CONCURRENT_RECORDINGS` 直接影響內存峰值。樹莓派默認 `3`（1080p 默認緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限請參閱 [內存佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
 

@@ -24,8 +24,8 @@ tableOfContents: false
 | `FRP_SCHEME_HTTPS` | 公網 URL scheme（`true`=https） | `true` |
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
-| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數 | `5` |
-| `MAX_RETRY_MINUTES` | 直播中斷後判斷容忍時間（分鐘） | `10` |
+| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `5` |
+| `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘） | `10` |
 | `SUBCHECK_CHECK_INTERVAL_SECS` | 訂閱房間狀態檢查的完整輪詢週期（秒）；各分組在該週期內依次各檢查一輪，用於攤平 CPU 峰值 | `60` |
 | `SUBCHECK_SHARD_COUNT` | 檢查分組數；每個房間固定歸入其中一組輪流檢查。默認 60 秒週期、6 組時約每 10 秒檢查一組 | `6` |
 | `OUTPUT_DIR` | 錄製檔案保存目錄 | `records` |

@@ -3,7 +3,7 @@ title: Android App
 description: 使用 bilirec-mobile 在手機上運行錄製後端
 ---
 
-import { LinkCard, Aside } from '@astrojs/starlight/components';
+import { LinkCard, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 推薦使用官方 Android 客戶端 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile)，在手機上直接運行 bilirec 後端，無需額外服務器。
 
@@ -15,29 +15,146 @@ import { LinkCard, Aside } from '@astrojs/starlight/components';
   官方 Android 客戶端，內嵌 libbilirec.so 在手機上運行錄製後端。
 </LinkCard>
 
+## 控制中心
+
+App 主介面為 **Bilirec 服務控制中心**，核心元素如下：
+
+| 區域 | 說明 |
+|------|------|
+| 頂部標題欄 | 顯示「Bilirec 服務控制中心」；右上角可切換 **繁 / 簡** 介面語言 |
+| 中央電源按鈕 | 啟動或停止 bilirec 系統服務（前臺服務 + 內嵌後端） |
+| 狀態行 | 顯示當前服務狀態（未啟動 / 啟動中 / 運行中 / 停止中等） |
+| 服務運行後 | 出現 **打開錄製管理程序**、**檢查系統服務連接** 兩個操作按鈕 |
+| 底部設置入口 | **打開服務啟動前設置** 按鈕；**僅在服務未運行且未處於啟停過程中時可點擊** |
+
+<Aside type="note">
+設置必須在**啟動服務之前**完成。服務一旦運行，設置頁內的開關與滑塊會全部鎖定，需先停止服務再修改。
+</Aside>
+
+## 首次使用與權限
+
+首次打開 App 時，通常會依次遇到以下系統權限與限制：
+
+1. **電池優化豁免** — 彈窗提示將 Bilirec 設為「不受電池限制」。未完成前無法打開設置頁，也無法啟動服務。點擊「前往設置」按系統指引操作後返回 App。
+2. **通知權限** — 點擊電源按鈕啟動服務時，若尚未授予通知權限，系統會請求授權。通知用於常駐前臺服務；拒絕則無法啟動。
+3. **（可選）輸出路徑** — 若要把錄製檔案保存到 microSD 卡或指定檔案夾，請在啟動服務前進入設置 → **存儲策略** → **更改路徑** 選擇目錄。
+
+服務被系統意外終止時，App 會彈出「Bilirec 系統服務已被終止」提醒，並建議重新啟動且確認已關閉省電限制。
+
 ## 使用流程
 
-1. 打開 App，點擊介面中的**啟動按鈕**
-2. 啟動成功後出現「**打開錄製程序**」按鈕
-3. 點擊後跳轉到 [app.bilirec.org](https://app.bilirec.org/)，若已安裝 PWA 則優先打開 PWA
-4. 進入頁面後直接點擊「登錄」即可
+1. （推薦）點擊 **打開服務啟動前設置**，按需設定輸出路徑、序列化寫入、錄製策略等（見下文）
+2. 點擊中央 **啟動** 按鈕，等待狀態變為「Bilirec 系統服務運行中」
+3. 點擊 **打開錄製管理程序**，跳轉到 [app.bilirec.org](https://app.bilirec.org/)（若已安裝 PWA 則優先打開 PWA）
+4. 在 Web 介面點擊「登錄」完成 B 站掃碼認證，即可訂閱房間或開始錄製
+5. 錄製結束後可點擊 **停止** 關閉系統服務；也可在通知欄點擊「停止服務」
 
-{/* TODO: 請提供 App 主介面截圖 */}
-{/* TODO: 請提供啟動按鈕與打開 PWA 截圖 */}
+<Tabs>
+<TabItem label="檢查連接">
+
+若不確定後端是否就緒，可點擊 **檢查系統服務連接**。App 會請求 `http://127.0.0.1:8080/` 並提示連接正常、響應異常或無響應。
+
+</TabItem>
+<TabItem label="前臺通知">
+
+服務運行期間，通知欄會常駐顯示 CPU / 內存佔用。正在錄製時，通知正文前會標註「錄製中」。若開啟了 **激進防休眠模式** 且已生效，通知標題會出現 ⚡（Wi‑Fi 鎖定時還帶 🛜 或 🌐 圖標）。
+
+</TabItem>
+</Tabs>
 
 <Aside type="note">
 Android 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），且默認不啟用賬號密碼認證。後端在 App 進程內運行，僅本機可訪問。
 </Aside>
 
+## 服務啟動前設置
+
+點擊 **打開服務啟動前設置** 會彈出可拖曳的底部設置頁，自上而下分為以下區塊。各選項在下次**啟動服務**時注入後端環境變量（輸出路徑除外，見下表）。
+
+設置頁可上下滾動瀏覽全部選項。下圖自上而下對應各區塊（截圖以繁體中文介面為例，簡體介面文案相同）：
+
+![一般設置、存儲策略與錄製策略（上）](/images/android/mobile-settings-general.png)
+
+![存儲策略（下）與錄製策略](/images/android/mobile-settings-recording.png)
+
+![錄製策略（下）與轉換策略](/images/android/mobile-settings-conversion.png)
+
+![轉換策略（下）與開發者選項](/images/android/mobile-settings-developer.png)
+
+### 一般設置
+
+| App 選項 | 作用 | 對應設定 |
+|---------|------|---------|
+| **本地通知模式** | 在無法使用 Web Push 時（如部分大陸網絡），改由 App 通過 SSE 拉取開播/錄製事件並彈出**本地通知** | 啟動時自動生成 `NOTIFY_SSE_TOKEN` |
+| **激進防休眠模式** | 關屏閒置 1～2 小時後若出現錄製斷斷續續，可嘗試開啟；錄製期間會啟用網絡鎖降低休眠影響 | App 側開關（非環境變量） |
+
+<Aside type="caution">
+開啟 **本地通知模式** 後，點擊通知**無法**直接跳轉到錄製管理程序，需手動打開 App 或 PWA。詳見 [通知設定](/zh-tw/configuration/notifications/)。
+</Aside>
+
+開啟 **激進防休眠模式** 會增加耗電，長時間錄製建議接電源。通知標題出現 ⚡ 表示防休眠已生效。
+
+### 存儲策略
+
+| App 選項 | 作用 | 對應設定 |
+|---------|------|---------|
+| **輸出路徑** | 選擇錄製檔案保存目錄；未設置時使用 App 私有目錄下的默認 `records` | `OUTPUT_DIR`（獨立存儲，非 managed env） |
+| **序列化寫入** | 以序列化方式寫入錄製檔案，降低多路併發時的 I/O 峰值 | `SEQUENTIAL_WRITE` |
+
+若輸出路徑選擇 **microSD 卡**，請務必開啟 **序列化寫入**。
+
+### 錄製策略
+
+以下選項通過滑塊調整，修改後立即保存，下次啟動服務時生效：
+
+| App 選項 | 環境變量 | 可選範圍 / 說明 |
+|---------|---------|----------------|
+| **單次錄製時長上限** | `MAX_RECORDING_HOURS` | `0`（不限）～ `12` 小時；滑塊顯示「不限」即 `0` |
+| **啟動前最低可用空間** | `MIN_DISK_SPACE_BYTES` | `2` / `5` / `10` GB |
+| **下線後服務重試時長** | `MAX_RETRY_MINUTES` | `5`～`30` 分鐘（步進 5） |
+| **同時錄製上限** | `MAX_CONCURRENT_RECORDINGS` | `3`～`6` 路；提高會明顯增加發熱與耗電 |
+
+<Aside type="note">
+**啟動前最低可用空間** 滑塊默認顯示 5 GB，但僅在你拖動並鬆手後才會寫入環境變量。若從未調整過，後端仍使用 [Android 默認設定](/zh-tw/configuration/android-defaults/) 中的 `2 GB` 門檻。
+</Aside>
+
+### 轉換策略
+
+需先開啟 **錄完自動轉為 MP4**，其餘轉檔相關選項才會可用：
+
+| App 選項 | 環境變量 | 說明 |
+|---------|---------|------|
+| **錄完自動轉為 MP4** | `CONVERT_TO_MP4` | 使用內嵌 FFmpeg 在錄製完成後轉 MP4；RAM 少於 8 GB 建議關閉 |
+| **轉檔後刪除原始檔案** | `DELETE_SOURCE_AFTER_CONVERT` | 僅保留 MP4，節省空間 |
+| **錄製中允許轉換** | `FFMPEG_ALLOW_DURING_RECORDING` | 邊錄邊轉，增加讀寫負載與發熱 |
+| **允許轉檔的「最高錄製路數」** | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`（不限）～`5` 路；超過時暫停後臺轉檔以優先保證錄製 |
+
+轉檔行為詳見 [轉換設定](/zh-tw/configuration/conversion/)。
+
+### 開發者選項
+
+面向進階用戶，一般錄製無需修改：
+
+| App 選項 | 說明 |
+|---------|------|
+| **環境參數設置** | 手動添加 `Key` / `Value` 環境變量；**優先級高於**上方各策略開關，覆蓋同名字段 |
+| **啟動日誌** | 合併導出 `bootstrap.log` 分片，便於反饋啟動或崩潰問題 |
+
+<Aside type="danger">
+請勿隨意添加不熟悉的環境變量。錯誤設定可能導致發熱、耗電增加、後臺被殺或錄製不穩定。
+</Aside>
+
+完整 App 設置與環境變量對照見 [Android 默認設定](/zh-tw/configuration/android-defaults/#app-設置項對照)。
+
 ## 默認行為
 
-Android 模式下默認啟用以下設定（與服務器版不同，可覆蓋）：
+Android 模式下，bilirec 後端會先注入一組移動端默認值，再疊加 App 設置中的環境變量：
 
-- `BILIBILI_LOGIN_MODE=controller`
-- `FRP_ENABLED=false`
-- `SILENT_ACCESS_LOG=true`
+- `BILIBILI_LOGIN_MODE=controller` — 通過 Web UI 掃碼登錄
+- `FRP_ENABLED=false` — 手機無需內網穿透
+- `SILENT_ACCESS_LOG=true` — 減少日誌輸出
+- 更保守的 I/O / 內存參數（如較小寫入緩衝、默認關閉 `SEQUENTIAL_WRITE`）
 
-並使用更保守的移動端 I/O / 內存參數（如較小寫入緩衝、默認關閉 `SEQUENTIAL_WRITE`）。在 **服務啟動前設置 → 存儲策略** 中可設定輸出路徑與 **序列化寫入**（microSD 卡建議開啟），完整默認值見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
+完整默認值與服務器版差異見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
 
 ## 自行開發或定製
 

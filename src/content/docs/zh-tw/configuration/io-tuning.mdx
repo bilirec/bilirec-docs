@@ -28,6 +28,7 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 - **懶加載**：只有真的在錄高畫質時才初始化 `*_HIGH` 池；不錄 4K 時不會常駐佔內存
 - **HLS 讀側**：不走 bytes pool，但 `qn ≥ 20000` 時同樣使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`
+- **保溫上限**：讀側 bytes pool 空閒複用塊約為 `READ_STREAM_CHAN_BUFFER_SIZE`（或 `_HIGH`）的 1/4；在途內存估算公式不變，詳見 [內存佔用估算](/zh-tw/configuration/memory-estimation/)
 
 ## 直播流寫入檔案
 
@@ -47,6 +48,7 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 - **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性 fsync（最昂貴的操作），僅在錄製結束時 sync。大幅降低 SD 卡磨損，但意外斷電可能丟失最後一段數據
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大緩衝降低 flush 頻率。@1080p30fps (4.5Mbps) 約每 14 秒觸發一次滿緩衝寫入
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10`** — 10 秒 flush 一次，優先降低 SD 卡磨損
+- **寫側保溫上限**：`LIVE_STREAM_WRITER_BYTES_POOL_SIZE` 各檔位的空閒複用塊約為 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 的 1/8
 
 ## 2K/4K 雙池一覽
 

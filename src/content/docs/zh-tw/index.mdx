@@ -56,7 +56,7 @@ import QqCommunity from '../../../components/QqCommunity.astro';
 
 ## 核心能力
 
-- **錄製引擎穩定**：完整支持 HTTP-FLV / HLS-TS / HLS-fMP4，自動處理流中斷與時間戳異常；HTTP-FLV 與 HLS-fMP4 在 PK/流不連續時自動分段輪轉。  
+- **錄製引擎穩定**：完整支持 HTTP-FLV / HLS-TS / HLS-fMP4，自動處理流中斷與時間戳異常；HTTP-FLV 在 PK/分辨率切換時自動分段；HLS-fMP4 僅在 init 內容變更時分段，相同 init 重發會繼續寫入同一檔案。  
 - **2K/4K 雙池優化**：根據畫質碼 `qn` 自動選用 1080p 或高畫質內存池，錄 4K 無需手動改基礎緩衝設定。  
 - **錄製策略靈活**：支持手動錄製、開播自動錄製、定時停止與無限時長錄製。  
 - **存儲管理友好**：支持檔案瀏覽、批量刪除、瀏覽器內預覽 MP4。  

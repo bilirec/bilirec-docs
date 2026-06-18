@@ -19,6 +19,26 @@ Android 模式（`libbilirec.so`）会先注入一组移动端默认值，再套
 
 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 在 **服务启动前设置 → 存储策略 → 序列化写入** 中可切换 `SEQUENTIAL_WRITE`。若输出路径选择 microSD 卡，建议开启此项。也可在 `Start` 的 `env` 中传入 `SEQUENTIAL_WRITE=true` 或 `false` 覆盖。
 
+## App 设置项对照
+
+bilirec-mobile 将用户友好的选项映射为后端环境变量。服务启动时，App 会合并 **managed**（策略页开关/滑块）与 **developer**（开发者选项中的自定义键值）环境变量；`OUTPUT_DIR` 由输出路径单独传入。开发者选项中的同名键会覆盖策略页设置。
+
+| App 设置（简体中文界面） | 环境变量 | 可选值 / 默认 |
+|------------------------|---------|--------------|
+| 输出路径 | `OUTPUT_DIR` | 未设置时用 `{basePath}/records` |
+| 序列化写入 | `SEQUENTIAL_WRITE` | `true` / `false` |
+| 单次录制时长上限 | `MAX_RECORDING_HOURS` | `0`～`12`（`0`=不限） |
+| 启动前最低可用空间 | `MIN_DISK_SPACE_BYTES` | `2` / `5` / `10` GB |
+| 下线后服务重试时长 | `MAX_RETRY_MINUTES` | `5`～`30` 分钟 |
+| 同时录制上限 | `MAX_CONCURRENT_RECORDINGS` | `3`～`6` |
+| 录完自动转为 MP4 | `CONVERT_TO_MP4` | `true` / `false` |
+| 转档后删除原始文件 | `DELETE_SOURCE_AFTER_CONVERT` | `true` / `false` |
+| 录制中允许转换 | `FFMPEG_ALLOW_DURING_RECORDING` | `true` / `false` |
+| 允许转档的「最高录制路数」 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`～`5`（`0`=不限） |
+| 本地通知模式 | `NOTIFY_SSE_TOKEN` | 开启时由 App 自动生成 |
+
+界面操作说明见 [Android App](/zh-cn/guides/android/)。
+
 ## 自动注入
 
 | 变量 | 默认值 |
