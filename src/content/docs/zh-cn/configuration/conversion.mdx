@@ -13,6 +13,8 @@ description: FFmpeg 本地转换与 CloudConvert 云端转换参数
 
 启用 `CONVERT_TO_MP4` 后，录制完成的 FLV/TS 文件自动加入转换队列，由后台异步转换为 MP4。
 
+启用 `DELETE_SOURCE_AFTER_CONVERT` 时，源文件删除与转码任务解耦：仅在转换**成功**后异步删除源文件（FFmpeg 与 CloudConvert 共用同一删除器）。删除失败时会指数退避重试，最多 5 次；仍失败则将源文件重命名为在原文件名与扩展名之间插入 `_轉換完成可刪除` 标记，便于手动清理。同一路径不会重复入队删除。
+
 ## 本地 FFmpeg
 
 | 变量 | 说明 | 默认值 |
@@ -25,6 +27,8 @@ description: FFmpeg 本地转换与 CloudConvert 云端转换参数
 Docker 镜像内置 FFmpeg 8.1.1。桌面环境需在 PATH 中安装 FFmpeg 和 ffprobe。
 
 遗留别名 `FFMPEG_ALLOW_DURING_RECORDING_BELOW_ACTIVE_RECORDINGS` 与 `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` 等效。
+
+转换失败的任务会进入冷却期，延后 `FFMPEG_CHECK_INTERVAL_SECS × 2` 再重试，避免多任务同时失败后又立刻并发重试。
 
 ## CloudConvert 云端
 

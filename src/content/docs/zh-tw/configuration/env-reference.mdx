@@ -24,14 +24,14 @@ tableOfContents: false
 | `FRP_SCHEME_HTTPS` | 公網 URL scheme（`true`=https） | `true` |
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
-| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `5` |
+| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `15` |
 | `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘） | `10` |
 | `SUBCHECK_CHECK_INTERVAL_SECS` | 訂閱房間狀態檢查的完整輪詢週期（秒）；各分組在該週期內依次各檢查一輪，用於攤平 CPU 峰值 | `60` |
 | `SUBCHECK_SHARD_COUNT` | 檢查分組數；每個房間固定歸入其中一組輪流檢查。默認 60 秒週期、6 組時約每 10 秒檢查一組 | `6` |
 | `OUTPUT_DIR` | 錄製檔案保存目錄 | `records` |
 | `SECRET_DIR` | Cookie 和 Token 保存目錄 | `secrets` |
 | `CONVERT_TO_MP4` | 錄製完成後是否將可轉換源檔案（如 FLV/TS）轉為 MP4 | `false` |
-| `DELETE_SOURCE_AFTER_CONVERT` | 轉換後是否刪除原始源檔案 | `false` |
+| `DELETE_SOURCE_AFTER_CONVERT` | 轉換成功後異步刪除原始源檔案；失敗會重試，仍失敗則重命名標記 | `false` |
 | `NO_CONVERT_IF_INVALID` | 源檔案缺少音視頻流時是否停止轉碼；若系統未安裝 `ffprobe`，原始視頻檢查會自動放行 | `false` |
 | `PUBLIC_BASE_URL` | 後端公開基址（僅用於生成預簽名 URL，需為完整 URL） | (空字符串) |
 | `FRONTEND_URL` | 前端 URL（用於 CORS） | `http://localhost:8080` |

@@ -124,7 +124,7 @@ Android 默认连接 `http://127.0.0.1:8080`（等同 `localhost`），且默认
 | App 选项 | 环境变量 | 说明 |
 |---------|---------|------|
 | **录完自动转为 MP4** | `CONVERT_TO_MP4` | 使用内嵌 FFmpeg 在录制完成后转 MP4；RAM 少于 8 GB 建议关闭 |
-| **转档后删除原始文件** | `DELETE_SOURCE_AFTER_CONVERT` | 仅保留 MP4，节省空间 |
+| **转档后删除原始文件** | `DELETE_SOURCE_AFTER_CONVERT` | 转码成功后再异步删除源文件；删除失败会重试，仍失败则重命名为带「转换完成可删除」标记的文件 |
 | **录制中允许转换** | `FFMPEG_ALLOW_DURING_RECORDING` | 边录边转，增加读写负载与发热 |
 | **允许转档的「最高录制路数」** | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`（不限）～`5` 路；超过时暂停后台转档以优先保证录制 |
 
