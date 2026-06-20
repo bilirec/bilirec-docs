@@ -23,7 +23,7 @@ export MAX_CONCURRENT_RECORDINGS=10
 | `SKIP_SMALL_FLUSH=false` | 不跳過小塊 flush | 優先保障錄製完整性 |
 | `SEQUENTIAL_WRITE=false` | **禁用全局 flush 鎖** | 解放 SSD 多路併發 I/O |
 | `CHAN_BUFFER_SIZE=128` | 提高隊列深度 | 容忍更高網絡突發流量 |
-| `MAX_CONCURRENT_RECORDINGS=10` | 放寬併發 | 視 CPU 與內存調整 |
+| `MAX_CONCURRENT_RECORDINGS=10` | 放寬併發 | 視 CPU 與記憶體調整 |
 
 <Aside type="tip">
 若底層使用 ZFS 等自帶 ARC 緩存的檔案系統，頻繁應用層 sync 可能引發寫入放大。可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0` 或 `60`，將落盤調度交由底層系統接管。

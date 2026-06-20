@@ -13,6 +13,7 @@ const sidebar = [
 			{ slug: 'guides/ecosystem' },
 			{ slug: 'guides/installation' },
 			{ slug: 'guides/quick-start' },
+			{ slug: 'guides/faq' },
 		],
 	},
 	{

@@ -3,6 +3,8 @@ title: 录制配置
 description: 并发限制、时长、路径与磁盘空间配置
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 ## 并发与时长
 
 | 变量 | 说明 | 默认值 |
@@ -48,3 +50,7 @@ Docker 部署时建议挂载为卷：
 | `SUBCHECK_SHARD_COUNT` | 检查分组数；每个房间固定归入其中一组，各组在不同时间点检查。默认 60 秒周期、6 组时，大约每 10 秒检查一组 | `6` |
 
 订阅房间较多时可增大分组数，降低单次检查的负载；分组越多，同一房间内两次检查之间的间隔通常也越长（约等于完整周期除以分组数）。使用流程见 [录制直播间](/zh-cn/guides/recording/#订阅房间)。
+
+<Aside type="tip">
+**常见问题：** 订阅很多房间时 CPU 尖峰偏高，可调整上表分组与周期。详见 [常见问题](/zh-cn/guides/faq/#cpu-突然飙高怎么办)。
+</Aside>

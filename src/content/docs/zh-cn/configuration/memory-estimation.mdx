@@ -79,3 +79,7 @@ HLS 读进来的是**一整段分片**（大小由 m3u8 决定，常见 2–6 MB
 2. `READ_STREAM_CHAN_BUFFER_SIZE`（仅 FLV；HLS 同理改读侧 channel 或 `_HIGH` 版）
 3. `LIVE_STREAM_WRITER_BUFFER_SIZE`（减小落盘缓冲，但 flush 更频繁，SD 磨损增加）
 4. `MAX_CONCURRENT_RECORDINGS`（直接减少同时录制的路数）
+
+<Aside type="tip">
+**常见问题：** 录制时内存高、停录后仍偏高、能录几路——见 [常见问题](/zh-cn/guides/faq/#性能与容量规划)。
+</Aside>

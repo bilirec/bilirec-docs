@@ -3,6 +3,8 @@ title: 錄製設定
 description: 併發限制、時長、路徑與磁盤空間設定
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 ## 併發與時長
 
 | 變量 | 說明 | 默認值 |
@@ -12,7 +14,7 @@ description: 併發限制、時長、路徑與磁盤空間設定
 | `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `15` |
 | `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘）；下線期間持續重試，超時後結束錄製 | `10` |
 
-`MAX_CONCURRENT_RECORDINGS` 直接影響內存峰值。樹莓派默認 `3`（1080p 默認緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限請參閱 [內存佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
+`MAX_CONCURRENT_RECORDINGS` 直接影響記憶體峰值。樹莓派默認 `3`（1080p 默認緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
 
 ## 存儲路徑
 
@@ -48,3 +50,7 @@ Docker 部署時建議掛載為卷：
 | `SUBCHECK_SHARD_COUNT` | 檢查分組數；每個房間固定歸入其中一組，各組在不同時間點檢查。默認 60 秒週期、6 組時，大約每 10 秒檢查一組 | `6` |
 
 訂閱房間較多時可增大分組數，降低單次檢查的負載；分組越多，同一房間內兩次檢查之間的間隔通常也越長（約等於完整週期除以分組數）。使用流程見 [錄製直播間](/zh-tw/guides/recording/#訂閱房間)。
+
+<Aside type="tip">
+**常見問題：** 訂閱很多房間時 CPU 尖峰偏高，可調整上表分組與週期。詳見 [常見問題](/zh-tw/guides/faq/#cpu-突然飆高怎麼辦)。
+</Aside>

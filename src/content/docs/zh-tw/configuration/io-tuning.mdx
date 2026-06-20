@@ -15,7 +15,7 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 ## 直播流讀取
 
-這組參數用於**直播流讀取階段**（網絡讀取與讀取管道緩衝）。bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套內存池，錄製時根據實際流的 `qn` 自動選用。
+這組參數用於**直播流讀取階段**（網絡讀取與讀取管道緩衝）。bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套記憶體池，錄製時根據實際流的 `qn` 自動選用。
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
@@ -26,9 +26,9 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 補充說明：
 
-- **懶加載**：只有真的在錄高畫質時才初始化 `*_HIGH` 池；不錄 4K 時不會常駐佔內存
+- **懶加載**：只有真的在錄高畫質時才初始化 `*_HIGH` 池；不錄 4K 時不會常駐佔記憶體
 - **HLS 讀側**：不走 bytes pool，但 `qn ≥ 20000` 時同樣使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`
-- **保溫上限**：讀側 bytes pool 空閒複用塊約為 `READ_STREAM_CHAN_BUFFER_SIZE`（或 `_HIGH`）的 1/4；在途內存估算公式不變，詳見 [內存佔用估算](/zh-tw/configuration/memory-estimation/)
+- **保溫上限**：讀側 bytes pool 空閒複用塊約為 `READ_STREAM_CHAN_BUFFER_SIZE`（或 `_HIGH`）的 1/4；在途記憶體估算公式不變，詳見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)
 
 ## 直播流寫入檔案
 
@@ -63,11 +63,11 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存內存的閾值（字節） | `1048576` (1 MB) |
-| `SKIP_SMALL_FLUSH` | 啟用後在達到閾值前僅緩存內存，不創建檔案 | `true` |
+| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節） | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH` | 啟用後在達到閾值前僅緩存記憶體，不創建檔案 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
 
-- **`SKIP_SMALL_FLUSH`** — 在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存內存、不創建檔案；對低比特率流（如 240p）特別有效。該閾值獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`
+- **`SKIP_SMALL_FLUSH`** — 在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存記憶體、不創建檔案；對低比特率流（如 240p）特別有效。該閾值獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`
 - **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；啟用後多路錄製的定時 flush 會經 round-robin 錯開。SSD 環境建議禁用
 
-針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[內存佔用估算](/zh-tw/configuration/memory-estimation/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
+針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[記憶體佔用估算](/zh-tw/configuration/memory-estimation/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

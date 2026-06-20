@@ -13,66 +13,66 @@ tableOfContents: false
 | `BILIBILI_LOGIN_MODE` | 登錄模式：`startup` / `controller` / `anonymous` | `controller` |
 | `HOST` | API 服務綁定地址（空值時監聽所有網卡） | (空字符串) |
 | `PORT` | API 服務端口 | `8080` |
-| `SERVER_CRT` | HTTPS 證書檔案路徑 | (未設置) |
-| `SERVER_KEY` | HTTPS 私鑰檔案路徑 | (未設置) |
-| `TRUSTED_PROXIES` | 受信任反向代理 IP/CIDR 列表（逗號分隔） | `161.33.159.26` |
+| `SERVER_CRT` | 可選：HTTPS 證書檔案路徑；當與 `SERVER_KEY` 同時設置時，Fiber 默認啟用 HTTPS | (未設置) |
+| `SERVER_KEY` | 可選：HTTPS 私鑰檔案路徑；當與 `SERVER_CRT` 同時設置時，Fiber 默認啟用 HTTPS | (未設置) |
+| `TRUSTED_PROXIES` | 受信任反向代理 IP/CIDR 列表（逗號分隔），可填寫 Nginx/FRP 等代理 IP，用於安全信任 `X-Forwarded-For`；默認 `161.33.159.26` 為公共 FRP 服務 IP | `161.33.159.26` |
 | `FRP_ENABLED` | 是否啟用 FRP 內網穿透 | `false` |
 | `FRP_SERVER` | FRP 服務器地址（`host:port`） | `tunnel.bilirec.org:7000` |
-| `FRP_TOKEN` | FRP 認證 Token | (空字符串) |
+| `FRP_TOKEN` | FRP 認證 Token；如果你有自己的 FRP 服務就填寫，沒有就留空 | (空字符串) |
 | `FRP_BASE_DOMAIN` | FRP 公網基礎域名 | `tunnel.bilirec.org` |
 | `FRP_HTTPS` | FRP 代理協議（`true`=HTTPS，`false`=HTTP） | `false` |
 | `FRP_SCHEME_HTTPS` | 公網 URL scheme（`true`=https） | `true` |
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
-| `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `15` |
-| `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘） | `10` |
-| `SUBCHECK_CHECK_INTERVAL_SECS` | 訂閱房間狀態檢查的完整輪詢週期（秒）；各分組在該週期內依次各檢查一輪，用於攤平 CPU 峰值 | `60` |
-| `SUBCHECK_SHARD_COUNT` | 檢查分組數；每個房間固定歸入其中一組輪流檢查。默認 60 秒週期、6 組時約每 10 秒檢查一組 | `6` |
+| `MAX_RECOVERY_ATTEMPTS` | 單次錄製的最大重連嘗試次數 | `15` |
+| `MAX_RETRY_MINUTES` | 直播中斷後判斷是否仍在直播的最長容忍時間（分鐘） | `10` |
 | `OUTPUT_DIR` | 錄製檔案保存目錄 | `records` |
 | `SECRET_DIR` | Cookie 和 Token 保存目錄 | `secrets` |
 | `CONVERT_TO_MP4` | 錄製完成後是否將可轉換源檔案（如 FLV/TS）轉為 MP4 | `false` |
-| `DELETE_SOURCE_AFTER_CONVERT` | 轉換成功後異步刪除原始源檔案；失敗會重試，仍失敗則重命名標記 | `false` |
-| `NO_CONVERT_IF_INVALID` | 源檔案缺少音視頻流時是否停止轉碼；若系統未安裝 `ffprobe`，原始視頻檢查會自動放行 | `false` |
+| `DELETE_SOURCE_AFTER_CONVERT` | 轉換後是否刪除原始源檔案 | `false` |
+| `NO_CONVERT_IF_INVALID` | 當源檔案缺少音視頻流時是否停止轉碼；`true` 時會阻止轉換並返回錯誤，`false` 時只記錄警告並繼續轉換。若當前系統未安裝 `ffprobe`，原始視頻檢查會自動放行，轉換仍會繼續執行 | `false` |
 | `PUBLIC_BASE_URL` | 後端公開基址（僅用於生成預簽名 URL，需為完整 URL） | (空字符串) |
 | `FRONTEND_URL` | 前端 URL（用於 CORS） | `http://localhost:8080` |
-| `WEBPUSH_SUBSCRIBER` | Web Push VAPID subject | `mailto:webpush@example.com` |
-| `NOTIFY_SSE_TOKEN` | SSE 通知訂閱 token | (空字符串) |
-| `USERNAME` | REST API 認證用戶名 | (未設置) |
-| `PASSWORD` | REST API 認證密碼 | (未設置) |
-| `VIEWER_USERNAME` | 只讀訪客用戶名 | (未設置) |
-| `VIEWER_PASSWORD` | 只讀訪客密碼 | (未設置) |
+| `WEBPUSH_SUBSCRIBER` | Web Push VAPID 的 subject（建議使用 `mailto:you@example.com`） | `mailto:webpush@example.com` |
+| `NOTIFY_SSE_TOKEN` | SSE 通知訂閱 token（用於 `/notify/sse?token=...`；為空則禁用 SSE） | (空字符串) |
+| `USERNAME` | 可選：啟用用戶名/密碼認證時的用戶名 | (未設置) |
+| `PASSWORD` | 可選：啟用用戶名/密碼認證時的密碼 | (未設置) |
+| `VIEWER_USERNAME` | 可選：僅查看權限的訪客用戶名 | (未設置) |
+| `VIEWER_PASSWORD` | 可選：僅查看權限的訪客密碼 | (未設置) |
 | `JWT_SECRET` | JWT 簽名密鑰 | `bilirec_secret` |
-| `DEBUG` | 啟用調試模式（pprof + 十六進制令牌） | `false` |
-| `PRODUCTION_MODE` | 生產模式（影響 cookie 與 CORS） | `false` |
-| `SILENT_ACCESS_LOG` | 靜默訪問日誌（僅記錄 4xx/5xx） | `false` |
-| `DATABASE_DIR` | bbolt 數據庫目錄 | `database` |
-| `CLOUDCONVERT_THRESHOLD` | CloudConvert 檔案大小閾值（字節） | `1073741824` (1 GB) |
-| `CLOUDCONVERT_API_KEY` | CloudConvert API Key | (未設置) |
-| `CLOUDCONVERT_CHECK_INTERVAL_SECS` | CloudConvert 輪詢間隔（秒） | `180` |
+| `DEBUG` | 啟用調試模式（會開啟 pprof 和臨時 hex token） | `false` |
+| `PRODUCTION_MODE` | 啟用生產模式（影響 cookie 與 CORS） | `false` |
+| `SILENT_ACCESS_LOG` | 啟用靜默訪問日誌（僅記錄 4xx/5xx 響應） | `false` |
+| `DATABASE_DIR` | 本地數據庫目錄（bbolt，用於持久化轉換任務等） | `database` |
+| `CLOUDCONVERT_THRESHOLD` | 使用 CloudConvert 的檔案大小閾值（字節） | `1073741824` (1 GB) |
+| `CLOUDCONVERT_API_KEY` | 可選：CloudConvert API Key（為空則禁用 CloudConvert） | (未設置) |
+| `CLOUDCONVERT_CHECK_INTERVAL_SECS` | CloudConvert 任務狀態輪詢間隔（秒） | `180` |
 | `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | CloudConvert 最大併發下載數 | `1` |
-| `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 錄製進行中是否允許 CloudConvert 轉換 | `false` |
-| `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `≤` 此值時才允許邊錄邊轉；`<1` 表示不設門檻 | `1` |
-| `FFMPEG_CHECK_INTERVAL_SECS` | FFmpeg 轉換輪詢間隔（秒） | `60` |
-| `FFMPEG_MAX_CONCURRENT_TASKS` | FFmpeg 最大併發轉換任務數 | `1` |
-| `FFMPEG_ALLOW_DURING_RECORDING` | 錄製進行中是否允許 FFmpeg 轉換 | `false` |
-| `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `≤` 此值時才允許邊錄邊轉；`<1` 表示不設門檻 | `1` |
-| `UPLOAD_BUFFER_SIZE` | 上傳緩衝區大小（字節） | `5242880` (5 MB) |
-| `DOWNLOAD_BUFFER_SIZE` | 下載緩衝區大小（字節） | `5242880` (5 MB) |
-| `STREAM_WRITER_BUFFER_SIZE` | 流寫入器緩衝區大小（字節） | `1048576` (1 MB) |
+| `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 是否允許在錄製進行中時執行 CloudConvert 轉換任務 | `false` |
+| `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `<=` 此值時，才允許在錄製中執行 CloudConvert；`<1` 表示不設門檻（仍可通過 `CLOUDCONVERT_ALLOW_DURING_RECORDING` 控制） | `1` |
+| `FFMPEG_CHECK_INTERVAL_SECS` | 本地 FFmpeg 轉換任務輪詢間隔（秒） | `60` |
+| `FFMPEG_MAX_CONCURRENT_TASKS` | 本地 FFmpeg 最大併發轉換任務數 | `1` |
+| `FFMPEG_ALLOW_DURING_RECORDING` | 是否允許在錄製進行中時執行 FFmpeg 轉換任務 | `false` |
+| `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `<=` 此值時，才允許在錄製中執行 FFmpeg；`<1` 表示不設門檻（仍可通過 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
+| `SUBCHECK_CHECK_INTERVAL_SECS` | 訂閱房間自動錄製檢查的完整輪詢週期（秒）；K 個分片在該週期內輪流觸發，用於攤平 CPU 峰值 | `60` |
+| `SUBCHECK_SHARD_COUNT` | 訂閱檢查分片數（K）；房間按 `roomID % K` 分配，約每 `SUBCHECK_CHECK_INTERVAL_SECS / K` 秒處理一個分片。訂閱房間較多時可增大以降低單次 tick 的 CPU 峰值 | `6` |
+| `UPLOAD_BUFFER_SIZE` | 上傳時或向外部服務（如 CloudConvert）傳輸檔案使用的緩衝區大小（字節） | `5242880` (5 MB) |
+| `DOWNLOAD_BUFFER_SIZE` | 檔案下載 / 導出時使用的緩衝區大小（字節） | `5242880` (5 MB) |
+| `STREAM_WRITER_BUFFER_SIZE` | 流寫入器（寫入檔案）緩衝區大小（字節） | `1048576` (1 MB) |
 | `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下 FLV 每次讀取的緩衝塊大小（字節） | `524288` (512 KB) |
-| `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 讀塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
+| `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 讀塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
 | `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下讀側 channel 深度（chunk 數） | `16` |
-| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀側 channel 深度（`qn ≥ 20000` 時自動啟用） | `48` |
-| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（字節） | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 週期性 sync 週期（秒），`0`=禁用 | `0` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 週期性 flush 週期（秒） | `10` |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 實時流寫入器通道緩衝區（1080p 與 4K 共用） | `64` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀側 channel 深度（`qn ≥ 20000` 時自動啟用）；高碼率時建議高於默認值 | `48` |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（用於直播錄製或實時下載，字節）；更大的值減少 flush 頻率，降低 SD 卡磨損 | `8388608` (8 MB) |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 實時流寫入器執行週期性 `sync` 的週期（秒）；設為 0 禁用週期性 sync（僅在 Close 時 sync），大幅減少 SD 卡磨損 | `0` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 實時流寫入器執行週期性 `flush` 的週期（秒）；值越大 flush 頻率越低，越有利於減少 SD 卡寫入頻次 | `10` |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 實時流寫入器通道緩衝區大小（數據塊數）；更大的值可容忍寫入延遲突變，但會增加記憶體佔用 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
-| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存內存的閾值（字節）；達到閾值後才開始落盤，獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE` | `1048576` (1 MB) |
-| `SKIP_SMALL_FLUSH` | microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存內存，不創建檔案 | `true` |
-| `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路錄製寫入；多路併發時定時 flush 會 round-robin 錯開，降低 I/O 峰值 | `true` |
-| `MIN_DISK_SPACE_BYTES` | 錄製所需最小磁盤空間（字節） | `5368709120` (5 GB) |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節）；達到閾值後才開始落盤 | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
+| `SEQUENTIAL_WRITE` | 啟用全局寫盤鎖以序列化多路錄製的寫入操作；多路併發時定時 flush 會自動錯開（內部 round-robin），降低 I/O 峰值。多路併發寫入同一物理磁盤時建議啟用 | `true` |
+| `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁盤空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
 
 </div>
 
