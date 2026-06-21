@@ -198,44 +198,32 @@ import { Aside } from '@astrojs/starlight/components';
 
 1. 对照 [性能实测](/zh-cn/guides/performance-benchmark/)「恢复闲置」— 在附近通常正常。
 2. 想再低一点：略减缓冲相关配置（见 [内存占用估算](/zh-cn/configuration/memory-estimation/)）。
-3. 若主要是监控「总内存」虚高：默认已开冷缓存释放与关档 fadvise；仍偏高时读 [内存占用估算](/zh-cn/configuration/memory-estimation/)。SSD/HDD 可显式 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` 与 `DROP_FILE_PAGE_CACHE=false`。
+3. 若主要是监控「总内存」虚高：默认已开启录製中定期清理旧文件缓存；仍偏高时读 [内存占用估算](/zh-cn/configuration/memory-estimation/)。SSD/HDD 若更在意回放速度，可关闭（见下节）。
 
 **何时要担心：** 停录很久仍**持续上涨**、或明显卡死 — 再查日志或提 issue；单次高峰后居高不下多数属于上面 1～3。
 
-### `DROP_FILE_PAGE_CACHE` 什么时候用？代价是什么？
+### 监控内存偏高？两个相关选项怎么理解？
 
-**默认已开启**（`true`），并与 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60` 配合：录製中释放冷前缀、关档/转码后释放整文件 cache，减轻容器与 Android 后台内存压力。
+**默认已开启**（一般不用改）：
 
-**适合保持开启的情况：**
+| 环境变量 | 大白话 | 默认 |
+| -------- | ------ | ---- |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **录製过程中**，每隔一段时间让系统忘掉「已经写好、暂时不会再读」的旧文件缓存 | `60`（秒） |
+| `DROP_FILE_PAGE_CACHE` | **一段录完或转码结束后**，忘掉整份文件的系统缓存 | `true` |
 
-- 树莓派 / NAS / **容器有内存上限**，监控里总内存随录製上涨
-- **Android App**
-- 你**很少**在录完或转完后立刻在同一台机器上连续播放或拖动进度条
+两者配合，可避免 Docker / 手机监控里内存随录製一路顶到上限。代价是：刚录完立刻播放、或录製中回放已写好的前半段，可能要从磁盘重新读，略慢。
 
-**建议显式关闭的情况：**
+**适合保持默认：** 树莓派、1GB 容器、Android 后台、很少录完马上拖进度条。
 
-- 录完或转完 **马上要 Web 回放 / 本地播放器秒开**
-- **SSD / HDD / NAS**，存储够快、内存充裕，更在意回放体验
-- Windows 本机（此选项无效果，不必设）
+**建议关闭（回放优先）：** SSD / NAS、录完马上要秒开播放。设 `DROP_FILE_PAGE_CACHE=false` 且 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`。
 
-**代价（请权衡后再关）：**
+**和「周期性整文件落盘」(`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`) 别搞混：**
 
-1. **回放变慢**：关档/转码后或录製中已释放的区间，下次读取需 **重新从磁盘读**。
-2. **连续操作更吃磁盘**：刚录完立刻拖进度条、反复 scrub，每次都更像「冷读」。
-3. **不减程序自己的缓冲**：只影响文件页缓存，**不会**把 bilirec 留着的录制用内存池变小。
-4. **断电热尾**：冷释放保留约 64MB 热尾 + 用户态 buffer；完整耐久仍以关档 `sync` 为准。详见下节。
+- 整文件落盘：为了**断电少丢数据**，录製中反复把整个文件刷进卡，**很伤 microSD**，也**压不住**监控内存。
+- 上面的 60 秒选项：为了**监控好看**，只清理旧数据，**比整文件落盘省卡**；关档时仍会完整保存一次。
+- 两个都设了：以整文件落盘为准，60 秒清理自动不生效（日志会提示）。
 
-**怎么设：**
-
-- 关闭：`DROP_FILE_PAGE_CACHE=false`、`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`
-- 详见 [环境变量说明](/zh-cn/configuration/env-reference/)
-
-### `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 是什么？和 periodic fsync 有何不同？
-
-- **冷缓存释放**：录製中每隔 N 秒，对已写完、不会再读的**文件前缀**落盘并 `fadvise` 丢掉 page cache；用于压低 Docker/Dockhand 曲线，**比 periodic 整文件 fsync 更省 SD**。
-- **不是 fsync 替代品**：关档时仍会整文件 `sync` 一次；录製中热尾（约 64MB + 写缓冲）断电仍可能丢失。
-- **与 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 的关系**：两者同时 `>0` 时 **仅 periodic fsync 生效**，冷释放自动关闭（日志警告，不启动失败）。
-- **与 `DROP_FILE_PAGE_CACHE` 的关系**：独立开关；冷释放管录製中前缀，DROP 管关档/转码后整文件。默认两者都开。
+详见 [环境变量说明](/zh-cn/configuration/env-reference/) · [I/O 调优](/zh-cn/configuration/io-tuning/)。
 
 <Aside type="tip">
 **简单说：** 停录后内存比刚开机高一些很常见；正在录的时候若紧张，优先调缓冲配置，别急着减录制路数。

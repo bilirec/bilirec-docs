@@ -60,6 +60,6 @@ export LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH=2097152
 export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64       # 多路 4K 可降到 48
 ```
 
-**内存粗算（单路上限）：** 见 [内存占用估算](/zh-cn/configuration/memory-estimation/)；默认 4K 单路总峰值约 **165~172 MB**。
+**内存粗算（单路上限）：** 见 [内存占用估算](/zh-cn/configuration/memory-estimation/)；默认 4K 单路：`(43~50) + 1×122` → 约 165~172 MB。
 
 通过 API 启动高画质录制时，请显式传 `qn` 参数，详见[录制管理 API](/zh-cn/api/record/)。

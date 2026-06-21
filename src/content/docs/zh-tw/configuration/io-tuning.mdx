@@ -47,7 +47,7 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 ### 關鍵參數說明
 
 - **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性整檔案 fsync（最昂貴的操作），僅在錄製結束時 sync。與冷緩存釋放**不可同時生效**（若同時設置，以 fsync 為準並打日誌警告）
-- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 錄製中週期性對**已寫完的冷前綴**執行 `sync_file_range` + 釋放頁緩存，壓低容器監控裡的 file cache；**不是** periodic fsync。關檔時仍會 `sync` 一次
+- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 錄製中約每 60 秒清理一次「已寫好、暫時不會再讀」的舊檔案系統緩存，避免監控記憶體隨錄製飆高；**不是**週期性整檔案落盤。關檔時仍會完整保存
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大緩衝降低 flush 頻率。@1080p30fps (4.5Mbps) 約每 14 秒觸發一次滿緩衝寫入
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10`** — 10 秒 flush 一次，優先降低 SD 卡磨損
 - **寫側保溫上限**：`LIVE_STREAM_WRITER_BYTES_POOL_SIZE` 各檔位的空閒複用塊約為 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 的 1/8
