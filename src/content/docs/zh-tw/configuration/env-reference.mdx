@@ -66,7 +66,7 @@ tableOfContents: false
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（用於直播錄製或實時下載，字節）；更大的值減少 flush 頻率，降低 SD 卡磨損 | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 實時流寫入器執行週期性整檔案 `fsync` 的週期（秒）；`0` 禁用（僅在 Close 時 sync）。與 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 同時 `>0` 時以本項為準，冷釋放自動關閉 | `0` |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中週期性釋放冷檔案頁緩存的週期（秒，僅 Linux/Android）；`0` 禁用。默認 `60`，用於壓低容器 file cache；**不是** periodic fsync | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 實時流寫入器執行週期性 `flush` 的週期（秒）；值越大 flush 頻率越低，越有利於減少 SD 卡寫入頻次 | `10` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 實時流寫入器執行週期性 `flush` 的週期（秒）；值越大 flush 頻率越低，越有利於減少 SD 卡寫入頻次 | `15` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 實時流寫入器通道緩衝區大小（數據塊數）；更大的值可容忍寫入延遲突變，但會增加記憶體佔用 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |

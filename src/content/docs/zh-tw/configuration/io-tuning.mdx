@@ -39,7 +39,7 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（字節） | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 週期性整檔案 fsync 週期（秒），`0`=禁用 | `0` |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中週期性釋放冷檔案頁緩存（秒，僅 Linux/Android）；`0`=禁用 | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 週期性 flush 週期（秒） | `10` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 週期性 flush 週期（秒） | `15` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道緩衝區（數據塊數）；1080p 與 4K 共用 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
@@ -49,7 +49,7 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 - **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性整檔案 fsync（最昂貴的操作），僅在錄製結束時 sync。與冷緩存釋放**不可同時生效**（若同時設置，以 fsync 為準並打日誌警告）
 - **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 錄製中約每 60 秒清理一次「已寫好、暫時不會再讀」的舊檔案系統緩存，避免監控記憶體隨錄製飆高；**不是**週期性整檔案落盤。關檔時仍會完整保存
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大緩衝降低 flush 頻率。@1080p30fps (4.5Mbps) 約每 14 秒觸發一次滿緩衝寫入
-- **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10`** — 10 秒 flush 一次，優先降低 SD 卡磨損
+- **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=15`** — 15 秒 flush 一次，優先降低 SD 卡磨損
 - **寫側保溫上限**：`LIVE_STREAM_WRITER_BYTES_POOL_SIZE` 各檔位的空閒複用塊約為 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 的 1/8
 
 ## 2K/4K 雙池一覽

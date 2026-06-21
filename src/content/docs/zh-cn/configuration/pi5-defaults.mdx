@@ -11,7 +11,7 @@ Bilirec 当前默认配置已针对**树莓派 5B + microSD** 场景优化，在
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 录製中周期性释放冷文件页缓存，压低监控曲线 |
 | `DROP_FILE_PAGE_CACHE` | `true` | 关档/转码后释放整文件页缓存 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 降低 flush 频率，优先降低 SD 卡写入频次。@1080p30fps (4.5Mbps) 约每 14.2 秒触发一次满缓冲写入 |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `10` | 10 秒 flush，优先降低 SD 卡磨损；代价是异常断电时未 flush 数据窗口会略增 |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 15 秒 flush，优先降低 SD 卡磨损；代价是异常断电时未 flush 数据窗口会略增 |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 以 512KB chunk 估算，单录制任务约 32MB 队列数据；比 128（约 64MB）更适合 4GB 设备 |
 | `SKIP_SMALL_FLUSH` | `true` | 启用小块跳过保护；在达到 `SKIP_SMALL_FLUSH_THRESHOLD`（默认 1MB）之前仅缓存内存，不创建文件，对低比特率流（如 240p）特别有效 |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 与常见 stream chunk 大小一致，减少额外分配与拷贝 |
