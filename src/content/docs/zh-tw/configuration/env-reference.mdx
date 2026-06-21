@@ -64,14 +64,15 @@ tableOfContents: false
 | `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下讀側 channel 深度（chunk 數） | `16` |
 | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀側 channel 深度（`qn ≥ 20000` 時自動啟用）；高碼率時建議高於默認值 | `48` |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（用於直播錄製或實時下載，字節）；更大的值減少 flush 頻率，降低 SD 卡磨損 | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 實時流寫入器執行週期性 `sync` 的週期（秒）；設為 0 禁用週期性 sync（僅在 Close 時 sync），大幅減少 SD 卡磨損 | `0` |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 實時流寫入器執行週期性整檔案 `fsync` 的週期（秒）；`0` 禁用（僅在 Close 時 sync）。與 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 同時 `>0` 時以本項為準，冷釋放自動關閉 | `0` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中週期性釋放冷檔案頁緩存的週期（秒，僅 Linux/Android）；`0` 禁用。默認 `60`，用於壓低容器 file cache；**不是** periodic fsync | `60` |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 實時流寫入器執行週期性 `flush` 的週期（秒）；值越大 flush 頻率越低，越有利於減少 SD 卡寫入頻次 | `10` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 實時流寫入器通道緩衝區大小（數據塊數）；更大的值可容忍寫入延遲突變，但會增加記憶體佔用 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節）；達到閾值後才開始落盤 | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
-| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後，提示內核釋放對應檔案的頁緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。Docker/Linux 默認 `false`；[Android App](https://www.bilirec.org/zh-tw/guides/android/) 內建默認 `true`，可用環境變量覆蓋 | `false` |
+| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後，提示內核釋放對應**整檔案**頁緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。默認 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
 | `SEQUENTIAL_WRITE` | 啟用全局寫盤鎖以序列化多路錄製的寫入操作；多路併發時定時 flush 會自動錯開（內部 round-robin），降低 I/O 峰值。多路併發寫入同一物理磁盤時建議啟用 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁盤空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
 

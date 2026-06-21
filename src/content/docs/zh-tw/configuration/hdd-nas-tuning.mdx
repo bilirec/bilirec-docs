@@ -11,6 +11,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 ```bash
 export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45
+export LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0
+export DROP_FILE_PAGE_CACHE=false
 export SKIP_SMALL_FLUSH=false
 export SEQUENTIAL_WRITE=true
 export LIVE_STREAM_WRITER_BUFFER_SIZE=16777216
@@ -19,7 +21,9 @@ export MAX_CONCURRENT_RECORDINGS=5
 
 | 參數 | 調整 | 原因 |
 |------|------|------|
-| `SYNC_PERIOD_SECS=45` | 適當拉長 sync | 避免頻繁打斷順序寫入 |
+| `SYNC_PERIOD_SECS=45` | 適當拉長整檔案 fsync | 避免頻繁打斷順序寫入；與冷釋放互斥 |
+| `COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中冷釋放 | NAS 記憶體通常更大，優先耐久與回放 |
+| `DROP_FILE_PAGE_CACHE=false` | 關檔不 fadvise | 減少錄完立刻播放的冷讀 |
 | `SKIP_SMALL_FLUSH=false` | 保障完整性 | — |
 | `SEQUENTIAL_WRITE=true` | **保持全局寫鎖** | 多路併發強制順序寫入，降低尋道延遲 |
 | `BUFFER_SIZE=16MB` | 增大單次落盤 | 檔案在磁盤上分佈更連續 |

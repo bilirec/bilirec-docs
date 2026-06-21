@@ -198,37 +198,44 @@ import { Aside } from '@astrojs/starlight/components';
 
 1. 对照 [性能实测](/zh-cn/guides/performance-benchmark/)「恢复闲置」— 在附近通常正常。
 2. 想再低一点：略减缓冲相关配置（见 [内存占用估算](/zh-cn/configuration/memory-estimation/)）。
-3. 若主要是监控「总内存」虚高：先读上文链接，必要时再考虑 `DROP_FILE_PAGE_CACHE`（见下节代价说明）。
+3. 若主要是监控「总内存」虚高：默认已开冷缓存释放与关档 fadvise；仍偏高时读 [内存占用估算](/zh-cn/configuration/memory-estimation/)。SSD/HDD 可显式 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` 与 `DROP_FILE_PAGE_CACHE=false`。
 
 **何时要担心：** 停录很久仍**持续上涨**、或明显卡死 — 再查日志或提 issue；单次高峰后居高不下多数属于上面 1～3。
 
 ### `DROP_FILE_PAGE_CACHE` 什么时候用？代价是什么？
 
-**适合开启的情况：**
+**默认已开启**（`true`），并与 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60` 配合：录製中释放冷前缀、关档/转码后释放整文件 cache，减轻容器与 Android 后台内存压力。
 
-- 树莓派 / NAS / **容器有内存上限**，监控里总内存长期偏高，且你确认主要是「录过很多大文件之后」
-- **Android App**（已默认开）：后台内存压力大，希望录制/转码结束后尽快让系统收回文件缓存
+**适合保持开启的情况：**
+
+- 树莓派 / NAS / **容器有内存上限**，监控里总内存随录製上涨
+- **Android App**
 - 你**很少**在录完或转完后立刻在同一台机器上连续播放或拖动进度条
 
-**不建议开启的情况：**
+**建议显式关闭的情况：**
 
 - 录完或转完 **马上要 Web 回放 / 本地播放器秒开**
-- 存储是 **慢速 SD / 机械硬盘**，且你介意第一次打开变慢
+- **SSD / HDD / NAS**，存储够快、内存充裕，更在意回放体验
 - Windows 本机（此选项无效果，不必设）
-- 只是看着数字不舒服、但机器内存其实还够 — 优先读上文「监控总量虚高」说明，不必开
 
-**代价（请权衡后再开）：**
+**代价（请权衡后再关）：**
 
-1. **回放变慢**：分段结束、转码完成后，内核会丢掉该文件在内存里的缓存副本；**下一次**播放、下载或再次读取同一文件，需要 **重新从磁盘读**，慢速卡上可能明显卡顿几秒。
+1. **回放变慢**：关档/转码后或录製中已释放的区间，下次读取需 **重新从磁盘读**。
 2. **连续操作更吃磁盘**：刚录完立刻拖进度条、反复 scrub，每次都更像「冷读」。
-3. **不减程序自己的缓冲**：只影响文件页缓存，**不会**把 bilirec 留着的录制用内存池变小；若进程本身占用很高，开这个也没用。
-4. **Android 默认已开**：若你发现「刚转完 MP4 第一次播放慢」，可在 App 环境里设 `DROP_FILE_PAGE_CACHE=false`。
+3. **不减程序自己的缓冲**：只影响文件页缓存，**不会**把 bilirec 留着的录制用内存池变小。
+4. **断电热尾**：冷释放保留约 64MB 热尾 + 用户态 buffer；完整耐久仍以关档 `sync` 为准。详见下节。
 
 **怎么设：**
 
-- Docker / Linux：`DROP_FILE_PAGE_CACHE=true`（默认关）
-- Android App：默认开；要关则 `DROP_FILE_PAGE_CACHE=false`
+- 关闭：`DROP_FILE_PAGE_CACHE=false`、`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`
 - 详见 [环境变量说明](/zh-cn/configuration/env-reference/)
+
+### `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 是什么？和 periodic fsync 有何不同？
+
+- **冷缓存释放**：录製中每隔 N 秒，对已写完、不会再读的**文件前缀**落盘并 `fadvise` 丢掉 page cache；用于压低 Docker/Dockhand 曲线，**比 periodic 整文件 fsync 更省 SD**。
+- **不是 fsync 替代品**：关档时仍会整文件 `sync` 一次；录製中热尾（约 64MB + 写缓冲）断电仍可能丢失。
+- **与 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 的关系**：两者同时 `>0` 时 **仅 periodic fsync 生效**，冷释放自动关闭（日志警告，不启动失败）。
+- **与 `DROP_FILE_PAGE_CACHE` 的关系**：独立开关；冷释放管录製中前缀，DROP 管关档/转码后整文件。默认两者都开。
 
 <Aside type="tip">
 **简单说：** 停录后内存比刚开机高一些很常见；正在录的时候若紧张，优先调缓冲配置，别急着减录制路数。

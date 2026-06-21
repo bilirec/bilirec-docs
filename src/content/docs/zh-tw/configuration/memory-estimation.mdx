@@ -67,7 +67,7 @@ HLS 讀進來的是**一整段分片**（大小由 m3u8 決定，常見 2–6 MB
 
 ## 其他說明
 
-- **容器總記憶體虛高**：寫入磁盤後，系統可能額外緩存一份檔案，容器監控顯示的總用量會遠高於上表，規劃時以上表為準即可。若需壓低監控數字且能接受回放略慢，可設 `DROP_FILE_PAGE_CACHE=true`（見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)）。
+- **容器總記憶體虛高**：寫入磁盤後，系統可能額外緩存一份檔案，容器監控顯示的總用量會遠高於上表。默認已開啟 `DROP_FILE_PAGE_CACHE=true` 與 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`（錄製中釋放冷前綴、關檔釋放整檔案），監控曲線會更貼近上表 anon 估算。SSD/HDD 若介意回放變慢可顯式關閉（見 [I/O 調優](/zh-tw/configuration/io-tuning/)）。
 - **停錄後仍偏高**：記憶體池會保留部分已用過的塊（見[性能實測](/zh-tw/guides/performance-benchmark/)「恢復閒置 ~54 MB」），屬正常。
 - **讀/寫 bytes pool 保溫上限**：空閒複用塊數量由 `READ_STREAM_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE_HIGH`、`LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 自動推導（約為 channel 深度的 1/4 與 1/8）；**在途記憶體公式不變**。
 

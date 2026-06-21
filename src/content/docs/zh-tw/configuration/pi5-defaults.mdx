@@ -7,7 +7,9 @@ Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在
 
 | 優化項 | 值 | 說明 |
 | ----- | ---- | ---- |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | 禁用週期性 fsync（最昂貴的操作），數據僅在錄製結束時 sync。權衡：意外斷電可能丟失最後一段尚未持久化的數據 |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | 禁用週期性整檔案 fsync；關檔時 sync |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 錄製中週期性釋放冷檔案頁緩存，壓低監控曲線 |
+| `DROP_FILE_PAGE_CACHE` | `true` | 關檔/轉碼後釋放整檔案頁緩存 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 降低 flush 頻率，優先降低 SD 卡寫入頻次。@1080p30fps (4.5Mbps) 約每 14.2 秒觸發一次滿緩衝寫入 |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `10` | 10 秒 flush，優先降低 SD 卡磨損；代價是異常斷電時未 flush 數據窗口會略增 |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 以 512KB chunk 估算，單錄製任務約 32MB 隊列數據；比 128（約 64MB）更適合 4GB 設備 |

@@ -37,7 +37,8 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（字節） | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 週期性 fsync 週期（秒），`0`=禁用 | `0` |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 週期性整檔案 fsync 週期（秒），`0`=禁用 | `0` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中週期性釋放冷檔案頁緩存（秒，僅 Linux/Android）；`0`=禁用 | `60` |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 週期性 flush 週期（秒） | `10` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道緩衝區（數據塊數）；1080p 與 4K 共用 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
@@ -45,7 +46,8 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 
 ### 關鍵參數說明
 
-- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性 fsync（最昂貴的操作），僅在錄製結束時 sync。大幅降低 SD 卡磨損，但意外斷電可能丟失最後一段數據
+- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性整檔案 fsync（最昂貴的操作），僅在錄製結束時 sync。與冷緩存釋放**不可同時生效**（若同時設置，以 fsync 為準並打日誌警告）
+- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 錄製中週期性對**已寫完的冷前綴**執行 `sync_file_range` + 釋放頁緩存，壓低容器監控裡的 file cache；**不是** periodic fsync。關檔時仍會 `sync` 一次
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大緩衝降低 flush 頻率。@1080p30fps (4.5Mbps) 約每 14 秒觸發一次滿緩衝寫入
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=10`** — 10 秒 flush 一次，優先降低 SD 卡磨損
 - **寫側保溫上限**：`LIVE_STREAM_WRITER_BYTES_POOL_SIZE` 各檔位的空閒複用塊約為 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 的 1/8
@@ -66,10 +68,10 @@ description: 緩衝區、flush、sync 與寫入序列化參數
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 啟用後在達到閾值前僅緩存記憶體，不創建檔案 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
-| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後釋放檔案頁緩存（僅 Linux/Android） | `false` |
+| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後釋放整檔案頁緩存（僅 Linux/Android） | `true` |
 
 - **`SKIP_SMALL_FLUSH`** — 在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存記憶體、不創建檔案；對低比特率流（如 240p）特別有效。該閾值獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`
 - **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；啟用後多路錄製的定時 flush 會經 round-robin 錯開。SSD 環境建議禁用
-- **`DROP_FILE_PAGE_CACHE`** — 容器監控「總記憶體」因檔案頁緩存虛高時可考慮開啟；**代價**是剛錄完/轉完立刻播放可能變慢。詳見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)
+- **`DROP_FILE_PAGE_CACHE`** — 關檔/轉碼後整檔案 fadvise；默認已開。與錄製中的冷緩存釋放獨立，建議組合使用以壓低監控曲線。**代價**是剛錄完/轉完立刻播放可能變慢。詳見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)
 
 針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[記憶體佔用估算](/zh-tw/configuration/memory-estimation/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
