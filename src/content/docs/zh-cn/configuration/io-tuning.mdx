@@ -66,8 +66,10 @@ description: 缓冲区、flush、sync 与写入序列化参数
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 启用 `SKIP_SMALL_FLUSH` 后，延迟创建文件并缓存内存的阈值（字节） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 启用后在达到阈值前仅缓存内存，不创建文件 | `true` |
 | `SEQUENTIAL_WRITE` | 全局 flush 锁序列化多路写入 | `true` |
+| `DROP_FILE_PAGE_CACHE` | 录制分段结束或本地 ffmpeg 转码成功后释放文件页缓存（仅 Linux/Android） | `false` |
 
 - **`SKIP_SMALL_FLUSH`** — 在达到 `SKIP_SMALL_FLUSH_THRESHOLD`（默认 1MB）之前仅缓存内存、不创建文件；对低比特率流（如 240p）特别有效。该阈值独立于 `LIVE_STREAM_WRITER_BUFFER_SIZE`
 - **`SEQUENTIAL_WRITE`** — 多路并发写入同一物理磁盘时显著降低 I/O 峰值；启用后多路录制的定时 flush 会经 round-robin 错开。SSD 环境建议禁用
+- **`DROP_FILE_PAGE_CACHE`** — 容器监控「总内存」因文件页缓存虚高时可考虑开启；**代价**是刚录完/转完立刻播放可能变慢。详见 [常见问题](/zh-cn/guides/faq/#drop_file_page_cache-什么时候用代价是什么)
 
 针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[内存占用估算](/zh-cn/configuration/memory-estimation/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。

@@ -71,6 +71,7 @@ tableOfContents: false
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 写侧块大小（`qn ≥ 20000` 时自动启用，见高码率调参页） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 启用 `SKIP_SMALL_FLUSH` 后，延迟创建文件并缓存内存的阈值（字节）；达到阈值后才开始落盘 | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 启用 microSD 磨损保护：在达到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前仅缓存内存，不创建文件 | `true` |
+| `DROP_FILE_PAGE_CACHE` | 录制分段结束或本地 ffmpeg 转码成功后，提示内核释放对应文件的页缓存（仅 Linux/Android 有效）。**代价：** 下次播放/下载同一文件需重新从磁盘读取，可能变慢。Docker/Linux 默认 `false`；[Android App](https://www.bilirec.org/zh-cn/guides/android/) 内建默认 `true`，可用环境变量覆盖 | `false` |
 | `SEQUENTIAL_WRITE` | 启用全局写盘锁以序列化多路录制的写入操作；多路并发时定时 flush 会自动错开（内部 round-robin），降低 I/O 峰值。多路并发写入同一物理磁盘时建议启用 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 录制所需的最小磁盘空间（字节），低于此值将拒绝新录制任务 | `5368709120` (5 GB) |
 

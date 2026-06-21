@@ -71,6 +71,7 @@ tableOfContents: false
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節）；達到閾值後才開始落盤 | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
+| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後，提示內核釋放對應檔案的頁緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。Docker/Linux 默認 `false`；[Android App](https://www.bilirec.org/zh-tw/guides/android/) 內建默認 `true`，可用環境變量覆蓋 | `false` |
 | `SEQUENTIAL_WRITE` | 啟用全局寫盤鎖以序列化多路錄製的寫入操作；多路併發時定時 flush 會自動錯開（內部 round-robin），降低 I/O 峰值。多路併發寫入同一物理磁盤時建議啟用 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁盤空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
 
