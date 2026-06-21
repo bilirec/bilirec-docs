@@ -153,7 +153,7 @@ import { Aside } from '@astrojs/starlight/components';
 **为什么：** 很多时候不是「算力不够」，而是**写盘太勤**——尤其 microSD、机械硬盘上，频繁 flush/sync 会造成 CPU 和 I/O 尖峰。订阅房间多、后台转码也会叠加一些占用。闲置时若大约每 10 秒有小尖峰，可能来自订阅开播轮询（subcheck）；可调 `SUBCHECK_CHECK_INTERVAL_SECS` / `SUBCHECK_SHARD_COUNT`（见 [录制配置](/zh-cn/configuration/recording/)）。
 
 **你可以：**
-1. 树莓派 + microSD：适当**加大写盘缓冲**、**拉长 flush 周期**、必要时关闭周期性 sync（见 [I/O 调优](/zh-cn/configuration/io-tuning/) 与 [树莓派默认配置](/zh-cn/configuration/pi5-defaults/)）。
+1. 树莓派 + microSD：适当**加大写盘缓冲**、**拉长写盘间隔**、必要时关闭录制中整文件落盘（见 [I/O 调优](/zh-cn/configuration/io-tuning/) 与 [树莓派默认配置](/zh-cn/configuration/pi5-defaults/)）。
 2. 订阅房间特别多时，把检查分组调多、一轮时间略拉长（见 [录制配置](/zh-cn/configuration/recording/)）。
 3. 尽量不要边录边转码，或把转码挪到空闲时段。
 
@@ -192,7 +192,7 @@ import { Aside } from '@astrojs/starlight/components';
    例如 4～5 路同时录过，总量两三百 MB 可能和 [内存占用估算](/zh-cn/configuration/memory-estimation/) 里的峰值同一量级，**不一定是漏内存**。
 
 3. **监控里的「总内存」常把「刚写过的录制文件缓存」也算进去**  
-   这是系统为读写加速暂存的副本，**不是** bilirec 又多占了一份堆内存；内存紧张时系统会自己收回。详见 [内存占用估算 - 容器总内存虚高](/zh-cn/configuration/memory-estimation/#容器总内存虚高)。
+   这是系统为读写加速暂存的副本，**不是** bilirec 又多占了一份程序内存；内存紧张时系统会自己收回。详见 [内存占用估算 - 容器总内存虚高](/zh-cn/configuration/memory-estimation/#容器总内存虚高)。
 
 **你可以：**
 
@@ -213,6 +213,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 两者配合，可避免 Docker / 手机监控里内存随录製一路顶到上限。代价是：刚录完立刻播放、或录製中回放已写好的前半段，可能要从磁盘重新读，略慢。
 
+**冷释放不是「每 60 秒必清一次」：** 单段文件要长到约 96 MB 以上才会开始清理旧前缀；短 HLS 分段主要靠关档时的 `DROP_FILE_PAGE_CACHE`。详见 [I/O 调优 · 录制文件缓存释放](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android)。
+
 **适合保持默认：** 树莓派、1GB 容器、Android 后台、很少录完马上拖进度条。
 
 **建议关闭（回放优先）：** SSD / NAS、录完马上要秒开播放。设 `DROP_FILE_PAGE_CACHE=false` 且 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`。
@@ -221,7 +223,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 - 整文件落盘：为了**断电少丢数据**，录製中反复把整个文件刷进卡，**很伤 microSD**，也**压不住**监控内存。
 - 上面的 60 秒选项：为了**监控好看**，只清理旧数据，**比整文件落盘省卡**；关档时仍会完整保存一次。
-- 两个都设了：以整文件落盘为准，60 秒清理自动不生效（日志会提示）。
+- 两个都设了：以整文件落盘为准，不再单独按 60 秒清缓存；**仅当 `COLD_CACHE_RELEASE_SECS>0`** 时，每次 fsync 成功后才顺便释放冷前缀。
+- **落盘不会自动释放缓存**：`SYNC_PERIOD` 负责落盘；释放缓存靠 fsync 后的冷前缀释放、或独立的冷释放定时器、以及 `DROP_FILE_PAGE_CACHE`，分工不同。
+
+若日志出现 `释放文件页缓存失败` 或 `冷缓存释放失败`，录制通常仍可继续，只是内存可能降不下来；见 [I/O 调优 · 录制文件缓存释放](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android)。
 
 详见 [环境变量说明](/zh-cn/configuration/env-reference/) · [I/O 调优](/zh-cn/configuration/io-tuning/)。
 

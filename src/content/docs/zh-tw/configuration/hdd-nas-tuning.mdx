@@ -5,7 +5,7 @@ description: 機械硬盤與 DIY NAS 環境下的 I/O 設定方案
 
 import { Aside } from '@astrojs/starlight/components';
 
-機械硬盤的物理弱點是**磁頭尋道延遲**。多路併發錄製時頻繁隨機寫入會導致嚴重卡頓。調整核心在於**合併大塊數據**並**強制順序寫入**。
+機械硬盤最怕**磁頭來回找位置**。多路同時寫很多小檔案時，NAS 容易卡頓。調參核心是：**一次寫大一點**、**多路輪流寫**。
 
 ## 推薦設定
 
@@ -19,18 +19,18 @@ export LIVE_STREAM_WRITER_BUFFER_SIZE=16777216
 export MAX_CONCURRENT_RECORDINGS=5
 ```
 
-| 參數 | 調整 | 原因 |
-|------|------|------|
-| `SYNC_PERIOD_SECS=45` | 適當拉長整檔案 fsync | 避免頻繁打斷順序寫入；與冷釋放互斥 |
-| `COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中冷釋放 | NAS 記憶體通常更大，優先耐久與回放 |
-| `DROP_FILE_PAGE_CACHE=false` | 關檔不 fadvise | 減少錄完立刻播放的冷讀 |
-| `SKIP_SMALL_FLUSH=false` | 保障完整性 | — |
-| `SEQUENTIAL_WRITE=true` | **保持全局寫鎖** | 多路併發強制順序寫入，降低尋道延遲 |
-| `BUFFER_SIZE=16MB` | 增大單次落盤 | 檔案在磁盤上分佈更連續 |
-| `MAX_CONCURRENT_RECORDINGS=5` | 適度併發 | 視硬盤轉速調整 |
+| 參數 | 調整 | 你會注意到什麼 |
+|------|------|----------------|
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45` | 適當拉長整檔案落盤間隔 | 減少打斷順序寫入；`COLD=0` 時 fsync 後不會釋放頁緩存 |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | NAS 記憶體通常更大，回放更順 |
+| `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
+| `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤 |
+| `SEQUENTIAL_WRITE=true` | 多路輪流寫盤 | 磁頭尋道更少，多路更穩 |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE=16MB` | 單次寫入更大 | 檔案在盤上更連續 |
+| `MAX_CONCURRENT_RECORDINGS=5` | 適度併發 | 視硬盤轉速與記憶體調整 |
 
 <Aside type="tip">
 **混合部署建議：**
-- **ZFS 檔案系統：** 可將 `SYNC_PERIOD_SECS` 設為 `0` 或 `60`，交由 ARC 緩存接管
-- **與私有云服務共存：** 若硬盤同時運行 Cloudreve、影音服務器等，強烈建議保持 `SEQUENTIAL_WRITE=true`，避免磁頭爭搶
+- **ZFS 檔案系統：** 可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0` 或 `60`，少做應用層反覆落盤
+- **與私有云服務共存：** 若硬盤同時跑 Cloudreve、影音庫等，建議保持 `SEQUENTIAL_WRITE=true`，避免多服務搶磁頭
 </Aside>

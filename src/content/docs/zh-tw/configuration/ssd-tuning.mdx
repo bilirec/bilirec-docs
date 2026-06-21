@@ -5,7 +5,7 @@ description: 固態硬盤環境下的 I/O 設定方案
 
 import { Aside } from '@astrojs/starlight/components';
 
-SSD 具備極高的隨機讀寫性能，無需過度擔憂小塊檔案寫入磨損，且開啟應用層寫入序列化反而會限制併發優勢。
+SSD 隨機讀寫很快，不必像 microSD 那樣擔心小塊寫入磨損；默認的「多路輪流寫盤」反而會限制 SSD 併發優勢。
 
 ## 推薦設定
 
@@ -19,16 +19,16 @@ export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128
 export MAX_CONCURRENT_RECORDINGS=10
 ```
 
-| 參數 | 調整 | 原因 |
-|------|------|------|
-| `SYNC_PERIOD_SECS=30` | 恢復週期性整檔案 fsync | 降低斷電數據丟失風險；與冷釋放互斥 |
-| `COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中冷釋放 | SSD 記憶體通常充裕，優先回放體驗 |
-| `DROP_FILE_PAGE_CACHE=false` | 關檔不 fadvise | 錄完立刻播放更快 |
-| `SKIP_SMALL_FLUSH=false` | 不跳過小塊 flush | 優先保障錄製完整性 |
-| `SEQUENTIAL_WRITE=false` | **禁用全局 flush 鎖** | 解放 SSD 多路併發 I/O |
-| `CHAN_BUFFER_SIZE=128` | 提高隊列深度 | 容忍更高網絡突發流量 |
-| `MAX_CONCURRENT_RECORDINGS=10` | 放寬併發 | 視 CPU 與記憶體調整 |
+| 參數 | 調整 | 你會注意到什麼 |
+|------|------|----------------|
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30` | 錄製中定期整檔案落盤 | 斷電少丟數據；僅當 `COLD_CACHE_RELEASE_SECS>0` 時 fsync 後才會順帶釋放冷前綴 |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | 監控數字可能略高，但錄完立刻播放更快 |
+| `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
+| `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤，檔案更完整 |
+| `SEQUENTIAL_WRITE=false` | 允許多路同時寫盤 | SSD 多路併發更順暢 |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128` | 加大寫盤前排隊 | 更能扛網絡突發，記憶體佔用上升 |
+| `MAX_CONCURRENT_RECORDINGS=10` | 放寬同時錄製路數 | 視 CPU 與記憶體調整 |
 
 <Aside type="tip">
-若底層使用 ZFS 等自帶 ARC 緩存的檔案系統，頻繁應用層 sync 可能引發寫入放大。可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0` 或 `60`，將落盤調度交由底層系統接管。
+若底層使用 ZFS 等自帶大塊緩存的檔案系統，可把 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0` 或 `60`，減少應用層反覆落盤。
 </Aside>

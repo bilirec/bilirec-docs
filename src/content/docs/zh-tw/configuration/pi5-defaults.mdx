@@ -3,21 +3,21 @@ title: 樹莓派 5B 默認設定
 description: 針對樹莓派 5B + microSD 的默認優化參數
 ---
 
-Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在「降低寫入次數」和「控制記憶體佔用」之間取平衡。
+Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在「少寫卡、省磨損」和「控制記憶體佔用」之間取平衡。
 
-| 優化項 | 值 | 說明 |
-| ----- | ---- | ---- |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | 禁用週期性整檔案 fsync；關檔時 sync |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 錄製中週期性釋放冷檔案頁緩存，壓低監控曲線 |
-| `DROP_FILE_PAGE_CACHE` | `true` | 關檔/轉碼後釋放整檔案頁緩存 |
-| `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 降低 flush 頻率，優先降低 SD 卡寫入頻次。@1080p30fps (4.5Mbps) 約每 14.2 秒觸發一次滿緩衝寫入 |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 15 秒 flush，優先降低 SD 卡磨損；代價是異常斷電時未 flush 數據窗口會略增 |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 以 512KB chunk 估算，單錄製任務約 32MB 隊列數據；比 128（約 64MB）更適合 4GB 設備 |
-| `SKIP_SMALL_FLUSH` | `true` | 啟用小塊跳過保護；在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存記憶體，不創建檔案，對低比特率流（如 240p）特別有效 |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 與常見 stream chunk 大小一致，減少額外分配與拷貝 |
-| `SEQUENTIAL_WRITE` | `true` | 序列化多路寫入；多路併發時定時 flush 經 round-robin 錯開，有效降低 I/O 峰值，默認啟用以保護 microSD |
-| `MAX_CONCURRENT_RECORDINGS` | `3` | 默認同時錄製上限（保守值）；樹莓派 5B + 1 GB 容器、1080p 默認緩衝下，生產環境可驗證至 **5 路**（見[性能實測](/zh-tw/guides/performance-benchmark/)），按需調大 |
+| 優化項 | 值 | 你會注意到什麼 |
+| ----- | ---- | -------------- |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | 錄製中不反覆整檔案落盤，只在關檔時完整保存；最省 microSD |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 長錄時 Docker 監控記憶體不會一路頂滿 |
+| `DROP_FILE_PAGE_CACHE` | `true` | 關檔/轉碼後釋放檔案緩存；剛錄完立刻播放可能略慢 |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 寫盤次數較少；1080p 約每 14 秒寫一次 |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 每 15 秒推進磁盤；異常斷電時未寫入窗口略大於更短週期 |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 單路約 32 MB 寫盤排隊；比 128 更省記憶體 |
+| `SKIP_SMALL_FLUSH` | `true` | 極短直播不到 1MB 不建檔案，減少空檔案 |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 與常見直播塊大小一致 |
+| `SEQUENTIAL_WRITE` | `true` | 多路同時錄時輪流寫盤，磁盤峰值更平穩 |
+| `MAX_CONCURRENT_RECORDINGS` | `3` | 默認同時錄製上限（保守值）；1 GB 容器、1080p 下實測可穩定 **5 路**（見[性能實測](/zh-tw/guides/performance-benchmark/)），按需調大 |
 
-容器運行時同步：`GOMEMLIMIT=768MiB`、`GOGC=100`。
+官方 Docker 鏡像已內置適合樹莓派的運行參數，一般無需再改。
 
-若錄製 4K / 杜比等高碼率流，程序會根據 `qn` 自動啟用 `*_HIGH` 雙池，一般無需改 1080p 基礎變量；僅在卡頓時參閱[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。規劃容器記憶體請參閱[記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。若你的存儲介質是 SSD 或 HDD/NAS，請參閱對應的[調優方案](/zh-tw/configuration/ssd-tuning/)。
+若錄製 4K / 杜比，程序會根據 `qn` 自動啟用高畫質緩衝，一般無需改 1080p 基礎變量；卡頓時參閱 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。規劃容器記憶體請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。存儲介質為 SSD 或 HDD/NAS 時請參閱 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 或 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

@@ -153,7 +153,7 @@ import { Aside } from '@astrojs/starlight/components';
 **為什麼：** 很多時候不是「算力不夠」，而是**寫盤太勤**——尤其 microSD、機械硬盤上，頻繁 flush/sync 會造成 CPU 和 I/O 尖峰。訂閱房間多、後臺轉碼也會疊加一些佔用。閒置時若大約每 10 秒有小尖峰，可能來自訂閱開播輪詢（subcheck）；可調 `SUBCHECK_CHECK_INTERVAL_SECS` / `SUBCHECK_SHARD_COUNT`（見 [錄製設定](/zh-tw/configuration/recording/)）。
 
 **你可以：**
-1. 樹莓派 + microSD：適當**加大寫盤緩衝**、**拉長 flush 週期**、必要時關閉週期性 sync（見 [I/O 調優](/zh-tw/configuration/io-tuning/) 與 [樹莓派默認設定](/zh-tw/configuration/pi5-defaults/)）。
+1. 樹莓派 + microSD：適當**加大寫盤緩衝**、**拉長寫盤間隔**、必要時關閉錄製中整檔案落盤（見 [I/O 調優](/zh-tw/configuration/io-tuning/) 與 [樹莓派默認設定](/zh-tw/configuration/pi5-defaults/)）。
 2. 訂閱房間特別多時，把檢查分組調多、一輪時間略拉長（見 [錄製設定](/zh-tw/configuration/recording/)）。
 3. 儘量不要邊錄邊轉碼，或把轉碼挪到空閒時段。
 
@@ -192,7 +192,7 @@ import { Aside } from '@astrojs/starlight/components';
    例如 4～5 路同時錄過，總量兩三百 MB 可能和 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 裡的峰值同一量級，**不一定是漏記憶體**。
 
 3. **監控裡的「總記憶體」常把「剛寫過的錄製檔案緩存」也算進去**  
-   這是系統為讀寫加速暫存的副本，**不是** bilirec 又多佔了一份堆記憶體；記憶體緊張時系統會自己收回。詳見 [記憶體佔用估算 - 容器總記憶體虛高](/zh-tw/configuration/memory-estimation/#容器總記憶體虛高)。
+   這是系統為讀寫加速暫存的副本，**不是** bilirec 又多佔了一份程序記憶體；記憶體緊張時系統會自己收回。詳見 [記憶體佔用估算 - 容器總記憶體虛高](/zh-tw/configuration/memory-estimation/#容器總記憶體虛高)。
 
 **你可以：**
 
@@ -213,7 +213,9 @@ import { Aside } from '@astrojs/starlight/components';
 
 兩者配合，可避免 Docker / 手機監控裡記憶體隨錄製一路頂到上限。代價是：剛錄完立刻播放、或錄製中回放已寫好的前半段，可能要從磁盤重新讀，略慢。
 
-**適合保持默認：** 樹莓派、1GB 容器、Android 後台、很少錄完馬上拖進度條。
+**冷釋放不是「每 60 秒必清一次」：** 單段檔案要長到約 96 MB 以上才會開始清理舊前綴；短 HLS 分段主要靠關檔時的 `DROP_FILE_PAGE_CACHE`。詳見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
+
+**適合保持默認：** 樹莓派、1GB 容器、Android 後臺、很少錄完馬上拖進度條。
 
 **建議關閉（回放優先）：** SSD / NAS、錄完馬上要秒開播放。設 `DROP_FILE_PAGE_CACHE=false` 且 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`。
 
@@ -221,7 +223,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 - 整檔案落盤：為了**斷電少丟數據**，錄製中反覆把整個檔案刷進卡，**很傷 microSD**，也**壓不住**監控記憶體。
 - 上面的 60 秒選項：為了**監控好看**，只清理舊數據，**比整檔案落盤省卡**；關檔時仍會完整保存一次。
-- 兩個都設了：以整檔案落盤為準，60 秒清理自動不生效（日誌會提示）。
+- 兩個都設了：以整檔案落盤為準，不再單獨按 60 秒清緩存；**僅當 `COLD_CACHE_RELEASE_SECS>0`** 時，每次 fsync 成功後才順便釋放冷前綴。
+- **落盤不會自動釋放緩存**：`SYNC_PERIOD` 負責落盤；釋放緩存靠 fsync 後的冷前綴釋放、或獨立的冷釋放定時器、以及 `DROP_FILE_PAGE_CACHE`，分工不同。
+
+若日誌出現 `釋放檔案頁緩存失敗` 或 `冷緩存釋放失敗`，錄製通常仍可繼續，只是記憶體可能降不下來；見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
 詳見 [環境變量說明](/zh-tw/configuration/env-reference/) · [I/O 調優](/zh-tw/configuration/io-tuning/)。
 

@@ -40,7 +40,7 @@ tableOfContents: false
 | `VIEWER_USERNAME` | 可選：僅查看權限的訪客用戶名 | (未設置) |
 | `VIEWER_PASSWORD` | 可選：僅查看權限的訪客密碼 | (未設置) |
 | `JWT_SECRET` | JWT 簽名密鑰 | `bilirec_secret` |
-| `DEBUG` | 啟用調試模式（會開啟 pprof 和臨時 hex token） | `false` |
+| `DEBUG` | 調試模式（詳見 [開發與調試](/zh-tw/development/debugging/)） | `false` |
 | `PRODUCTION_MODE` | 啟用生產模式（影響 cookie 與 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 啟用靜默訪問日誌（僅記錄 4xx/5xx 響應） | `false` |
 | `DATABASE_DIR` | 本地數據庫目錄（bbolt，用於持久化轉換任務等） | `database` |
@@ -61,19 +61,19 @@ tableOfContents: false
 | `STREAM_WRITER_BUFFER_SIZE` | 流寫入器（寫入檔案）緩衝區大小（字節） | `1048576` (1 MB) |
 | `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下 FLV 每次讀取的緩衝塊大小（字節） | `524288` (512 KB) |
 | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 讀塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下讀側 channel 深度（chunk 數） | `16` |
-| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀側 channel 深度（`qn ≥ 20000` 時自動啟用）；高碼率時建議高於默認值 | `48` |
-| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（用於直播錄製或實時下載，字節）；更大的值減少 flush 頻率，降低 SD 卡磨損 | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 實時流寫入器執行週期性整檔案 `fsync` 的週期（秒）；`0` 禁用（僅在 Close 時 sync）。與 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 同時 `>0` 時以本項為準，冷釋放自動關閉 | `0` |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中週期性釋放冷檔案頁緩存的週期（秒，僅 Linux/Android）；`0` 禁用。默認 `60`，用於壓低容器 file cache；**不是** periodic fsync | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 實時流寫入器執行週期性 `flush` 的週期（秒）；值越大 flush 頻率越低，越有利於減少 SD 卡寫入頻次 | `15` |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 實時流寫入器通道緩衝區大小（數據塊數）；更大的值可容忍寫入延遲突變，但會增加記憶體佔用 | `64` |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下，從網絡讀入時可排隊的塊數 | `16` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀入時可排隊的塊數（`qn ≥ 20000` 時自動啟用）；網絡抖動大時可酌情調大 | `48` |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫盤前合併緩衝（字節）；越大寫盤越少，但記憶體佔用越高 | `8388608` (8 MB) |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 錄製中每隔多久強制整檔案落盤（秒）；`0`=只在關檔時落盤。與 `COLD_CACHE_RELEASE_SECS` 同時大於 0 時以本項為準：每次 fsync 成功後順帶釋放冷前綴；`COLD=0` 時僅落盤、不釋放緩存 | `0` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中多久清理一次舊檔案緩存（秒，僅 Linux/Android）；`0`=關閉。默認 `60`，用於壓低容器監控曲線；**不是**錄製中反覆整檔案落盤 | `60` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把記憶體數據推進磁盤一次（秒）；越大寫盤越少，SD 更省，但異常斷電未寫入窗口略增 | `15` |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 寫盤前可排隊的塊數；越大越能扛寫入延遲，但記憶體佔用越高 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節）；達到閾值後才開始落盤 | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
-| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後，提示內核釋放對應**整檔案**頁緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。默認 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
-| `SEQUENTIAL_WRITE` | 啟用全局寫盤鎖以序列化多路錄製的寫入操作；多路併發時定時 flush 會自動錯開（內部 round-robin），降低 I/O 峰值。多路併發寫入同一物理磁盤時建議啟用 | `true` |
+| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後，讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。默認 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
+| `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁盤時建議開啟。SSD 可關閉以提升併發 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁盤空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
 
 </div>

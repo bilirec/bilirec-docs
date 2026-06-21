@@ -1,77 +1,115 @@
 ---
 title: I/O 調優
-description: 緩衝區、flush、sync 與寫入序列化參數
+description: 磁盤寫入頻率、多路錄製與緩衝相關參數
 ---
 
-這些參數控制 bilirec 的磁盤 I/O 行為，對 microSD 卡壽命和多路併發性能有顯著影響。
+這些參數影響**寫盤有多勤**、**多路同時錄會不會搶磁盤**，對 microSD 壽命和多路穩定性影響最大。
 
 ## 通用緩衝區
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `UPLOAD_BUFFER_SIZE` | 上傳/外部傳輸緩衝區（字節） | `5242880` (5 MB) |
-| `DOWNLOAD_BUFFER_SIZE` | 檔案下載緩衝區（字節） | `5242880` (5 MB) |
-| `STREAM_WRITER_BUFFER_SIZE` | 流寫入器緩衝區（字節） | `1048576` (1 MB) |
+| `UPLOAD_BUFFER_SIZE` | 上傳/外部傳輸時一次讀多少數據（字節） | `5242880` (5 MB) |
+| `DOWNLOAD_BUFFER_SIZE` | 下載檔案時一次讀多少數據（字節） | `5242880` (5 MB) |
+| `STREAM_WRITER_BUFFER_SIZE` | 普通流寫入時的一次緩衝（字節） | `1048576` (1 MB) |
 
 ## 直播流讀取
 
-這組參數用於**直播流讀取階段**（網絡讀取與讀取管道緩衝）。bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套記憶體池，錄製時根據實際流的 `qn` 自動選用。
+控制**從網絡讀入**時能在記憶體裡先排多少隊。bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套緩衝；錄製時根據畫質 `qn` 自動選用，不用手動切換「4K 模式」。
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下 FLV 每次讀取的緩衝塊大小（字節） | `524288` (512 KB) |
-| `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 讀塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下讀側 channel 深度（chunk 數） | `16` |
-| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀側 channel 深度（`qn ≥ 20000` 時自動啟用） | `48` |
+| `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下，每次從網絡讀入的塊大小（字節） | `524288` (512 KB) |
+| `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K 讀入塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下，讀入時可排隊的塊數 | `16` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀入時可排隊的塊數（`qn ≥ 20000` 時自動啟用） | `48` |
 
 補充說明：
 
-- **懶加載**：只有真的在錄高畫質時才初始化 `*_HIGH` 池；不錄 4K 時不會常駐佔記憶體
-- **HLS 讀側**：不走 bytes pool，但 `qn ≥ 20000` 時同樣使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`
-- **保溫上限**：讀側 bytes pool 空閒複用塊約為 `READ_STREAM_CHAN_BUFFER_SIZE`（或 `_HIGH`）的 1/4；在途記憶體估算公式不變，詳見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)
+- **按需啟用高畫質緩衝**：只有真的在錄 4K / 杜比時才佔用高畫質那套；不錄高畫質時不會多佔記憶體
+- **HLS**：分片大小由 m3u8 決定，但 `qn ≥ 20000` 時讀入排隊深度仍用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`
+- 調大讀入排隊 → 更能扛網絡抖動，但記憶體佔用上升，詳見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)
 
 ## 直播流寫入檔案
 
-這組參數用於**將直播流寫入檔案**階段（flush/sync/隊列）。
+控制**多久寫一次盤**、**寫盤前在記憶體裡攢多少**。
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 實時流寫入緩衝區（字節） | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 週期性整檔案 fsync 週期（秒），`0`=禁用 | `0` |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中週期性釋放冷檔案頁緩存（秒，僅 Linux/Android）；`0`=禁用 | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 週期性 flush 週期（秒） | `15` |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 通道緩衝區（數據塊數）；1080p 與 4K 共用 | `64` |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
-| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫盤前合併緩衝（字節）；越大，單次寫入越大 | `8388608` (8 MB) |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 錄製中每隔多久強制整檔案落盤（秒）；`0`=只在關檔時落盤 | `0` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中多久清理一次舊檔案緩存（秒，僅 Linux/Android）；`0`=關閉 | `60` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把記憶體數據推進磁盤一次（秒） | `15` |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 寫盤前可排隊的塊數；1080p 與 4K 共用 | `64` |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫盤塊大小（字節） | `524288` (512 KB) |
+| `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫盤塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
 
 ### 關鍵參數說明
 
-- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`** — 禁用週期性整檔案 fsync（最昂貴的操作），僅在錄製結束時 sync。與冷緩存釋放**不可同時生效**（若同時設置，以 fsync 為準並打日誌警告）
-- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 錄製中約每 60 秒清理一次「已寫好、暫時不會再讀」的舊檔案系統緩存，避免監控記憶體隨錄製飆高；**不是**週期性整檔案落盤。關檔時仍會完整保存
-- **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 更大緩衝降低 flush 頻率。@1080p30fps (4.5Mbps) 約每 14 秒觸發一次滿緩衝寫入
-- **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=15`** — 15 秒 flush 一次，優先降低 SD 卡磨損
-- **寫側保溫上限**：`LIVE_STREAM_WRITER_BYTES_POOL_SIZE` 各檔位的空閒複用塊約為 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 的 1/8
+- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`**（默認）— 錄製過程中**不**反覆把整檔案刷進卡，只在關檔時完整保存；最省 microSD。**若改為大於 0**：斷電時少丟數據的窗口變小，但寫卡更勤、更傷卡；且與冷緩存釋放**不能同時單獨計時**（同時設置時以本項為準：每次 fsync 成功後會**順便**釋放冷前綴緩存，不再按 `COLD_CACHE_RELEASE_SECS` 另跑定時器；啟動日誌會提示）
+- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 錄製中約每 60 秒讓系統忘掉「已寫好、暫時不會再讀」的舊檔案緩存，避免 Docker 監控記憶體一路飆高；**不是**反覆整檔案落盤，也**不是**為了斷電少丟數據。關檔時仍會完整保存
+- **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 緩衝越大，寫盤次數越少。以 1080p 30fps、約 4.5Mbps 估算，大約每 14 秒攢滿寫一次
+- **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=15`** — 每 15 秒推進一次磁盤，在「省電/省卡」和「異常斷電少丟數據」之間折中
 
-## 2K/4K 雙池一覽
+### 錄製檔案緩存釋放（Linux / Android）
 
-| 畫質 | 判定（`qn`） | FLV 讀塊 | 讀側 channel | 寫側塊 |
-| ---- | ------------ | -------- | ------------ | ------ |
-| 1080p 及以下 | `< 20000` | `READ_STREAM_BYTES_POOL_SIZE`（512 KB） | `READ_STREAM_CHAN_BUFFER_SIZE`（16） | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE`（512 KB） |
-| 2K / 4K / 杜比 | `≥ 20000` | `READ_STREAM_BYTES_POOL_SIZE_HIGH`（1 MB） | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`（48） | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（1 MB） |
+bilirec 會把直播數據寫入磁盤後，操作系統往往還會在記憶體裡**再留一份副本**（檔案頁緩存），用來加速以後的讀寫。長時間、多路錄製時，Docker 或手機監控裡的「總記憶體」可能因此虛高——**並不等於程序本身多佔了一份記憶體**。
 
-高規格專用變量共三個：`READ_STREAM_BYTES_POOL_SIZE_HIGH`、`READ_STREAM_CHAN_BUFFER_SIZE_HIGH`、`LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`（讀寫塊大小建議保持一致）。詳見[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。
+為壓低這類監控曲線，默認在 Linux / Android 上開啟兩套互補機制（Windows 上無對應系統接口，會自動跳過，屬正常現象）：
+
+| 機制 | 對應變量 | 何時起作用 | 主要目的 |
+| ---- | -------- | ---------- | -------- |
+| **錄製中冷緩存釋放** | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 單段錄製**持續較長**、檔案已寫出相當多數據後，按間隔清理**檔案開頭**那段已不再寫入的緩存 | **省記憶體 / 監控好看** |
+| **關檔或轉碼後整份釋放** | `DROP_FILE_PAGE_CACHE` | 一段錄完關檔案，或本地 ffmpeg 轉碼成功之後 | **省記憶體 / 監控好看** |
+| **錄製中整檔案落盤** | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 按間隔對整個檔案做落盤（默認關閉） | **斷電少丟數據**（更傷 microSD） |
+
+**和「週期性落盤」別搞混：**
+
+- **落盤（`SYNC_PERIOD`）** 是把記憶體裡的改動**寫到卡里**，保證斷電時數據更安全；落盤後，系統**仍可能**在記憶體裡留著這份檔案的緩存副本。
+- **冷緩存釋放 / 關檔釋放** 是在數據**已經安全寫到磁盤**之後，告訴系統「這段暫時不用再留著了」，把緩存騰出來；**不能代替**落盤來保護斷電。
+- 若兩個「按秒計時」的選項同時大於 0，**以整檔案落盤為準**：不再單獨按 `COLD_CACHE_RELEASE_SECS` 定時，而是在**每次 fsync 成功後**順帶釋放冷前綴緩存（僅當 `COLD_CACHE_RELEASE_SECS` 本身大於 0；設為 `0` 則只做落盤、不釋放緩存）。啟動日誌會提示。
+
+**冷緩存釋放什麼時候才會真正執行？**
+
+不是錄滿 60 秒就一定清理。程序會保留檔案末尾約 **64 MB** 的「熱區」（仍在寫入的部分），並且每次至少清理 **32 MB** 的冷數據。因此：
+
+- **長時間單檔案錄製**（例如一路 FLV 連續錄很久）：檔案大到約 **96 MB 以上**後，才會開始週期性清理；你會感覺到監控記憶體不再隨檔案大小一路上漲。
+- **短分段、小檔案**（例如 HLS 幾分鐘一切）：錄製過程中往往**不會**觸發冷釋放；主要靠**關檔時**的 `DROP_FILE_PAGE_CACHE` 釋放整份緩存——對單個小分段的記憶體佔用通常已經夠用。
+
+**對 microSD 磨損：**
+
+- 冷釋放會先讓已寫好的舊數據落盤，再釋放緩存；長錄時會帶來**有節奏的額外寫回**，但默認間隔 60 秒、且每次只處理「冷」前綴，通常比「全程週期性整檔案落盤」溫和。
+- 若你**更在意卡壽命、記憶體又夠用**，可把 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 設為 `0`，只靠關檔時釋放；代價是長錄時監控記憶體可能更高。
+- 若你**更在意斷電安全**，應開 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`（寫卡更勤；冷前綴會在每次 fsync 成功後一併釋放，無需再開單獨的冷釋放計時）。
+
+**失敗時你會看到什麼：**
+
+若系統無法釋放某份檔案的緩存（少數網絡盤或特殊檔案系統上可能發生），日誌會出現 `釋放檔案頁緩存失敗` 或 `冷緩存釋放失敗`。錄製與關檔保存通常仍可繼續；只是記憶體可能降得不如預期。可嘗試換本地 ext4 磁盤，或關閉 `DROP_FILE_PAGE_CACHE` / 冷釋放以換取回放更順。
+
+**默認要不要改？**
+
+樹莓派 + microSD + 小記憶體容器：**建議保持默認**（`SYNC_PERIOD=0`、`COLD_CACHE_RELEASE=60`、`DROP_FILE_PAGE_CACHE=true`）。只有在實測監控長期偏高、或更在意錄完立刻播放時，再按 [常見問題 · 監控記憶體偏高](/zh-tw/guides/faq/#監控記憶體偏高兩個相關選項怎麼理解) 與 [SSD / NAS 調優](/zh-tw/configuration/ssd-tuning/) 調整。
+
+## 2K/4K 高畫質緩衝一覽
+
+| 畫質 | 判定（`qn`） | 讀入塊大小 | 讀入排隊塊數 | 寫盤塊大小 |
+| ---- | ------------ | ---------- | ------------ | ---------- |
+| 1080p 及以下 | `< 20000` | 512 KB | 16 | 512 KB |
+| 2K / 4K / 杜比 | `≥ 20000` | 1 MB | 48 | 1 MB |
+
+對應環境變量見上表；高畫質專用變量帶 `_HIGH` 後綴。詳見 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。
 
 ## 寫入保護
 
 | 變量 | 說明 | 默認值 |
 |------|------|--------|
-| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節） | `1048576` (1 MB) |
-| `SKIP_SMALL_FLUSH` | 啟用後在達到閾值前僅緩存記憶體，不創建檔案 | `true` |
-| `SEQUENTIAL_WRITE` | 全局 flush 鎖序列化多路寫入 | `true` |
-| `DROP_FILE_PAGE_CACHE` | 錄製分段結束或本地 ffmpeg 轉碼成功後釋放整檔案頁緩存（僅 Linux/Android） | `true` |
+| `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，攢夠多少數據才開始建檔案（字節） | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH` | 極短直播先只在記憶體裡攢，夠閾值再建檔案 | `true` |
+| `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，避免同時搶一張卡 | `true` |
+| `DROP_FILE_PAGE_CACHE` | 關檔或轉碼成功後釋放整份檔案緩存（僅 Linux/Android） | `true` |
 
-- **`SKIP_SMALL_FLUSH`** — 在達到 `SKIP_SMALL_FLUSH_THRESHOLD`（默認 1MB）之前僅緩存記憶體、不創建檔案；對低比特率流（如 240p）特別有效。該閾值獨立於 `LIVE_STREAM_WRITER_BUFFER_SIZE`
-- **`SEQUENTIAL_WRITE`** — 多路併發寫入同一物理磁盤時顯著降低 I/O 峰值；啟用後多路錄製的定時 flush 會經 round-robin 錯開。SSD 環境建議禁用
-- **`DROP_FILE_PAGE_CACHE`** — 關檔/轉碼後整檔案 fadvise；默認已開。與錄製中的冷緩存釋放獨立，建議組合使用以壓低監控曲線。**代價**是剛錄完/轉完立刻播放可能變慢。詳見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)
+- **`SKIP_SMALL_FLUSH`** — 對幾分鐘就下播的低碼率流特別有用：不到 1MB 不寫檔案，減少空檔案和無效寫盤
+- **`SEQUENTIAL_WRITE`** — 多路錄到**同一張** microSD / 機械盤時建議保持開啟：你會感覺到磁盤峰值更平穩；SSD 上可關閉以追求更高併發
+- **`DROP_FILE_PAGE_CACHE`** — 關檔/轉碼後釋放檔案緩存；默認已開。與錄製中的冷緩存釋放配合，可壓低監控曲線。**代價**：剛錄完立刻播放可能要從磁盤重讀，略慢。詳見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)
 
 針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[記憶體佔用估算](/zh-tw/configuration/memory-estimation/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

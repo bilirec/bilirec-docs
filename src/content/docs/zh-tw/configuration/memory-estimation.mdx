@@ -5,39 +5,39 @@ description: 根據緩衝設定與錄製路數估算容器記憶體上限
 
 import { Aside } from '@astrojs/starlight/components';
 
-錄製時，直播數據會在記憶體裡「排隊」：先從網絡讀進來，再排隊等待寫入磁盤。用下面公式估算**規劃容器時要留多少記憶體**即可（偏保守的上限，實際往往略低）。
+錄製時，直播數據會在記憶體裡「排隊」：先從網絡讀進來，再排隊等待寫入磁盤。用下面公式估算**給容器留多少記憶體**即可（偏保守的上限；實際監控往往略低，見 [性能實測](/zh-tw/guides/performance-benchmark/)）。
 
-## 會影響在途記憶體的環境變量
+## 會影響記憶體佔用的環境變量
 
-每路錄製的在途記憶體，由**讀側排隊**、**寫側排隊**、**落盤緩衝**三塊組成。錄 **1080p** 用不帶 `_HIGH` 的變量；錄 **4K / 杜比**（`qn ≥ 20000`）自動改用帶 `_HIGH` 的讀側變量，寫側塊大小也用 `_HIGH`。
+每路錄製時，記憶體裡同時等著處理的數據大致分三塊：**網絡讀入排隊**、**等待寫盤排隊**、**寫盤前合併緩衝**。錄 **1080p** 用不帶 `_HIGH` 的變量；錄 **4K / 杜比**（`qn ≥ 20000`）會自動改用帶 `_HIGH` 的高畫質變量。
 
 | 作用 | 1080p 環境變量 | 4K / 杜比環境變量 | 默認值 |
 | ---- | -------------- | ----------------- | ------ |
-| 讀側能排多少「塊」 | `READ_STREAM_CHAN_BUFFER_SIZE` | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 16 / 48 |
-| 讀側每塊多大 | `READ_STREAM_BYTES_POOL_SIZE` | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
-| 寫側能排多少「塊」 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | （兩檔共用） | 64 |
-| 寫側每塊多大 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
-| 落盤前合併緩衝 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | （兩檔共用） | 8 MB |
+| 讀入時能排多少「塊」 | `READ_STREAM_CHAN_BUFFER_SIZE` | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 16 / 48 |
+| 讀入時每塊多大 | `READ_STREAM_BYTES_POOL_SIZE` | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
+| 寫盤前能排多少「塊」 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | （兩檔共用） | 64 |
+| 寫盤前每塊多大 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
+| 合併後一次寫多少 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | （兩檔共用） | 8 MB |
 
 路數由 `MAX_CONCURRENT_RECORDINGS` 決定，直接代入下方公式裡的 N。
 
 <Aside type="note">
-讀側和寫側各有一份數據拷貝，下面公式已把兩側都算上。
+讀入和寫盤各有一份數據在排隊，下面公式已把兩側都算上。
 </Aside>
 
 ## 怎麼算（HTTP-FLV，最常見）
 
 ```
-總峰值 ≈ 43~50 MB + N × 單路在途峰值
+總峰值 ≈ 43~50 MB + N × 單路排隊峰值
 
-單路在途峰值 = 讀側排隊 + 寫側排隊 + 落盤緩衝
+單路排隊峰值 = 讀入排隊 + 寫盤排隊 + 合併緩衝
 
-讀側排隊 = (READ_STREAM_CHAN_BUFFER_SIZE + 1) × READ_STREAM_BYTES_POOL_SIZE
-寫側排隊 = (LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE + 1) × LIVE_STREAM_WRITER_BYTES_POOL_SIZE
-落盤緩衝 = LIVE_STREAM_WRITER_BUFFER_SIZE
+讀入排隊 = (READ_STREAM_CHAN_BUFFER_SIZE + 1) × READ_STREAM_BYTES_POOL_SIZE
+寫盤排隊 = (LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE + 1) × LIVE_STREAM_WRITER_BYTES_POOL_SIZE
+合併緩衝 = LIVE_STREAM_WRITER_BUFFER_SIZE
 ```
 
-其中 **43~50 MB** 是容器里程序本身 + 系統內核的固定開銷（和緩衝設定幾乎無關，也**不能通過環境變量調小**）。錄 4K / 杜比時，讀側兩個變量換成 `*_HIGH`，寫側塊大小換成 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`。
+其中 **43~50 MB** 是程序本身和系統固定開銷（和緩衝設定幾乎無關，也**不能通過環境變量調小**）。錄 4K / 杜比時，讀側兩個變量換成 `*_HIGH`，寫側塊大小換成 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`。
 
 ### 默認 1080p 示例
 
@@ -47,7 +47,7 @@ import { Aside } from '@astrojs/starlight/components';
 | 3 | `(43~50) + 3×49` | 約 190~197 MB |
 | 5 | `(43~50) + 5×49` | 約 288~295 MB |
 
-（單路在途：讀 8.5 MB + 寫 32.5 MB + 落盤 8 MB ≈ 49 MB）
+（單路排隊：讀入約 8.5 MB + 寫盤約 32.5 MB + 合併 8 MB ≈ 49 MB）
 
 ### 默認 4K 單路
 
@@ -55,7 +55,7 @@ import { Aside } from '@astrojs/starlight/components';
 | ------ | ---- | ---------- |
 | 1 | `(43~50) + 1×122` | 約 165~172 MB |
 
-（單路在途：讀 49 MB + 寫 65 MB + 落盤 8 MB ≈ 122 MB）
+（單路排隊：讀入約 49 MB + 寫盤約 65 MB + 合併 8 MB ≈ 122 MB）
 
 4K / 杜比使用 `*_HIGH` 讀側變量與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 時的默認估算。
 
@@ -64,26 +64,25 @@ import { Aside } from '@astrojs/starlight/components';
 HLS 讀進來的是**一整段分片**（大小由 m3u8 決定，常見 2–6 MB），讀側用分片體積 `S` 估算：
 
 ```
-總峰值 ≈ 43~50 MB + N × (讀側排隊 + 寫側排隊 + 落盤緩衝)
+總峰值 ≈ 43~50 MB + N × (讀入排隊 + 寫盤排隊 + 合併緩衝)
 
-讀側排隊 ≈ (READ_STREAM_CHAN_BUFFER_SIZE + 3) × S
+讀入排隊 ≈ (READ_STREAM_CHAN_BUFFER_SIZE + 3) × S
 ```
 
-寫側仍按上一節的寫側排隊 + 落盤緩衝計算。錄 4K 時讀側 channel 使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`。
+寫側仍按上一節的寫盤排隊 + 合併緩衝計算。錄 4K 時讀入排隊深度使用 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`。
 
 ## 其他說明
 
-- **容器總記憶體虛高**：寫入磁盤後，系統可能額外緩存一份檔案，容器監控顯示的總用量會遠高於上表。默認已開啟 `DROP_FILE_PAGE_CACHE=true` 與 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`（錄製中釋放冷前綴、關檔釋放整檔案），監控曲線會更貼近上表 anon 估算。SSD/HDD 若介意回放變慢可顯式關閉（見 [I/O 調優](/zh-tw/configuration/io-tuning/)）。
-- **停錄後仍偏高**：記憶體池會保留部分已用過的塊（見[性能實測](/zh-tw/guides/performance-benchmark/)「恢復閒置 ~54 MB」），屬正常。
-- **讀/寫 bytes pool 保溫上限**：空閒複用塊數量由 `READ_STREAM_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE_HIGH`、`LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 自動推導（約為 channel 深度的 1/4 與 1/8）；**在途記憶體公式不變**。
+- **容器總記憶體虛高**：寫入磁盤後，系統可能把錄製檔案再緩存一份以加速讀寫，**容器監控的總用量**因此會遠高於 bilirec 實際佔用。默認已開啟 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`（錄製中清理舊檔案緩存）與 `DROP_FILE_PAGE_CACHE=true`（關檔後釋放整份檔案緩存），**監控曲線**通常更接近 [性能實測](/zh-tw/guides/performance-benchmark/)（1 路約 65 MB、5 路約 165 MB）。若關閉上述選項，長錄仍可能虛高；規劃 **limit** 仍以上表公式為準。
+- **停錄後仍偏高**：程序會保留一部分緩衝供下次錄製複用（見[性能實測](/zh-tw/guides/performance-benchmark/)「恢復閒置 ~54 MB」），屬正常。
 
 ## 想省記憶體，優先改哪幾個
 
-按效果從大到小：
+按效果從大到小；改小後**你會注意到**：同時能扛住的網絡波動變短，但記憶體佔用下降。
 
-1. `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`（默認 64 → 32，寫側排隊約減半）
-2. `READ_STREAM_CHAN_BUFFER_SIZE`（僅 FLV；HLS 同理改讀側 channel 或 `_HIGH` 版）
-3. `LIVE_STREAM_WRITER_BUFFER_SIZE`（減小落盤緩衝，但 flush 更頻繁，SD 磨損增加）
+1. `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`（默認 64 → 32，寫盤排隊約減半）
+2. `READ_STREAM_CHAN_BUFFER_SIZE`（僅 FLV；HLS 同理改讀入排隊深度或 `_HIGH` 版）
+3. `LIVE_STREAM_WRITER_BUFFER_SIZE`（合併緩衝變小，寫盤更頻繁，SD 卡磨損可能增加）
 4. `MAX_CONCURRENT_RECORDINGS`（直接減少同時錄製的路數）
 
 <Aside type="tip">
