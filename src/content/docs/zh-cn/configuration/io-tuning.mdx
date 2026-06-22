@@ -60,7 +60,7 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 | 机制 | 对应变量 | 何时起作用 | 主要目的 |
 | ---- | -------- | ---------- | -------- |
 | **录制中冷缓存释放** | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 单段录制**持续较长**、文件已写出相当多数据后，按间隔清理**文件开头**那段已不再写入的缓存 | **省内存 / 监控好看** |
-| **关档或转码后整份释放** | `DROP_FILE_PAGE_CACHE` | 一段录完关文件，或本地 ffmpeg 转码成功之后 | **省内存 / 监控好看** |
+| **关档或转码后整份释放** | `DROP_FILE_PAGE_CACHE` | 一段录完关文件、本地 ffmpeg 转码成功之后，或**在线播放/下载最后一次请求结束**且空闲等待期满之后 | **省内存 / 监控好看** |
 | **录制中整文件落盘** | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 按间隔对整个文件做落盘（默认关闭） | **断电少丢数据**（更伤 microSD） |
 
 **和「周期性落盘」别搞混：**
@@ -110,6 +110,6 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 
 - **`SKIP_SMALL_FLUSH`** — 对几分钟就下播的低码率流特别有用：不到 1MB 不写文件，减少空文件和无效写盘
 - **`SEQUENTIAL_WRITE`** — 多路录到**同一张** microSD / 机械盘时建议保持开启：你会感觉到磁盘峰值更平稳；SSD 上可关闭以追求更高并发
-- **`DROP_FILE_PAGE_CACHE`** — 关档/转码后释放文件缓存；默认已开。与录制中的冷缓存释放配合，可压低监控曲线。**代价**：刚录完立刻播放可能要从磁盘重读，略慢。详见 [常见问题](/zh-cn/guides/faq/#drop_file_page_cache-什么时候用代价是什么)
+- **`DROP_FILE_PAGE_CACHE`** — 关档/转码后释放文件缓存；默认已开。播放或下载结束后，按 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 空闲等待后释放该文件缓存（未配置或 `0` 时播放侧仍用默认 **60** 秒，仅关闭录制中冷释放）。与录制中的冷缓存释放配合，可压低监控曲线。**代价**：刚录完或停播后立刻再播可能要从磁盘重读，略慢。长时间连续播放时缓存仍可能上涨（计时会被新请求重置）。详见 [常见问题](/zh-cn/guides/faq/#在线播放或下载后监控内存一直很高)
 
 针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[内存占用估算](/zh-cn/configuration/memory-estimation/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。

@@ -60,7 +60,7 @@ bilirec 會把直播數據寫入磁盤後，操作系統往往還會在記憶體
 | 機制 | 對應變量 | 何時起作用 | 主要目的 |
 | ---- | -------- | ---------- | -------- |
 | **錄製中冷緩存釋放** | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 單段錄製**持續較長**、檔案已寫出相當多數據後，按間隔清理**檔案開頭**那段已不再寫入的緩存 | **省記憶體 / 監控好看** |
-| **關檔或轉碼後整份釋放** | `DROP_FILE_PAGE_CACHE` | 一段錄完關檔案，或本地 ffmpeg 轉碼成功之後 | **省記憶體 / 監控好看** |
+| **關檔或轉碼後整份釋放** | `DROP_FILE_PAGE_CACHE` | 一段錄完關檔案、本地 ffmpeg 轉碼成功之後，或**在線播放/下載最後一次請求結束**且空閒等待期滿之後 | **省記憶體 / 監控好看** |
 | **錄製中整檔案落盤** | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 按間隔對整個檔案做落盤（默認關閉） | **斷電少丟數據**（更傷 microSD） |
 
 **和「週期性落盤」別搞混：**
@@ -110,6 +110,6 @@ bilirec 會把直播數據寫入磁盤後，操作系統往往還會在記憶體
 
 - **`SKIP_SMALL_FLUSH`** — 對幾分鐘就下播的低碼率流特別有用：不到 1MB 不寫檔案，減少空檔案和無效寫盤
 - **`SEQUENTIAL_WRITE`** — 多路錄到**同一張** microSD / 機械盤時建議保持開啟：你會感覺到磁盤峰值更平穩；SSD 上可關閉以追求更高併發
-- **`DROP_FILE_PAGE_CACHE`** — 關檔/轉碼後釋放檔案緩存；默認已開。與錄製中的冷緩存釋放配合，可壓低監控曲線。**代價**：剛錄完立刻播放可能要從磁盤重讀，略慢。詳見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)
+- **`DROP_FILE_PAGE_CACHE`** — 關檔/轉碼後釋放檔案緩存；默認已開。播放或下載結束後，按 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 空閒等待後釋放該檔案緩存（未設定或 `0` 時播放側仍用默認 **60** 秒，僅關閉錄製中冷釋放）。與錄製中的冷緩存釋放配合，可壓低監控曲線。**代價**：剛錄完或停播後立刻再播可能要從磁盤重讀，略慢。長時間連續播放時緩存仍可能上漲（計時會被新請求重置）。詳見 [常見問題](/zh-tw/guides/faq/#在線播放或下載後監控記憶體一直很高)
 
 針對不同硬件的推薦設定見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[記憶體佔用估算](/zh-tw/configuration/memory-estimation/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
