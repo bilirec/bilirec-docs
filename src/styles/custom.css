@@ -276,11 +276,16 @@ main :not(pre) > code {
 }
 
 .sl-markdown-content table {
-	display: block;
 	width: 100%;
+	border-collapse: collapse;
+	table-layout: auto;
+}
+
+.sl-markdown-content .table-scroll,
+.sl-markdown-content .env-table-scroll {
 	max-width: 100%;
 	overflow-x: auto;
-	overflow-y: hidden;
+	overflow-y: visible;
 	-webkit-overflow-scrolling: touch;
 }
 
@@ -293,22 +298,116 @@ main :not(pre) > code {
 	vertical-align: top;
 	white-space: normal;
 	overflow-wrap: break-word;
+	word-wrap: break-word;
 	word-break: normal;
 }
 
-.sl-markdown-content td code,
-.sl-markdown-content th code {
+/* Prose columns: wrap long explanations instead of squeezing sideways. */
+.sl-markdown-content th:not(.col-env),
+.sl-markdown-content td:not(.col-env) {
+	min-width: 8rem;
+	max-width: 32rem;
+}
+
+/* Inline `code` in prose cells must stay in the sentence flow. */
+.sl-markdown-content td:not(.col-env) code,
+.sl-markdown-content th:not(.col-env) code {
+	display: inline;
+	white-space: normal;
+	overflow-wrap: break-word;
+	word-break: normal;
+}
+
+/* FAQ-style 4-column tables: give the advice column a bit more room. */
+.sl-markdown-content table:has(thead th.col-env:nth-child(3)) th:nth-child(4),
+.sl-markdown-content table:has(thead th.col-env:nth-child(3)) td:nth-child(4) {
+	min-width: 16rem;
+	max-width: 42rem;
+}
+
+/* 3-column tables with env vars in the middle (e.g. 想改善什么 | 环境变量 | 方向). */
+.sl-markdown-content table:has(thead th.col-env:nth-child(2)):not(:has(thead th.col-env:nth-child(3))) th:nth-child(3),
+.sl-markdown-content table:has(thead th.col-env:nth-child(2)):not(:has(thead th.col-env:nth-child(3))) td:nth-child(3) {
+	min-width: 14rem;
+	max-width: 40rem;
+}
+
+/* 3-column reference tables (环境变量 | 说明 | 默认值): widen the description column. */
+.sl-markdown-content table:has(thead th.col-env:first-child):not(:has(thead th.col-env:nth-child(2))) th:nth-child(2),
+.sl-markdown-content table:has(thead th.col-env:first-child):not(:has(thead th.col-env:nth-child(2))) td:nth-child(2) {
+	min-width: 14rem;
+	max-width: none;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	white-space: normal;
+}
+
+.sl-markdown-content table:has(thead th.col-env:first-child):not(:has(thead th.col-env:nth-child(2))) th:nth-child(3),
+.sl-markdown-content table:has(thead th.col-env:first-child):not(:has(thead th.col-env:nth-child(2))) td:nth-child(3) {
+	min-width: 8rem;
+	max-width: 16rem;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	white-space: normal;
+}
+
+/* Prose columns in env-variable tables: wrap long 说明 / 方向 text. */
+.sl-markdown-content table:has(thead th.col-env) th:not(.col-env),
+.sl-markdown-content table:has(thead th.col-env) td:not(.col-env) {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	white-space: normal;
+}
+
+/* Env-var column: narrow as the longest name; stack one code per line. */
+.sl-markdown-content th.col-env,
+.sl-markdown-content td.col-env {
+	width: 1%;
+	vertical-align: top;
+}
+
+/* Hide stray text nodes beside <code>; use rem so children stay visible. */
+.sl-markdown-content td.col-env {
+	font-size: 0;
+	line-height: 0;
+}
+
+.sl-markdown-content .col-env > code {
+	display: block;
+	width: fit-content;
+	margin-bottom: 0.3rem;
+	font-size: 0.85rem;
+	line-height: 1.45;
 	white-space: nowrap;
 	overflow-wrap: normal;
 	word-break: normal;
 }
 
-@media (max-width: 50rem) {
-	/* On phones, prefer horizontal scroll instead of squeezing into vertical text. */
-	.sl-markdown-content th,
-	.sl-markdown-content td {
-		white-space: nowrap;
-	}
+.sl-markdown-content .col-env > code:last-of-type {
+	margin-bottom: 0;
+}
+
+.sl-markdown-content .env-cell-suffix {
+	display: block;
+	font-size: 0.85rem;
+	line-height: 1.45;
+}
+
+/* Drop MDX leftovers (spaces, <br>, duplicate plain text) between env codes. */
+.sl-markdown-content .col-env > :not(code):not(.env-cell-suffix) {
+	display: none;
+}
+
+.sl-markdown-content .table-scroll:has(thead th.col-env:first-child):has(tbody tr:nth-child(10)),
+.sl-markdown-content .env-table-scroll {
+	padding-inline: 0.75rem;
+}
+
+.sl-markdown-content .table-scroll:has(thead th.col-env:first-child):has(tbody tr:nth-child(10)) > table,
+.sl-markdown-content .env-table-scroll > table {
+	width: 100%;
+	min-width: 100%;
+	table-layout: auto;
 }
 
 .sl-markdown-content table th:first-child,
@@ -321,18 +420,9 @@ main :not(pre) > code {
 	padding-right: 1rem;
 }
 
-.sl-markdown-content .env-table-scroll {
-	padding-inline: 0.75rem;
-	overflow: visible;
-}
-
-.sl-markdown-content .env-table-scroll > table {
-	min-width: 100%;
-	width: 100%;
-}
-
-/* On env reference pages, let the table area break out wider than prose width. */
+/* On long env-reference-style tables, break out past prose width. */
 @media (min-width: 72rem) {
+	.sl-markdown-content .table-scroll:has(thead th.col-env:first-child):has(tbody tr:nth-child(10)),
 	.sl-markdown-content .env-table-scroll {
 		width: min(64rem, calc(100vw - 24rem));
 		margin-left: 50%;

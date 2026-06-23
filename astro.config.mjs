@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
+import { bilirecMarkdownTables } from './src/integrations/markdown-tables.mjs';
 
 const sidebar = [
 	{
@@ -128,5 +129,6 @@ export default defineConfig({
 			},
 			sidebar,
 		}),
+		bilirecMarkdownTables(),
 	],
 });
