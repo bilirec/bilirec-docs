@@ -11,7 +11,7 @@ Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 長錄時 Docker 監控記憶體不會一路頂滿 |
 | `DROP_FILE_PAGE_CACHE` | `true` | 關檔/轉碼後釋放檔案緩存；剛錄完立刻播放可能略慢 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 寫盤次數較少；1080p 約每 14 秒寫一次 |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 每 15 秒推進磁盤；異常斷電時未寫入窗口略大於更短週期 |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 每 15 秒把錄製緩衝數據推進磁盤，在防止緩衝積聚過多和保持大塊寫入之間取平衡 |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 單路約 32 MB 寫盤排隊；比 128 更省記憶體 |
 | `SKIP_SMALL_FLUSH` | `true` | 極短直播不到 1MB 不建檔案，減少空檔案 |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 與常見直播塊大小一致 |

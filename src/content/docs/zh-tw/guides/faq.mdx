@@ -43,7 +43,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 目錄裡除了 `標題-時間戳.flv`，還有 `標題-時間戳-1.flv`、`標題-時間戳-2.flv` 等同一場、**同一時間戳**下的分段。
 
-**為什麼：** 這是**直播輪轉**（例如 PK、換畫質導致流頭變化）時程序自動切的新檔案，屬於正常設計，不是壞了。
+**為什麼：** 這是**直播輪轉**（例如 PK、換畫質導致流頭變化）時程序自動切的新檔案，屬於正常設計。
 
 **你可以：** 按檔案名順序觀看即可。若你想了解輪轉規則，見 [錄製指南](/zh-tw/guides/recording/)。
 
@@ -88,17 +88,18 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 頁面能開，但登錄或列表一直失敗。
 
-**為什麼：** `app.bilirec.org` 是 **HTTPS 網頁**，不是你的錄製程序本身。網頁要單獨填後端地址才能連上。由於瀏覽器安全限制，從 HTTPS 頁面去連 **HTTP 局域網地址**（如 `http://192.168.x.x:8080`）往往會被攔下；**HTTP 後端一般只能填本機** `http://localhost:8080` 或 `http://127.0.0.1:8080`。
+**為什麼：** `app.bilirec.org` 是 **HTTPS 網頁**，不是你的錄製程序本身。網頁要單獨填後端地址才能連上。由於瀏覽器安全限制，從 HTTPS 頁面去連 **HTTP 局域網地址**（如 `http://192.168.x.x:8080`）往往會被攔下；**HTTP 後端一般只能填本機** `http://localhost:8080` 或 `http://127.0.0.1:8080`。亦有可能是瀏覽器沒有打開本地網絡訪問權限。
 
 **你可以：**
 1. 後端跑在本機時，用 `http://localhost:8080` 或 `http://127.0.0.1:8080`。
-2. 後端在局域網另一臺機器上時，需要給後端配 **HTTPS**，或在同一臺機器上用瀏覽器打開管理頁，不能指望 HTTPS 的 app.bilirec.org 直接連家裡的 HTTP 地址。
+2. 檢查瀏覽器是否打開了本地網絡訪問權限或者瀏覽器是否支持局域網訪問。
+3. 後端在局域網另一臺機器上時，需要給後端配 **HTTPS**，或在同一臺機器上用瀏覽器打開管理頁，不能指望 HTTPS 的 app.bilirec.org 直接連家裡的 HTTP 地址。
 
 ### 收不到開播推送通知？
 
 **你會看到：** 瀏覽器或 PWA 裡從沒彈過通知。
 
-**為什麼：** 需要允許通知權限、成功連過後端，並且用**已保存服務器地址**的方式打開過管理頁；只讀賬號也不會推送。若用的是 **PWA 或 Chrome**，在內地網絡下還可能因為**連不上 Google FCM** 而收不到推送（與 bilirec 設定無關）。
+**為什麼：** 需要允許通知權限、成功連過後端，只讀賬號也不會推送。若用的是 **PWA 或 Chrome**，在內地網絡下還可能因為**連不上 Google FCM** 而收不到推送。
 
 **你可以：**
 1. 在瀏覽器設置裡允許本站通知。
@@ -111,7 +112,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 換到 SD 卡路徑後，錄製或介面變卡。
 
-**為什麼：** 外置 SD 通常比手機內置存儲慢。是否在 SD 上啟用「排隊寫盤」等策略，請在 **bilirec-mobile App 設置**裡調整（存儲策略 / 序列化寫入），不再由後端自動改。
+**為什麼：** 外置 SD 通常比手機內置存儲慢。是否在 SD 上啟用「排隊寫盤」等策略，請在 **bilirec-mobile App 設置**裡調整（存儲策略 / **microSD 卡磨損保護**），不再由 androidlib 根據路徑自動開啟。
 
 **你可以：** 在 App 的存儲相關設置裡按需開關；追求速度可改回內置存儲。見 [Android 指南](/zh-tw/guides/android/) 與 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
 
@@ -130,19 +131,19 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 默認地址連不上，或換瀏覽器才好使。
 
-**為什麼：** `localhost` 和 `127.0.0.1` **指的是同一臺手機**，並不是「必須用 127.0.0.1 才行」。連不上更常見是**瀏覽器限制**：部分瀏覽器（例如 Opera）對訪問本機服務支持不好，換 Chrome 等通常能解決。
+**為什麼：** 連不上更常見是**瀏覽器限制**：部分瀏覽器（例如 Opera）對訪問本機服務支持不好，換 Chrome 等通常能解決。
 
 **你可以：**
-1. 優先用 Chrome 打開 PWA；服務器地址用默認的 `http://localhost:8080` 即可（與 `http://127.0.0.1:8080` **等價**，不必特意改）。
+1. 優先用 Chrome 打開 PWA；服務器地址用默認的 `http://localhost:8080` 或 `http://127.0.0.1:8080` 即可。
 2. 確認 bilirec-mobile 裡後端已成功啟動。
 
 ### 打開錄製程序後還要填地址？
 
 **你會看到：** 從 App 跳進網頁，擔心還要再填服務器。
 
-**為什麼：** App 負責啟動手機裡的後端；管理頁是另一個程序。好消息是：**默認就是 `http://localhost:8080`**，一般**不用手改**，直接點登錄即可（前提是後端已在 App 裡啟動成功）。
+**為什麼：** App 負責啟動手機裡的後端；管理頁是另一個程序。正常來說登錄介面可以直接點擊登入（默認就是本地地址），之後再也不需要填地址了。
 
-**你可以：** 打開 PWA 後先點登錄；只有連不上時再檢查地址或換瀏覽器（見上一條）。
+**你可以：** 進入登錄介面後直接點擊登錄，或安裝為PWA之後直接打開PWA啟動。
 
 ## 性能與容量規劃
 
@@ -150,14 +151,14 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 任務管理器或手機通知欄裡 CPU 百分比偶爾衝高。
 
-先對照下表判斷尖峰來源，再調對應環境變量（比盲目減錄製路數更有效）：
+先對照下表判斷尖峰來源，再調對應環境變量：
 
 | 可能來源 | 你怎麼分辨 | 相關環境變量 | 建議方向 |
 | -------- | ---------- | ------------ | -------- |
-| **寫盤 / flush 尖峰** | 正在錄製時週期性衝高；microSD、機械盤更明顯 | `LIVE_STREAM_WRITER_BUFFER_SIZE`、`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`、`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 適當加大合併緩衝、拉長 flush 間隔；**保持** `SYNC_PERIOD=0`（勿開週期性整檔案落盤，更傷卡也更吃 CPU） |
-| **多路搶同一張盤** | 多路同時錄到同一張 SD / HDD 時尖峰疊加 | `SEQUENTIAL_WRITE` | 同一張卡上多路錄製時保持 `true`（Android 輸出到 microSD 時在 App 開啟序列化寫入） |
-| **訂閱開播輪詢** | **閒置**時大約每隔固定秒數有小尖峰（默認約每 10 秒一組） | `SUBCHECK_CHECK_INTERVAL_SECS`、`SUBCHECK_SHARD_COUNT` | 增大分組數或略拉長完整週期，攤平單次檢查負載 |
-| **後臺轉碼** | 轉碼任務進行中 CPU 持續偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`、`FFMPEG_ALLOW_DURING_RECORDING`、`FFMPEG_CHECK_INTERVAL_SECS` | 儘量不要邊錄邊轉；併發轉碼保持 `1`；詳見 [轉換設定](/zh-tw/configuration/conversion/) |
+| **寫盤 / flush 尖峰** | 正在錄製時週期性衝高；microSD、機械盤更明顯 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 適當加大合併緩衝、拉長 flush 間隔；**保持** `SYNC_PERIOD=0`（開週期性整檔案落盤會更吃 CPU） |
+| **多路搶同一張盤** | 多路同時錄到同一張 SD / HDD 時尖峰疊加 | `SEQUENTIAL_WRITE` | 同一張卡上多路錄製時保持 `true`（Android 輸出到 microSD 時在 App 開啟 **microSD 卡磨損保護**） |
+| **訂閱開播輪詢** | **閒置**時大約每隔固定秒數有小尖峰（默認約每 10 秒一組） | `SUBCHECK_CHECK_INTERVAL_SECS`<br />`SUBCHECK_SHARD_COUNT` | 增大分組數或略拉長完整週期，攤平單次檢查負載 |
+| **後臺轉碼** | 轉碼任務進行中 CPU 持續偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 儘量不要邊錄邊轉；併發轉碼保持 `1`；詳見 [轉換設定](/zh-tw/configuration/conversion/) |
 
 **你可以：**
 1. 樹莓派 + microSD：從 [I/O 調優](/zh-tw/configuration/io-tuning/) 與 [樹莓派默認設定](/zh-tw/configuration/pi5-defaults/) 調整寫盤相關項。
@@ -166,13 +167,13 @@ import { Aside } from '@astrojs/starlight/components';
 
 ### 錄製時記憶體佔用很高怎麼辦？
 
-**你會看到：** 監控裡記憶體在錄播時明顯上漲。
+**你會看到：** 監控裡記憶體在錄播時緩緩上漲。
 
-**為什麼：** 常見是 **程序緩衝**（路數越多、4K 越高越大）或 **系統頁緩存**（監控總用量虛高）。先對照 [記憶體佔用估算 · 監控裡的記憶體從哪來](/zh-tw/configuration/memory-estimation/#監控裡的記憶體從哪來) 判斷來源。
+**為什麼：** 常見是 **程序本身的緩衝**（路數越多、4K 越高越大）或 **系統頁緩存**（檔案被緩存到記憶體裡）。先對照 [記憶體佔用估算 · 監控裡的記憶體從哪來](/zh-tw/configuration/memory-estimation/#監控裡的記憶體從哪來) 判斷來源。
 
 **你可以：**
-1. 若是程序緩衝：按 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 調整 `READ_STREAM_*`、`LIVE_STREAM_WRITER_*`（通常比直接減路數更合適）。
-2. 若是頁緩存虛高：默認已開冷釋放與關檔釋放；仍偏高見 [I/O 調優](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android) 或 [常見問題 · 監控記憶體偏高](/zh-tw/guides/faq/#監控記憶體偏高兩個相關選項怎麼理解)。
+1. 若是程序本身的緩衝：按 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 調整 `READ_STREAM_*`、`LIVE_STREAM_WRITER_*`（通常比直接減路數更合適）。
+2. 若是系統頁緩存：默認已開冷釋放與關檔釋放；仍偏高見 [I/O 調優](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android) 或 [常見問題 · 監控記憶體偏高](/zh-tw/guides/faq/#監控記憶體偏高兩個相關選項怎麼理解)。
 3. 只有確認設備**確實達不到**公式或實測要求時，再考慮減少 `MAX_CONCURRENT_RECORDINGS`。
 
 ### 怎麼知道我的設備能錄幾路？
@@ -193,8 +194,7 @@ import { Aside } from '@astrojs/starlight/components';
 **為什麼：**
 
 1. **記憶體池預熱** — bilirec 會把讀入、寫盤用的記憶體塊留在進程裡複用，減輕下次錄製時的分配開銷。停錄後常見幾十 MB 的「底座」，見 [性能實測「恢復閒置」](/zh-tw/guides/performance-benchmark/)（約 54 MB）。錄過 4K / 杜比時，高畫質那套池子大約 **15 分鐘**不用後會自動釋放。
-2. **寫頁緩存** — 數據寫入磁盤後，Linux / Android 往往還會在記憶體裡留一份檔案副本（頁緩存），用來加速以後的讀寫。Docker 或手機監控的「總記憶體」會把這份算進去，**不等於** bilirec 又多佔了一份程序記憶體。
-3. **冷釋放（cold release）** — 錄製過程中，程序會按間隔清理檔案裡**已經寫好、暫時不會再寫**的前綴頁緩存（默認每 60 秒一輪；關檔、轉碼結束則由 `DROP_FILE_PAGE_CACHE` 整份釋放）。停錄後若監控仍偏高，多半是頁緩存還沒清完，或剛關檔不久仍在等待釋放。
+2. **系統頁緩存** — 數據寫入磁盤後，Linux / Android 往往還會在記憶體裡留一份檔案副本（頁緩存），用來加速以後的讀寫。Docker 或手機監控的「總記憶體」會把這份算進去。
 
 **你可以調：**
 
@@ -202,7 +202,7 @@ import { Aside } from '@astrojs/starlight/components';
 | ---------- | -------- | ---- |
 | 讓系統忘掉檔案頁緩存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（默認已開）；關檔 / 轉碼後整份釋放 |
 | 錄製中更勤地清舊頁緩存 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 改小間隔（如 `60` → `30`）；`0` = 關閉錄製中冷釋放 |
-| 降低記憶體池預熱佔用 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE`、`LIVE_STREAM_WRITER_BUFFER_SIZE` 等 | 略減小緩衝，見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/#想省記憶體優先改哪幾個) |
+| 降低記憶體池預熱佔用 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`<br />`READ_STREAM_CHAN_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_BUFFER_SIZE` 等 | 略減小緩衝，見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/#想省記憶體優先改哪幾個) |
 
 冷釋放細節（何時才真正執行、與整檔案落盤的區別）見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
@@ -210,7 +210,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ### 在線播放或下載後，監控記憶體一直很高？
 
-瀏覽器在線播放、或下載已錄好的 MP4 時，系統會為讀盤加速在記憶體裡**再留一份檔案副本**（與錄製寫入類似，屬於系統緩存，不是 bilirec 程序又多佔了一份）。播得越久、拖進度條越頻繁，這份緩存可能越大；**停播後**若監控仍居高不下，多半是緩存還沒被系統收回。
+瀏覽器在線播放、或下載已錄好的 MP4 時，系統會為讀盤加速在記憶體裡**再留一份檔案副本**（與錄製寫入類似，還是屬於系統頁緩存）。播得越久、拖進度條越頻繁，這份緩存可能越大；**停播後**若監控仍居高不下，多半是緩存還沒被系統收回。
 
 **默認行為（`DROP_FILE_PAGE_CACHE=true`）：** 最後一次播放或下載請求結束後，會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（默認 **60**）再釋放該檔案的緩存；這段時間內若再次播放同一檔案，計時會重新算起。若你把該變量設為 `0`（僅關閉**錄製中**冷釋放），播放/下載空閒仍按默認 **60** 秒等待後釋放，避免與關檔釋放（`DROP_FILE_PAGE_CACHE`）綁死。
 
@@ -224,8 +224,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 環境變量 | 大白話 | 默認 |
 | -------- | ------ | ---- |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **錄製過程中**，每隔一段時間讓系統忘掉「已經寫好、暫時不會再讀」的舊檔案緩存 | `60`（秒） |
-| `DROP_FILE_PAGE_CACHE` | **一段錄完或轉碼結束後**，忘掉整份檔案的系統緩存 | `true` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **錄製過程中**，每隔一段時間讓系統釋放「已經寫好、暫時不會再讀」的舊檔案緩存 | `60`（秒） |
+| `DROP_FILE_PAGE_CACHE` | **一段錄完或轉碼結束後**，釋放整份檔案的系統頁緩存 | `true` |
 
 兩者配合，可避免 Docker / 手機監控裡記憶體隨錄製一路頂到上限。代價是：剛錄完立刻播放、或錄製中回放已寫好的前半段，可能要從磁盤重新讀，略慢。
 
@@ -235,17 +235,12 @@ import { Aside } from '@astrojs/starlight/components';
 
 **建議關閉（回放優先）：** SSD / NAS、錄完馬上要秒開播放。設 `DROP_FILE_PAGE_CACHE=false` 且 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`。
 
-**和「週期性整檔案落盤」(`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`) 別搞混：**
+**和「週期性整檔案落盤」(`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`) 的區別：**
 
-- 整檔案落盤：為了**斷電少丟數據**，錄製中反覆把整個檔案刷進卡，**很傷 microSD**，也**壓不住**監控記憶體。
-- 上面的 60 秒選項：為了**監控好看**，只清理舊數據，**比整檔案落盤省卡**；關檔時仍會完整保存一次。
-- 兩個都設了：以整檔案落盤為準，不再單獨按 60 秒清緩存；**僅當 `COLD_CACHE_RELEASE_SECS>0`** 時，每次 fsync 成功後才順便釋放冷前綴。
-- **落盤不會自動釋放緩存**：`SYNC_PERIOD` 負責落盤；釋放緩存靠 fsync 後的冷前綴釋放、或獨立的冷釋放定時器、以及 `DROP_FILE_PAGE_CACHE`，分工不同。
+- `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 只是為了**斷電少丟數據**，錄製中反覆把整個檔案刷進卡，**很傷 microSD**，也**壓不住**監控記憶體。
+- 兩個都設置了：以整檔案落盤為準，不再單獨按 60 秒清緩存；**僅當 `COLD_CACHE_RELEASE_SECS>0`** 時，每次落盤成功後才順便釋放當前頁緩存。
+- `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` **本身不會自動釋放緩存**：它只負責落盤；釋放緩存靠落盤後的頁緩存釋放、需要配合設置 `DROP_FILE_PAGE_CACHE=true` 才能生效。
 
 若日誌出現 `釋放檔案頁緩存失敗` 或 `冷緩存釋放失敗`，錄製通常仍可繼續，只是記憶體可能降不下來；見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
 詳見 [環境變量說明](/zh-tw/configuration/env-reference/) · [I/O 調優](/zh-tw/configuration/io-tuning/)。
-
-<Aside type="tip">
-**簡單說：** 停錄後記憶體比剛開機高一些很常見；正在錄的時候若緊張，優先調緩衝設定，別急著減錄製路數。
-</Aside>

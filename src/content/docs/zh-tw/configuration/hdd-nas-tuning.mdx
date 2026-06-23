@@ -21,7 +21,7 @@ export MAX_CONCURRENT_RECORDINGS=5
 
 | 參數 | 調整 | 你會注意到什麼 |
 |------|------|----------------|
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45` | 適當拉長整檔案落盤間隔 | 減少打斷順序寫入；`COLD=0` 時 fsync 後不會釋放頁緩存 |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45` | 適當拉長整檔案落盤間隔 | 減少打斷順序寫入；`COLD=0` 時 整檔案落盤 後不會釋放頁緩存 |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | NAS 記憶體通常更大，回放更順 |
 | `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
 | `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤 |

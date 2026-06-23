@@ -3,6 +3,8 @@ title: I/O 调优
 description: 磁盘写入频率、多路录制与缓冲相关参数
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 这些参数影响**写盘有多勤**、**多路同时录会不会抢磁盘**，对 microSD 寿命和多路稳定性影响最大。写盘过勤也会造成 **CPU 周期性尖峰**——来源对照与调参见 [常见问题 · CPU 突然飙高](/zh-cn/guides/faq/#cpu-突然飙高怎么办)。
 
 ## 通用缓冲区
@@ -39,21 +41,25 @@ description: 磁盘写入频率、多路录制与缓冲相关参数
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 写盘前合并缓冲（字节）；越大，单次写入越大 | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 录制中每隔多久强制整文件落盘（秒）；`0`=只在关档时落盘 | `0` |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 录制中多久清理一次旧文件缓存（秒，仅 Linux/Android）；`0`=关闭 | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把内存数据推进磁盘一次（秒） | `15` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把内存数据写盘一次（秒） | `15` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 写盘前可排队的块数；1080p 与 4K 共用 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下写盘块大小（字节） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 写盘块大小（`qn ≥ 20000` 时自动启用） | `1048576` (1 MB) |
 
+<Aside type="tip">
+写盘跟落盘有本质上的区别： 写盘是把内存里的数据写进页缓存等待linux分配写入磁盘，落盘则是强制把数据写进磁盘。
+</Aside>
+
 ### 关键参数说明
 
-- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`**（默认）— 录制过程中**不**反复把整文件刷进卡，只在关档时完整保存；最省 microSD。**若改为大于 0**：断电时少丢数据的窗口变小，但写卡更勤、更伤卡；且与冷缓存释放**不能同时单独计时**（同时设置时以本项为准：每次 fsync 成功后会**顺便**释放冷前缀缓存，不再按 `COLD_CACHE_RELEASE_SECS` 另跑定时器；启动日志会提示）
-- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 录制中约每 60 秒让系统忘掉「已写好、暂时不会再读」的旧文件缓存，避免 Docker 监控内存一路飙高；**不是**反复整文件落盘，也**不是**为了断电少丢数据。关档时仍会完整保存
+- **`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`**（默认）— 录制过程中**不**反复把整文件刷进卡，只在关档时完整保存；最省 microSD。**若改为大于 0**：断电时少丢数据的窗口变小，但写卡更勤、更伤卡。
+- **`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`** — 录制中约每 60 秒让系统释放「已写好、暂时不会再读」的旧文件缓存，避免 Docker 监控内存一路飙高；关档时仍会完整保存。
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 缓冲越大，写盘次数越少。以 1080p 30fps、约 4.5Mbps 估算，大约每 14 秒攒满写一次
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=15`** — 每 15 秒推进一次磁盘，在「省电/省卡」和「异常断电少丢数据」之间折中
 
 ### 录制文件缓存释放（Linux / Android）
 
-bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里**再留一份副本**（文件页缓存），用来加速以后的读写。长时间、多路录制时，Docker 或手机监控里的「总内存」可能因此虚高——**并不等于程序本身多占了一份内存**。
+bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里**再留一份副本**（文件页缓存），用来加速以后的读写。长时间、多路录制时，Docker 或手机监控里的「总内存」可能因此过高。
 
 为压低这类监控曲线，默认在 Linux / Android 上开启两套互补机制（Windows 上无对应系统接口，会自动跳过，属正常现象）：
 
@@ -63,11 +69,11 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 | **关档或转码后整份释放** | `DROP_FILE_PAGE_CACHE` | 一段录完关文件、本地 ffmpeg 转码成功之后，或**在线播放/下载最后一次请求结束**且空闲等待期满之后 | **省内存 / 监控好看** |
 | **录制中整文件落盘** | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 按间隔对整个文件做落盘（默认关闭） | **断电少丢数据**（更伤 microSD） |
 
-**和「周期性落盘」别搞混：**
 
-- **落盘（`SYNC_PERIOD`）** 是把内存里的改动**写到卡里**，保证断电时数据更安全；落盘后，系统**仍可能**在内存里留着这份文件的缓存副本。
-- **冷缓存释放 / 关档释放** 是在数据**已经安全写到磁盘**之后，告诉系统「这段暂时不用再留着了」，把缓存腾出来；**不能代替**落盘来保护断电。
-- 若两个「按秒计时」的选项同时大于 0，**以整文件落盘为准**：不再单独按 `COLD_CACHE_RELEASE_SECS` 定时，而是在**每次 fsync 成功后**顺带释放冷前缀缓存（仅当 `COLD_CACHE_RELEASE_SECS` 本身大于 0；设为 `0` 则只做落盘、不释放缓存）。启动日志会提示。
+<Aside type="tip">
+冷缓存释放跟周期性整文件落盘同时启用时，会以周期性整文件落盘为准。冷缓存释放相当于一个比周期性整文件落盘对microSD卡更友好的落盘方式，但是在断电风险抗性上不如周期性整文件落盘。
+冷缓存本身会释放旧文件页缓存，而周期性整文件落盘只会在冷缓存周期 > 0 的时候才会顺便释放旧文件页缓存。
+</Aside>
 
 **冷缓存释放什么时候才会真正执行？**
 
@@ -80,7 +86,7 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 
 - 冷释放会先让已写好的旧数据落盘，再释放缓存；长录时会带来**有节奏的额外写回**，但默认间隔 60 秒、且每次只处理「冷」前缀，通常比「全程周期性整文件落盘」温和。
 - 若你**更在意卡寿命、内存又够用**，可把 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 设为 `0`，只靠关档时释放；代价是长录时监控内存可能更高。
-- 若你**更在意断电安全**，应开 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`（写卡更勤；冷前缀会在每次 fsync 成功后一并释放，无需再开单独的冷释放计时）。
+- 若你**更在意断电安全**，应开 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`（写卡更勤； 连带 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS > 0` 后冷前缀会在每次整文件落盘成功后一并释放）。
 
 **失败时你会看到什么：**
 

@@ -15,10 +15,10 @@ App 裡每一項怎麼設、對應哪些環境變量，見 [Android App](/zh-tw/
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 4 MB | 8 MB | 寫盤前合併緩衝更小，省記憶體 |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 32 | 64 | 寫盤排隊更淺 |
 | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 32 | 48 | 4K 讀入排隊更淺 |
-| `SEQUENTIAL_WRITE` | `false` | `true` | 內置存儲隨機 I/O 較好；**輸出到 microSD 時請在 App 開啟序列化寫入** |
+| `SEQUENTIAL_WRITE` | `false` | `true` | 內置存儲隨機 I/O 較好；**輸出到 microSD 時請在 App 開啟 microSD 卡磨損保護** |
 | `SKIP_SMALL_FLUSH` | `false` | `true` | 優先保證錄製完整性，不延遲建檔案 |
 
-其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）與服務器相同。CPU / 記憶體尖峰、緩衝與頁緩存怎麼調，見 [常見問題 · 性能與容量規劃](/zh-tw/guides/faq/#性能與容量規劃) 與 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。
+其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）與服務器相同。開啟 **microSD 卡磨損保護** 時，App 會同時傳入 `SEQUENTIAL_WRITE=true` 與按「同時錄製上限」計算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路約 15 秒，6 路約 30 秒）。
 
 ## 移動端專用默認
 

@@ -21,7 +21,7 @@ export MAX_CONCURRENT_RECORDINGS=10
 
 | 參數 | 調整 | 你會注意到什麼 |
 |------|------|----------------|
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30` | 錄製中定期整檔案落盤 | 斷電少丟數據；僅當 `COLD_CACHE_RELEASE_SECS>0` 時 fsync 後才會順帶釋放冷前綴 |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30` | 錄製中定期整檔案落盤 | 斷電少丟數據；僅當 `COLD_CACHE_RELEASE_SECS>0` 時 整檔案落盤 後才會順帶釋放冷前綴 |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | 監控數字可能略高，但錄完立刻播放更快 |
 | `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
 | `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤，檔案更完整 |

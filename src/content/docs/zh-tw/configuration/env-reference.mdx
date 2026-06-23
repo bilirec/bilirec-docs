@@ -6,8 +6,6 @@ tableOfContents: false
 
 所有環境變量及其默認值。
 
-<div class="env-table-scroll">
-
 | 環境變量 | 說明 | 默認值 |
 | ------- | ---- | ------ |
 | `BILIBILI_LOGIN_MODE` | 登錄模式：`startup` / `controller` / `anonymous` | `controller` |
@@ -64,18 +62,16 @@ tableOfContents: false
 | `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下，從網絡讀入時可排隊的塊數 | `16` |
 | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀入時可排隊的塊數（`qn ≥ 20000` 時自動啟用）；網絡抖動大時可酌情調大 | `48` |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫盤前合併緩衝（字節）；越大寫盤越少，但記憶體佔用越高 | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 錄製中每隔多久強制整檔案落盤（秒）；`0`=只在關檔時落盤。與 `COLD_CACHE_RELEASE_SECS` 同時大於 0 時以本項為準：每次 fsync 成功後順帶釋放冷前綴；`COLD=0` 時僅落盤、不釋放緩存 | `0` |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中多久清理一次舊檔案緩存（秒，僅 Linux/Android）；`0`=關閉。默認 `60`，用於壓低容器監控曲線；**不是**錄製中反覆整檔案落盤。大於 `0` 時，同一秒數也用於**播放/下載空閒**（最後一次請求結束後等待這麼久再釋放）；設為 `0` 時播放/下載仍按默認 **60** 秒空閒等待，與關檔釋放解耦 | `60` |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 錄製中每隔多久強制整檔案落盤（秒）；`0`=只在關檔時落盤。與 `COLD_CACHE_RELEASE_SECS` 同時大於 0 時以本項為準：每次 整檔案落盤 成功後順帶釋放冷前綴；`COLD=0` 時僅落盤、不釋放緩存 | `0` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中多久清理一次舊檔案緩存（秒，僅 Linux/Android）；`0`=關閉。默認 `60`，用於壓低容器監控曲線 | `60` |
 | `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把記憶體數據推進磁盤一次（秒）；越大寫盤越少，SD 更省，但異常斷電未寫入窗口略增 | `15` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 寫盤前可排隊的塊數；越大越能扛寫入延遲，但記憶體佔用越高 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節）；達到閾值後才開始落盤 | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
-| `DROP_FILE_PAGE_CACHE` | 錄製分段結束、本地 ffmpeg 轉碼成功、或**在線播放/下載最後一次請求結束**（空閒等待見 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）後，讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。默認 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
-| `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁盤時建議開啟。SSD 可關閉以提升併發 | `true` |
+| `DROP_FILE_PAGE_CACHE` | 錄製分段結束、本地 ffmpeg 轉碼成功、或在線播放/下載最後一次請求結束後（會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒，如果數值為0則默認為 60 秒），讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。默認 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
+| `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁盤時建議開啟。SSD 可關閉以提升併發。啟用之後 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 會成為一個完整寫盤週期，每路寫盤間隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同時錄製路數` 計算 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁盤空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
-
-</div>
 
 各分類的詳細說明請參閱對應專題頁面。
