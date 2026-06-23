@@ -150,23 +150,30 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你会看到：** 任务管理器或手机通知栏里 CPU 百分比偶尔冲高。
 
-**为什么：** 很多时候不是「算力不够」，而是**写盘太勤**——尤其 microSD、机械硬盘上，频繁 flush/sync 会造成 CPU 和 I/O 尖峰。订阅房间多、后台转码也会叠加一些占用。闲置时若大约每 10 秒有小尖峰，可能来自订阅开播轮询（subcheck）；可调 `SUBCHECK_CHECK_INTERVAL_SECS` / `SUBCHECK_SHARD_COUNT`（见 [录制配置](/zh-cn/configuration/recording/)）。
+先对照下表判断尖峰来源，再调对应环境变量（比盲目减录制路数更有效）：
+
+| 可能来源 | 你怎么分辨 | 相关环境变量 | 建议方向 |
+| -------- | ---------- | ------------ | -------- |
+| **写盘 / flush 尖峰** | 正在录制时周期性冲高；microSD、机械盘更明显 | `LIVE_STREAM_WRITER_BUFFER_SIZE`、`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`、`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 适当加大合并缓冲、拉长 flush 间隔；**保持** `SYNC_PERIOD=0`（勿开周期性整文件落盘，更伤卡也更吃 CPU） |
+| **多路抢同一张盘** | 多路同时录到同一张 SD / HDD 时尖峰叠加 | `SEQUENTIAL_WRITE` | 同一张卡上多路录制时保持 `true`（Android 输出到 microSD 时在 App 开启序列化写入） |
+| **订阅开播轮询** | **闲置**时大约每隔固定秒数有小尖峰（默认约每 10 秒一组） | `SUBCHECK_CHECK_INTERVAL_SECS`、`SUBCHECK_SHARD_COUNT` | 增大分组数或略拉长完整周期，摊平单次检查负载 |
+| **后台转码** | 转码任务进行中 CPU 持续偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`、`FFMPEG_ALLOW_DURING_RECORDING`、`FFMPEG_CHECK_INTERVAL_SECS` | 尽量不要边录边转；并发转码保持 `1`；详见 [转换配置](/zh-cn/configuration/conversion/) |
 
 **你可以：**
-1. 树莓派 + microSD：适当**加大写盘缓冲**、**拉长写盘间隔**、必要时关闭录制中整文件落盘（见 [I/O 调优](/zh-cn/configuration/io-tuning/) 与 [树莓派默认配置](/zh-cn/configuration/pi5-defaults/)）。
-2. 订阅房间特别多时，把检查分组调多、一轮时间略拉长（见 [录制配置](/zh-cn/configuration/recording/)）。
-3. 尽量不要边录边转码，或把转码挪到空闲时段。
+1. 树莓派 + microSD：从 [I/O 调优](/zh-cn/configuration/io-tuning/) 与 [树莓派默认配置](/zh-cn/configuration/pi5-defaults/) 调整写盘相关项。
+2. 订阅房间特别多：见 [录制配置 · 订阅房间状态检查](/zh-cn/configuration/recording/#订阅房间状态检查)。
+3. 转码与录制错峰：见 [转换配置](/zh-cn/configuration/conversion/)。
 
 ### 录制时内存占用很高怎么办？
 
 **你会看到：** 监控里内存在录播时明显上涨。
 
-**为什么：** 直播数据会在内存里先排队再写盘，路数越多、画质越高（4K），占用越大。
+**为什么：** 常见是 **程序缓冲**（路数越多、4K 越高越大）或 **系统页缓存**（监控总用量虚高）。先对照 [内存占用估算 · 监控里的内存从哪来](/zh-cn/configuration/memory-estimation/#监控里的内存从哪来) 判断来源。
 
 **你可以：**
-1. 按 [内存占用估算](/zh-cn/configuration/memory-estimation/) 调整缓冲相关配置（通常比直接减路数更合适）。
-2. 不要只看 Docker 总内存——系统缓存文件也会让数字偏大。
-3. 只有确认设备**确实达不到**公式或实测要求时，再考虑减少同时录制路数。
+1. 若是程序缓冲：按 [内存占用估算](/zh-cn/configuration/memory-estimation/) 调整 `READ_STREAM_*`、`LIVE_STREAM_WRITER_*`（通常比直接减路数更合适）。
+2. 若是页缓存虚高：默认已开冷释放与关档释放；仍偏高见 [I/O 调优](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android) 或 [常见问题 · 监控内存偏高](/zh-cn/guides/faq/#监控内存偏高两个相关选项怎么理解)。
+3. 只有确认设备**确实达不到**公式或实测要求时，再考虑减少 `MAX_CONCURRENT_RECORDINGS`。
 
 ### 怎么知道我的设备能录几路？
 
@@ -185,22 +192,21 @@ import { Aside } from '@astrojs/starlight/components';
 
 **为什么：**
 
-1. **程序自己还留着一块「下次录制用」的缓冲**  
-   停录后常见几十 MB，见 [性能实测「恢复闲置」](/zh-cn/guides/performance-benchmark/)（约 54 MB）。录过 4K 时，高画质相关部分大约 **15 分钟**不用后会逐步释放。
+1. **内存池预热** — bilirec 会把读入、写盘用的内存块留在进程里复用，减轻下次录制时的分配开销。停录后常见几十 MB 的「底座」，见 [性能实测「恢复闲置」](/zh-cn/guides/performance-benchmark/)（约 54 MB）。录过 4K / 杜比时，高画质那套池子大约 **15 分钟**不用后会自动释放。
+2. **写页缓存** — 数据写入磁盘后，Linux / Android 往往还会在内存里留一份文件副本（页缓存），用来加速以后的读写。Docker 或手机监控的「总内存」会把这份算进去，**不等于** bilirec 又多占了一份程序内存。
+3. **冷释放（cold release）** — 录制过程中，程序会按间隔清理文件里**已经写好、暂时不会再写**的前缀页缓存（默认每 60 秒一轮；关档、转码结束则由 `DROP_FILE_PAGE_CACHE` 整份释放）。停录后若监控仍偏高，多半是页缓存还没清完，或刚关档不久仍在等待释放。
 
-2. **刚录过很多路时，数字会暂时接近「录制高峰」**  
-   例如 4～5 路同时录过，总量两三百 MB 可能和 [内存占用估算](/zh-cn/configuration/memory-estimation/) 里的峰值同一量级，**不一定是漏内存**。
+**你可以调：**
 
-3. **监控里的「总内存」常把「刚写过的录制文件缓存」也算进去**  
-   这是系统为读写加速暂存的副本，**不是** bilirec 又多占了一份程序内存；内存紧张时系统会自己收回。详见 [内存占用估算 - 容器总内存虚高](/zh-cn/configuration/memory-estimation/#容器总内存虚高)。
+| 想改善什么 | 环境变量 | 方向 |
+| ---------- | -------- | ---- |
+| 让系统忘掉文件页缓存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（默认已开）；关档 / 转码后整份释放 |
+| 录制中更勤地清旧页缓存 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 改小间隔（如 `60` → `30`）；`0` = 关闭录制中冷释放 |
+| 降低内存池预热占用 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE`、`LIVE_STREAM_WRITER_BUFFER_SIZE` 等 | 略减小缓冲，见 [内存占用估算](/zh-cn/configuration/memory-estimation/#想省内存优先改哪几个) |
 
-**你可以：**
+冷释放细节（何时才真正执行、与整文件落盘的区别）见 [I/O 调优 · 录制文件缓存释放](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android)。
 
-1. 对照 [性能实测](/zh-cn/guides/performance-benchmark/)「恢复闲置」— 在附近通常正常。
-2. 想再低一点：略减缓冲相关配置（见 [内存占用估算](/zh-cn/configuration/memory-estimation/)）。
-3. 若主要是监控「总内存」虚高：默认已开启录製中定期清理旧文件缓存；仍偏高时读 [内存占用估算](/zh-cn/configuration/memory-estimation/)。SSD/HDD 若更在意回放速度，可关闭（见下节）。
-
-**何时要担心：** 停录很久仍**持续上涨**、或明显卡死 — 再查日志或提 issue；单次高峰后居高不下多数属于上面 1～3。
+**何时要担心：** 停录很久仍**持续上涨**或明显卡死 — 再查日志；多数情况下属于上面三类正常残留。
 
 ### 在线播放或下载后，监控内存一直很高？
 

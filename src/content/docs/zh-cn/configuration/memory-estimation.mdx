@@ -73,7 +73,20 @@ HLS 读进来的是**一整段分片**（大小由 m3u8 决定，常见 2–6 MB
 
 ## 其他说明
 
-- **容器总内存虚高**：写入磁盘后，系统可能把录制文件再缓存一份以加速读写，**容器监控的总用量**因此会远高于 bilirec 实际占用。默认已开启 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`（录制中清理旧文件缓存）与 `DROP_FILE_PAGE_CACHE=true`（关档后释放整份文件缓存），**监控曲线**通常更接近 [性能实测](/zh-cn/guides/performance-benchmark/)（1 路约 65 MB、5 路约 165 MB）。若关闭上述选项，长录仍可能虚高；规划 **limit** 仍以上表公式为准。
+### 监控里的内存从哪来？
+
+容器或手机通知栏显示的「总内存」，往往不只包含 bilirec 程序自己的缓冲。先判断主要来源，再对症调整：
+
+| 可能来源 | 你怎么分辨 | 相关环境变量 | 建议方向 |
+| -------- | ---------- | ------------ | -------- |
+| **程序缓冲（读入 / 写盘排队）** | 录播时随路数、画质上涨；停录后若仍偏高但稳定，可能还留着复用缓冲 | `READ_STREAM_*`、`LIVE_STREAM_WRITER_*`、`MAX_CONCURRENT_RECORDINGS` | 按上文公式估算；优先减小 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE`，见下文「想省内存」 |
+| **系统页缓存（录制写入）** | 长录、多路时监控远高于 [性能实测](/zh-cn/guides/performance-benchmark/)，关档后仍虚高 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`、`DROP_FILE_PAGE_CACHE` | 默认已开启；仍偏高见 [I/O 调优 · 录制文件缓存释放](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android) |
+| **系统页缓存（在线播放 / 下载）** | 播完或下完仍居高不下 | 同上；播放空闲等待亦用 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 见 [常见问题 · 在线播放或下载后](/zh-cn/guides/faq/#在线播放或下载后监控内存一直很高) |
+| **停录后缓冲复用** | 任务都停了，仍比刚启动高约几十 MB，且长期稳定 | （属正常行为，无单独开关） | 对照性能实测「恢复闲置」；想略降可调小缓冲相关变量 |
+
+规划 **Docker 内存 limit** 请用上文公式（偏保守）；对照监控曲线请参考性能实测，勿把页缓存虚高当成程序泄漏。
+
+- **容器总内存虚高**：写入磁盘后，系统可能把录制文件再缓存一份以加速读写，**容器监控的总用量**因此会远高于 bilirec 实际占用。默认已开启 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`（录制中清理旧文件缓存）与 `DROP_FILE_PAGE_CACHE=true`（关档后释放整份文件缓存），**监控曲线**通常更接近 [性能实测](/zh-cn/guides/performance-benchmark/)（1 路约 65 MB、5 路约 173 MB）。若关闭上述选项，长录仍可能虚高；规划 **limit** 仍以上表公式为准。
 - **停录后仍偏高**：程序会保留一部分缓冲供下次录制复用（见[性能实测](/zh-cn/guides/performance-benchmark/)「恢复闲置 ~54 MB」），属正常。
 
 ## 想省内存，优先改哪几个

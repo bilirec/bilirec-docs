@@ -1,21 +1,21 @@
 ---
 title: 性能實測
-description: 樹莓派 5B 16GB 下 bilirec 多路併發錄製的實測數據與截圖
+description: 樹莓派 5B 16GB 下 bilirec 多路併發錄製的實測數據
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-本文記錄 bilirec 在低配設備上的實測表現，便於你評估是否適合自己的部署環境。
+本文記錄 bilirec 在低配設備上的實測表現，便於你對照自己的環境。規劃容器記憶體上限請用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)，不要直接套用下表數字。
 
 ## 測試環境
 
 - 設備：樹莓派 5B 16GB
 - 容器：Docker（1 GB 記憶體限制）
-- 場景：默認設定（`DROP_FILE_PAGE_CACHE=true`、`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=60`），每路直播 1080p，同時錄製多個直播間
-- 指標：CPU 峰值佔用；**記憶體峰值** = 容器監控顯示的記憶體用量（默認設定下更接近 bilirec 實際佔用）
+- 場景：默認設定，每路直播 1080p，同時錄製多個直播間
+- 指標：CPU 峰值佔用；記憶體峰值 = 容器監控顯示的記憶體用量
 
 <Aside type="note">
-以下數據為實測快照，改設定或版本後會有偏差。**給容器分配記憶體上限**時，請仍用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)（按緩衝設定估算，偏保守，通常高於監控表）。
+下表為實測快照，改設定或版本後會有偏差。
 </Aside>
 
 ## 數據彙總
@@ -31,13 +31,9 @@ import { Aside } from '@astrojs/starlight/components';
 | 恢復閒置 | ~0.0% | ~54 MB |
 
 <Aside type="note">
-**1～3 路、5 路**為實測（約 65 / 86 / 103 / 165 MB）；**4 路 ~134 MB** 按 3 路與 5 路線性插值。若關閉冷緩存釋放，長錄時 Docker 監控可能因系統緩存錄制檔案而遠高於上表（單路長錄曾頂近 1 GB），並不代表 bilirec 本身多佔了那麼多。見 [常見問題 · 監控記憶體偏高](/zh-tw/guides/faq/#性能與容量規劃)。
-</Aside>
-
-<Aside type="note">
-停錄後記憶體會比剛啟動時高一些，是因為程序會保留一部分緩衝供下次錄製複用（見上表「恢復閒置」），屬於正常現象。**勿僅憑本表數字設置 Docker 記憶體上限**——請用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。
+停錄後記憶體會比剛啟動時高一些，是因為程序會保留一部分緩衝供下次錄製複用（見上表「恢復閒置」），屬於正常現象。
 </Aside>
 
 <Aside type="tip">
-**常見問題：** 如何用實測數據評估自己的設備、停錄後記憶體為何仍偏高——見 [常見問題](/zh-tw/guides/faq/#性能與容量規劃)。
+監控數字偏高、怎麼評估自己能錄幾路等問題 — 見 [常見問題](/zh-tw/guides/faq/#性能與容量規劃)。
 </Aside>

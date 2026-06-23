@@ -1,80 +1,38 @@
 ---
 title: Android 默認設定
-description: Android 模式下的默認行為與默認值
+description: Android 模式與服務器版的默認差異
 ---
 
-Android 模式（`libbilirec.so`）會先注入一組移動端默認值，再套用 `env` 覆蓋。
+Android 模式（`libbilirec.so`）啟動時會先注入一組移動端默認值，再由 App 設置或 `env` 覆蓋。
 
-## 默認行為
+App 裡每一項怎麼設、對應哪些環境變量，見 [Android App](/zh-tw/guides/android/)。自行集成庫見 [Android 庫接口](/zh-tw/guides/android-library/)。
 
-以下設定是 Android 模式下的默認行為（可通過 `env` 覆蓋）：
+## 與服務器版的主要差異
 
-| 變量 | 默認值 | 原因 |
-|------|--------|------|
+| 項目 | Android 默認 | 服務器默認 | 說明 |
+| ---- | ------------ | ---------- | ---- |
+| `MIN_DISK_SPACE_BYTES` | 2 GB | 5 GB | 啟動前磁盤門檻 |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | 4 MB | 8 MB | 寫盤前合併緩衝更小，省記憶體 |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 32 | 64 | 寫盤排隊更淺 |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 32 | 48 | 4K 讀入排隊更淺 |
+| `SEQUENTIAL_WRITE` | `false` | `true` | 內置存儲隨機 I/O 較好；**輸出到 microSD 時請在 App 開啟序列化寫入** |
+| `SKIP_SMALL_FLUSH` | `false` | `true` | 優先保證錄製完整性，不延遲建檔案 |
+
+其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）與服務器相同。CPU / 記憶體尖峰、緩衝與頁緩存怎麼調，見 [常見問題 · 性能與容量規劃](/zh-tw/guides/faq/#性能與容量規劃) 與 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。
+
+## 移動端專用默認
+
+| 變量 | 默認值 | 說明 |
+| ---- | ------ | ---- |
 | `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登錄 |
 | `FRP_ENABLED` | `false` | 手機無需內網穿透 |
-| `SILENT_ACCESS_LOG` | `true` | 減少日誌輸出 |
-| `SKIP_SMALL_FLUSH` | `false` | 優先保障錄製完整性，不延遲建檔案 |
-| `DROP_FILE_PAGE_CACHE` | `true` | 關檔/轉碼後釋放整份檔案緩存；錄製中另由 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 清理舊數據 |
-| `SEQUENTIAL_WRITE` | `false` | 手機內置存儲隨機 I/O 較好，默認不序列化寫入 |
+| `SILENT_ACCESS_LOG` | `true` | 減少訪問日誌 |
 
-[bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 在 **服務啟動前設置 → 存儲策略 → 序列化寫入** 中可切換 `SEQUENTIAL_WRITE`。若輸出路徑選擇 microSD 卡，建議開啟此項。也可在 `Start` 的 `env` 中傳入 `SEQUENTIAL_WRITE=true` 或 `false` 覆蓋。
+## 啟動時自動限制資源
 
-## App 設置項對照
+根據 **同時錄製上限**（`MAX_CONCURRENT_RECORDINGS`，默認 `3`），啟動時會自動設置記憶體軟上限與可用 CPU 核數，一般無需手改：
 
-bilirec-mobile 將用戶友好的選項映射為後端環境變量。服務啟動時，App 會合並 **managed**（策略頁開關/滑塊）與 **developer**（開發者選項中的自定義鍵值）環境變量；`OUTPUT_DIR` 由輸出路徑單獨傳入。開發者選項中的同名鍵會覆蓋策略頁設置。
+- **記憶體軟上限** ≈ 60 MB + 每多一路約 36 MB
+- **CPU 核數** ≈ 2 核起，每多 3 路加 1 核，不超過設備物理核心數的一半
 
-| App 設置（簡體中文介面） | 環境變量 | 可選值 / 默認 |
-|------------------------|---------|--------------|
-| 輸出路徑 | `OUTPUT_DIR` | 未設置時用 `{basePath}/records` |
-| 序列化寫入 | `SEQUENTIAL_WRITE` | `true` / `false` |
-| 單次錄製時長上限 | `MAX_RECORDING_HOURS` | `0`～`12`（`0`=不限） |
-| 啟動前最低可用空間 | `MIN_DISK_SPACE_BYTES` | `2` / `5` / `10` GB |
-| 下線後服務重試時長 | `MAX_RETRY_MINUTES` | `5`～`30` 分鐘 |
-| 同時錄製上限 | `MAX_CONCURRENT_RECORDINGS` | `3`～`6` |
-| 錄完自動轉為 MP4 | `CONVERT_TO_MP4` | `true` / `false` |
-| 轉檔後刪除原始檔案 | `DELETE_SOURCE_AFTER_CONVERT` | `true` / `false` |
-| 錄製中允許轉換 | `FFMPEG_ALLOW_DURING_RECORDING` | `true` / `false` |
-| 允許轉檔的「最高錄製路數」 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`～`5`（`0`=不限） |
-| 本地通知模式 | `NOTIFY_SSE_TOKEN` | 開啟時由 App 自動生成 |
-
-介面操作說明見 [Android App](/zh-tw/guides/android/)。
-
-## 自動注入
-
-| 變量 | 默認值 |
-|------|--------|
-| `HOST` | `127.0.0.1` |
-| `PORT` | `8080` |
-| `OUTPUT_DIR` | `{basePath}/records` |
-| `SECRET_DIR` | `{basePath}/secrets` |
-| `DATABASE_DIR` | `{basePath}/database` |
-| `FRONTEND_URL` | `https://app.bilirec.org` |
-
-## I/O 與磁盤
-
-與服務器版相比，Android 使用更保守的緩衝與更低的磁盤空間閾值，避免前臺卡頓：
-
-| 變量 | Android 默認 | 服務器默認 |
-|------|-------------|-----------|
-| `MIN_DISK_SPACE_BYTES` | `2147483648` (2 GB) | `5368709120` (5 GB) |
-| `LIVE_STREAM_WRITER_BUFFER_SIZE` | `4194304` (4 MB) | `8388608` (8 MB) |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `32` | `64` |
-| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | `32` | `48` |
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | `0` | `0` |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | `15` |
-| `DROP_FILE_PAGE_CACHE` | `true` | `true` |
-
-高畫質緩衝（`READ_STREAM_BYTES_POOL_SIZE_HIGH`、`LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`）默認均為 1 MB，與服務器版一致。
-
-`DROP_FILE_PAGE_CACHE` 開啟後，下次播放同一檔案可能需重新從磁盤讀取；若介意可設 `false`，詳見 [常見問題](/zh-tw/guides/faq/#drop_file_page_cache-什麼時候用代價是什麼)。
-
-## 動態資源限制
-
-啟動時會根據 `MAX_CONCURRENT_RECORDINGS`（默認 `3`）自動調整資源佔用，一般無需手動改：
-
-- **記憶體**：按同時錄製路數預留上限（約每多一路多幾十 MB）
-- **CPU**：按錄製路數與手機核心數限制佔用，避免拖慢整機
-
-集成方法見 [Android 庫接口](/zh-tw/guides/android-library/)，使用流程見 [Android App](/zh-tw/guides/android/)。
+在 App 裡提高 **同時錄製上限** 會同步抬高上述限制。若感到發熱、卡頓或通知欄記憶體長期偏高，優先在 App 調低該滑塊，再按需查閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。
