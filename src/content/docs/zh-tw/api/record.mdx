@@ -43,7 +43,7 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 | 值 | 說明 |
 | -- | ---- |
-| 不傳 / `false` | 錄製音視頻 |
+| 不傳 / `false` | 錄製音影片 |
 | `true` | 僅錄製音頻 |
 
 **注意：**
@@ -61,12 +61,12 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 | HTTP | 說明 |
 | ---- | ---- |
 | `400` | 無效參數、房間未開播、已在錄製、正在恢復流等 |
-| `409` | 該房間錄製正在啟動中（併發請求衝突） |
+| `409` | 該房間錄製正在啟動中（並發請求衝突） |
 | `410` | 無法連接到任何可用流 URL |
 | `429` | 已達到 `MAX_CONCURRENT_RECORDINGS` 上限 |
-| `507` | 磁盤可用空間低於 `MIN_DISK_SPACE_BYTES` |
+| `507` | 磁碟可用空間低於 `MIN_DISK_SPACE_BYTES` |
 
-常見 `400` 消息：`該房間已在錄製中`、`該房間正在恢復流`、`房間並非直播狀態`、`無可用的視頻流 URL`。
+常見 `400` 消息：`該房間已在錄製中`、`該房間正在恢復流`、`房間並非直播狀態`、`無可用的影片流 URL`。
 
 ## 停止錄製
 

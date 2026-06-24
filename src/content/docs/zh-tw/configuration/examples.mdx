@@ -59,7 +59,7 @@ export LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH=1048576
 export SKIP_SMALL_FLUSH_THRESHOLD=1048576
 export SKIP_SMALL_FLUSH=true
 export SEQUENTIAL_WRITE=true
-# 默認已開 DROP + 冷釋放；SSD/HDD 高性能場景可關閉：
+# 預設已開 DROP + 冷釋放；SSD/HDD 高性能場景可關閉：
 # export DROP_FILE_PAGE_CACHE=false
 # export LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0
 export MIN_DISK_SPACE_BYTES=5368709120
@@ -70,4 +70,4 @@ export PASSWORD=changeme
 export PRODUCTION_MODE=false
 ```
 
-各變量的詳細說明見[環境變量參考](/zh-tw/configuration/env-reference/)。針對不同硬件的調優方案見 [樹莓派默認](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
+各變量的詳細說明見[環境變量參考](/zh-tw/configuration/env-reference/)。針對不同硬件的調優方案見 [樹莓派預設](/zh-tw/configuration/pi5-defaults/)、[高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)、[SSD 調優](/zh-tw/configuration/ssd-tuning/) 與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

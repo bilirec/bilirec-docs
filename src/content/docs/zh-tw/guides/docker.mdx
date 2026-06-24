@@ -5,10 +5,10 @@ description: 使用 Docker 鏡像運行 bilirec
 
 import { Aside } from '@astrojs/starlight/components';
 
-## 從源碼構建
+## 從源碼建置
 
 ```bash
-# 在倉庫根目錄構建鏡像
+# 在倉庫根目錄建置鏡像
 docker build -t bilirec:latest .
 
 # 運行容器（示例）
@@ -46,8 +46,8 @@ docker run -d \
 
 - **跳過 `.env` 加載** — 檢測到 `/.dockerenv` 時僅使用環境變量
 - **內置 FFmpeg** — 鏡像包含 FFmpeg 8.1.1，無需額外安裝
-- **默認運行時限制** — `GOMEMLIMIT=768MiB`、`GOGC=100`
-- **默認時區** — `TZ=Asia/Hong_Kong`
+- **預設運行時限制** — `GOMEMLIMIT=768MiB`、`GOGC=100`
+- **預設時區** — `TZ=Asia/Hong_Kong`
 
 <Aside type="note">
 Docker 環境下建議通過 `-e` 傳入所有需要的設定。完整環境變量列表見[環境變量參考](/zh-tw/configuration/env-reference/)，示例設定見[設定示例](/zh-tw/configuration/examples/)。

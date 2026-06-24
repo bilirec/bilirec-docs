@@ -28,19 +28,19 @@ import { Aside } from '@astrojs/starlight/components';
 ```
 
 - `basePath` **必填** — 數據目錄根路徑
-- `env` **可選** — 覆蓋默認環境變量（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
+- `env` **可選** — 覆蓋預設環境變量（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
 
-## 移動端默認行為
+## 移動端預設行為
 
-Android 模式下會先注入一組移動端默認值，再套用 `env` 覆蓋。默認行為如下（可覆蓋）：
+Android 模式下會先注入一組移動端預設值，再套用 `env` 覆蓋。預設行為如下（可覆蓋）：
 
 - `BILIBILI_LOGIN_MODE=controller`
 - `FRP_ENABLED=false`
 - `SILENT_ACCESS_LOG=true`
 
-完整參數見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
+完整參數見 [Android 預設設定](/zh-tw/configuration/android-defaults/)。
 
-## 構建 libbilirec.so
+## 建置 libbilirec.so
 
 ```bash
 # Linux 主機
@@ -52,7 +52,7 @@ make android os=windows
 
 需要 Android NDK 24+ 及 `./lib/<abi>/libffmpegkit.so`。輸出目錄：`dist/android/<abi>/libbilirec.so`。
 
-詳見[從源碼構建](/zh-tw/development/build-from-source/)。
+詳見[從源碼建置](/zh-tw/development/build-from-source/)。
 
 <Aside type="tip">
 推薦先參考 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 源碼瞭解完整集成方式，再基於此定製。

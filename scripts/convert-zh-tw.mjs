@@ -9,6 +9,7 @@ const destDir = path.join(__dirname, '../src/content/docs/zh-tw');
 
 const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
 
+// Apply on simplified Chinese before OpenCC (OpenCC would turn 登录→登錄, 服务器→服務器, etc.)
 const termFixes = [
 	[/录制/g, '錄製'],
 	[/录播/g, '錄播'],
@@ -19,10 +20,11 @@ const termFixes = [
 	[/网络/g, '網路'],
 	[/软件/g, '軟體'],
 	[/磁盘/g, '磁碟'],
-	[/內存/g, '記憶體'],
+	[/内存/g, '記憶體'],
 	[/默认/g, '預設'],
 	[/启动/g, '啟動'],
 	[/登录/g, '登入'],
+	[/程序/g, '程式'],
 	[/账号/g, '帳號'],
 	[/密码/g, '密碼'],
 	[/文件/g, '檔案'],
@@ -50,12 +52,27 @@ const termFixes = [
 	[/树莓派/g, '樹莓派'],
 	[/机械硬盘/g, '機械硬碟'],
 	[/固态硬盘/g, '固態硬碟'],
-	[/zh-cn/g, 'zh-tw'],
 ];
 
+// Safety net after OpenCC for terms that may still slip through
+const postTermFixes = [
+	[/登錄/g, '登入'],
+	[/服務器/g, '伺服器'],
+	[/程序/g, '程式'],
+];
+
+const pathFixes = [[/zh-cn/g, 'zh-tw']];
+
 function convertText(text) {
-	let result = converter(text);
+	let result = text;
 	for (const [pattern, replacement] of termFixes) {
+		result = result.replace(pattern, replacement);
+	}
+	result = converter(result);
+	for (const [pattern, replacement] of postTermFixes) {
+		result = result.replace(pattern, replacement);
+	}
+	for (const [pattern, replacement] of pathFixes) {
 		result = result.replace(pattern, replacement);
 	}
 	return result;

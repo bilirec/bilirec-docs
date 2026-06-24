@@ -5,10 +5,10 @@ description: 使用 bilirec-mobile 在手機上運行錄製後端
 
 import { LinkCard, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
-推薦使用官方 Android 客戶端 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile)，在手機上直接運行 bilirec 後端，無需額外服務器。
+推薦使用官方 Android 客戶端 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile)，在手機上直接運行 bilirec 後端，無需額外伺服器。
 
 <Aside type="note">
-截圖與演示視頻可能與當前版本介面略有差異，請以設備上的實際介面為準。
+截圖與演示影片可能與當前版本介面略有差異，請以設備上的實際介面為準。
 </Aside>
 
 ## 安裝
@@ -28,7 +28,7 @@ App 主介面為 **Bilirec 服務控制中心**，核心元素如下：
 | 頂部標題欄 | 顯示「Bilirec 服務控制中心」；右上角可切換 **繁 / 簡** 介面語言 |
 | 中央電源按鈕 | 啟動或停止 bilirec 系統服務（前臺服務 + 內嵌後端） |
 | 狀態行 | 顯示當前服務狀態（未啟動 / 啟動中 / 運行中 / 停止中等） |
-| 服務運行後 | 出現 **打開錄製管理程序**、**檢查系統服務連接** 兩個操作按鈕 |
+| 服務運行後 | 出現 **打開錄製管理程式**、**檢查系統服務連接** 兩個操作按鈕 |
 | 底部設置入口 | **打開服務啟動前設置** 按鈕；**僅在服務未運行且未處於啟停過程中時可點擊** |
 
 <Tabs>
@@ -67,8 +67,8 @@ App 主介面為 **Bilirec 服務控制中心**，核心元素如下：
 
 1. （推薦）點擊 **打開服務啟動前設置**，按需設定輸出路徑、microSD 卡磨損保護、錄製策略等（見下文）
 2. 點擊中央 **啟動** 按鈕，等待狀態變為「Bilirec 系統服務運行中」
-3. 點擊 **打開錄製管理程序**，跳轉到 [app.bilirec.org](https://app.bilirec.org/)（若已安裝 PWA 則優先打開 PWA）
-4. 在 Web 介面點擊「登錄」完成 B 站掃碼認證，即可訂閱房間或開始錄製
+3. 點擊 **打開錄製管理程式**，跳轉到 [app.bilirec.org](https://app.bilirec.org/)（若已安裝 PWA 則優先打開 PWA）
+4. 在 Web 介面點擊「登入」完成 B 站掃碼認證，即可訂閱房間或開始錄製
 5. 錄製結束後可點擊 **停止** 關閉系統服務；也可在通知欄點擊「停止服務」
 
 <Tabs>
@@ -85,7 +85,7 @@ App 主介面為 **Bilirec 服務控制中心**，核心元素如下：
 </Tabs>
 
 <Aside type="note">
-Android 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），且默認不啟用賬號密碼認證。後端在 App 進程內運行，僅本機可訪問。
+Android 預設連接 `http://127.0.0.1:8080`（等同 `localhost`），且預設不啟用帳號密碼認證。後端在 App 進程內運行，僅本機可存取。
 </Aside>
 
 ## 服務啟動前設置
@@ -106,11 +106,11 @@ Android 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），且默認
 
 | App 選項 | 作用 | 對應設定 |
 |---------|------|---------|
-| **本地通知模式** | 在無法使用 Web Push 時（如部分大陸網絡），改由 App 通過 SSE 拉取開播/錄製事件並彈出**本地通知** | 啟動時自動生成 `NOTIFY_SSE_TOKEN` |
-| **激進防休眠模式** | 關屏閒置 1～2 小時後若出現錄製斷斷續續，可嘗試開啟；錄製期間會啟用網絡鎖降低休眠影響 | App 側開關（非環境變量） |
+| **本地通知模式** | 在無法使用 Web Push 時（如部分大陸網路），改由 App 通過 SSE 拉取開播/錄製事件並彈出**本地通知** | 啟動時自動生成 `NOTIFY_SSE_TOKEN` |
+| **激進防休眠模式** | 關屏閒置 1～2 小時後若出現錄製斷斷續續，可嘗試開啟；錄製期間會啟用網路鎖降低休眠影響 | App 側開關（非環境變量） |
 
 <Aside type="caution">
-開啟 **本地通知模式** 後，點擊通知**無法**直接跳轉到錄製管理程序，需手動打開 App 或 PWA。詳見 [通知設定](/zh-tw/configuration/notifications/)。
+開啟 **本地通知模式** 後，點擊通知**無法**直接跳轉到錄製管理程式，需手動打開 App 或 PWA。詳見 [通知設定](/zh-tw/configuration/notifications/)。
 </Aside>
 
 開啟 **激進防休眠模式** 會增加耗電，長時間錄製建議接電源。通知標題出現 ⚡ 表示防休眠已生效。
@@ -119,7 +119,7 @@ Android 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），且默認
 
 | App 選項 | 作用 | 對應設定 |
 |---------|------|---------|
-| **輸出路徑** | 選擇錄製檔案保存目錄；未設置時使用 App 私有目錄下的默認 `records` | `OUTPUT_DIR`（獨立存儲，非 managed env） |
+| **輸出路徑** | 選擇錄製檔案保存目錄；未設置時使用 App 私有目錄下的預設 `records` | `OUTPUT_DIR`（獨立存儲，非 managed env） |
 | **microSD 卡磨損保護** | 輪流寫入錄製檔案，降低 microSD 同時寫入峰值；寫入節奏隨「同時錄製上限」自動調節 | `SEQUENTIAL_WRITE` + `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` |
 
 若輸出路徑選擇 **microSD 卡**，請務必開啟 **microSD 卡磨損保護**。未開啟時後端保持 `SEQUENTIAL_WRITE=false`（並行寫入），不會由 androidlib 自動代為開啟。
@@ -136,7 +136,7 @@ Android 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），且默認
 | **同時錄製上限** | `MAX_CONCURRENT_RECORDINGS` | `3`～`6` 路；提高會明顯增加發熱與耗電 |
 
 <Aside type="note">
-**啟動前最低可用空間** 滑塊默認顯示 5 GB，但僅在你拖動並鬆手後才會寫入環境變量。若從未調整過，後端仍使用 [Android 默認設定](/zh-tw/configuration/android-defaults/) 中的 `2 GB` 門檻。
+**啟動前最低可用空間** 滑塊預設顯示 5 GB，但僅在你拖動並鬆手後才會寫入環境變量。若從未調整過，後端仍使用 [Android 預設設定](/zh-tw/configuration/android-defaults/) 中的 `2 GB` 門檻。
 </Aside>
 
 ### 轉換策略
@@ -167,26 +167,26 @@ Android 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），且默認
 
 完整 App 設置與環境變量對照見上文各區塊說明。
 
-## 默認行為
+## 預設行為
 
-Android 模式下，bilirec 後端會先注入一組移動端默認值，再疊加 App 設置中的環境變量：
+Android 模式下，bilirec 後端會先注入一組移動端預設值，再疊加 App 設置中的環境變量：
 
-- `BILIBILI_LOGIN_MODE=controller` — 通過 Web UI 掃碼登錄
+- `BILIBILI_LOGIN_MODE=controller` — 通過 Web UI 掃碼登入
 - `FRP_ENABLED=false` — 手機無需內網穿透
 - `SILENT_ACCESS_LOG=true` — 減少日誌輸出
-- 更保守的 I/O / 記憶體參數（如較小寫入緩衝、默認關閉 `SEQUENTIAL_WRITE`）
+- 更保守的 I/O / 記憶體參數（如較小寫入緩衝、預設關閉 `SEQUENTIAL_WRITE`）
 
-完整默認值與服務器版差異見 [Android 默認設定](/zh-tw/configuration/android-defaults/)。
+完整預設值與伺服器版差異見 [Android 預設設定](/zh-tw/configuration/android-defaults/)。
 
 ## 自行開發或定製
 
-若需源碼構建或庫集成，請參閱 bilirec-mobile 文檔。庫模式可先執行 `make android` 生成 `libbilirec.so`，集成方法見 [Android 庫接口](/zh-tw/guides/android-library/)。
+若需源碼建置或庫集成，請參閱 bilirec-mobile 文檔。庫模式可先執行 `make android` 生成 `libbilirec.so`，集成方法見 [Android 庫接口](/zh-tw/guides/android-library/)。
 
 ## 操作演示
 
 ### 訂閱房間
 
-演示流程：服務啟動前設置 → 啟動服務 → 在錄製管理程序中訂閱房間。
+演示流程：服務啟動前設置 → 啟動服務 → 在錄製管理程式中訂閱房間。
 
 <video controls width="100%" style="max-width: 400px">
   <source src="/videos/android/subscribe.mp4" type="video/mp4" />

@@ -5,24 +5,24 @@ description: REST API 概覽、Swagger UI 與認證說明
 
 import { Aside } from '@astrojs/starlight/components';
 
-bilirec 提供完整的 RESTful API，供程序調用、腳本控制或自行集成。
+bilirec 提供完整的 RESTful API，供程式調用、腳本控制或自行集成。
 
 ## Swagger UI
 
-服務器運行時，在根路徑 `/` 提供 Swagger UI — 在瀏覽器中打開 `http://your-host:8080/` 即可查看與測試所有 API。
+伺服器運行時，在根路徑 `/` 提供 Swagger UI — 在瀏覽器中打開 `http://your-host:8080/` 即可查看與測試所有 API。
 
 ## 認證
 
 若設置了 `USERNAME` 與 `PASSWORD`，API 啟用基於 JWT 的認證。詳見 [認證 API](/zh-tw/api/auth/)。
 
-未設置用戶名/密碼時，API 默認為公開訪問。
+未設置用戶名/密碼時，API 預設為公開存取。
 
 ## API 分類
 
 | 分類 | 頁面 |
 |------|------|
 | 認證 | [認證](/zh-tw/api/auth/) |
-| B 站登錄 | [Bilibili 登錄](/zh-tw/api/bilibili-auth/) |
+| B 站登入 | [Bilibili 登入](/zh-tw/api/bilibili-auth/) |
 | 錄製 | [錄製管理](/zh-tw/api/record/) |
 | 房間 | [房間管理](/zh-tw/api/room/) |
 | 檔案 | [檔案管理](/zh-tw/api/files/) |
@@ -31,7 +31,7 @@ bilirec 提供完整的 RESTful API，供程序調用、腳本控制或自行集
 
 ## 通用約定
 
-- 基礎 URL：`http://host:port`（默認 `http://localhost:8080`）
+- 基礎 URL：`http://host:port`（預設 `http://localhost:8080`）
 - 需要認證時，先 `POST /login` 獲取 `jwtToken` cookie，後續請求攜帶該 cookie
 - 錯誤響應通常為 JSON：`{"error": "描述信息"}`
 

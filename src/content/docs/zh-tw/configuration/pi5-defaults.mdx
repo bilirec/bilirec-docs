@@ -1,9 +1,9 @@
 ---
-title: 樹莓派 5B 默認設定
-description: 針對樹莓派 5B + microSD 的默認優化參數
+title: 樹莓派 5B 預設設定
+description: 針對樹莓派 5B + microSD 的預設優化參數
 ---
 
-Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在「少寫卡、省磨損」和「控制記憶體佔用」之間取平衡。
+Bilirec 當前預設設定已針對**樹莓派 5B + microSD** 場景優化，在「少寫卡、省磨損」和「控制記憶體佔用」之間取平衡。
 
 | 優化項 | 值 | 你會注意到什麼 |
 | ----- | ---- | -------------- |
@@ -11,13 +11,13 @@ Bilirec 當前默認設定已針對**樹莓派 5B + microSD** 場景優化，在
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 長錄時 Docker 監控記憶體不會一路頂滿 |
 | `DROP_FILE_PAGE_CACHE` | `true` | 關檔/轉碼後釋放檔案緩存；剛錄完立刻播放可能略慢 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 寫盤次數較少；1080p 約每 14 秒寫一次 |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 每 15 秒把錄製緩衝數據推進磁盤，在防止緩衝積聚過多和保持大塊寫入之間取平衡 |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | `15` | 每 15 秒把錄製緩衝數據推進磁碟，在防止緩衝積聚過多和保持大塊寫入之間取平衡 |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 單路約 32 MB 寫盤排隊；比 128 更省記憶體 |
 | `SKIP_SMALL_FLUSH` | `true` | 極短直播不到 1MB 不建檔案，減少空檔案 |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | `512 KB` | 與常見直播塊大小一致 |
-| `SEQUENTIAL_WRITE` | `true` | 多路同時錄時輪流寫盤，磁盤峰值更平穩 |
-| `MAX_CONCURRENT_RECORDINGS` | `3` | 默認同時錄製上限（保守值）；1 GB 容器、1080p 下實測可穩定 **5 路**（見[性能實測](/zh-tw/guides/performance-benchmark/)），按需調大 |
+| `SEQUENTIAL_WRITE` | `true` | 多路同時錄時輪流寫盤，磁碟峰值更平穩 |
+| `MAX_CONCURRENT_RECORDINGS` | `3` | 預設同時錄製上限（保守值）；1 GB 容器、1080p 下實測可穩定 **5 路**（見[性能實測](/zh-tw/guides/performance-benchmark/)），按需調大 |
 
 官方 Docker 鏡像已內置適合樹莓派的運行參數，一般無需再改。
 
-若錄製 4K / 杜比，程序會根據 `qn` 自動啟用高畫質緩衝，一般無需改 1080p 基礎變量；卡頓時參閱 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。規劃容器記憶體請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。存儲介質為 SSD 或 HDD/NAS 時請參閱 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 或 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
+若錄製 4K / 杜比，程式會根據 `qn` 自動啟用高畫質緩衝，一般無需改 1080p 基礎變量；卡頓時參閱 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。規劃容器記憶體請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。存儲介質為 SSD 或 HDD/NAS 時請參閱 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 或 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

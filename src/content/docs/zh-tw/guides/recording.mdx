@@ -51,7 +51,7 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 | 不傳 | 自動選擇可用流（依次嘗試 HTTP-FLV → HLS-fMP4 → HLS-TS，同格式內優先較高畫質） |
 | `http-flv` | HTTP-FLV（PK/分辨率切換時自動分段） |
 | `hls-ts` | HLS-TS（不執行檔案輪轉） |
-| `hls-fmp4` | HLS-fMP4（默認將 init 與媒體分片寫入同一檔案；僅 init 內容變更時分段） |
+| `hls-fmp4` | HLS-fMP4（預設將 init 與媒體分片寫入同一檔案；僅 init 內容變更時分段） |
 
 ### 錄製時長（duration_minutes）
 

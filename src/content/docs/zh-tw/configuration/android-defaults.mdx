@@ -1,36 +1,36 @@
 ---
-title: Android 默認設定
-description: Android 模式與服務器版的默認差異
+title: Android 預設設定
+description: Android 模式與伺服器版的預設差異
 ---
 
-Android 模式（`libbilirec.so`）啟動時會先注入一組移動端默認值，再由 App 設置或 `env` 覆蓋。
+Android 模式（`libbilirec.so`）啟動時會先注入一組移動端預設值，再由 App 設置或 `env` 覆蓋。
 
 App 裡每一項怎麼設、對應哪些環境變量，見 [Android App](/zh-tw/guides/android/)。自行集成庫見 [Android 庫接口](/zh-tw/guides/android-library/)。
 
-## 與服務器版的主要差異
+## 與伺服器版的主要差異
 
-| 項目 | Android 默認 | 服務器默認 | 說明 |
+| 項目 | Android 預設 | 伺服器預設 | 說明 |
 | ---- | ------------ | ---------- | ---- |
-| `MIN_DISK_SPACE_BYTES` | 2 GB | 5 GB | 啟動前磁盤門檻 |
+| `MIN_DISK_SPACE_BYTES` | 2 GB | 5 GB | 啟動前磁碟門檻 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 4 MB | 8 MB | 寫盤前合併緩衝更小，省記憶體 |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 32 | 64 | 寫盤排隊更淺 |
 | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 32 | 48 | 4K 讀入排隊更淺 |
 | `SEQUENTIAL_WRITE` | `false` | `true` | 內置存儲隨機 I/O 較好；**輸出到 microSD 時請在 App 開啟 microSD 卡磨損保護** |
 | `SKIP_SMALL_FLUSH` | `false` | `true` | 優先保證錄製完整性，不延遲建檔案 |
 
-其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）與服務器相同。開啟 **microSD 卡磨損保護** 時，App 會同時傳入 `SEQUENTIAL_WRITE=true` 與按「同時錄製上限」計算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路約 15 秒，6 路約 30 秒）。
+其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）與伺服器相同。開啟 **microSD 卡磨損保護** 時，App 會同時傳入 `SEQUENTIAL_WRITE=true` 與按「同時錄製上限」計算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路約 15 秒，6 路約 30 秒）。
 
-## 移動端專用默認
+## 移動端專用預設
 
-| 變量 | 默認值 | 說明 |
+| 變量 | 預設值 | 說明 |
 | ---- | ------ | ---- |
-| `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登錄 |
+| `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登入 |
 | `FRP_ENABLED` | `false` | 手機無需內網穿透 |
-| `SILENT_ACCESS_LOG` | `true` | 減少訪問日誌 |
+| `SILENT_ACCESS_LOG` | `true` | 減少存取日誌 |
 
 ## 啟動時自動限制資源
 
-根據 **同時錄製上限**（`MAX_CONCURRENT_RECORDINGS`，默認 `3`），啟動時會自動設置記憶體軟上限與可用 CPU 核數，一般無需手改：
+根據 **同時錄製上限**（`MAX_CONCURRENT_RECORDINGS`，預設 `3`），啟動時會自動設置記憶體軟上限與可用 CPU 核數，一般無需手改：
 
 - **記憶體軟上限** ≈ 60 MB + 每多一路約 36 MB
 - **CPU 核數** ≈ 2 核起，每多 3 路加 1 核，不超過設備物理核心數的一半

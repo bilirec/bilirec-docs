@@ -18,44 +18,44 @@ Bilirec 由三個獨立但緊密協作的項目組成，共同提供完整的 B 
     **Web 管理介面** — 線上地址 [app.bilirec.org](https://app.bilirec.org/)，支持 PWA 安裝到桌面/手機主屏幕，用於管理錄製任務、訂閱房間與瀏覽檔案。
   </LinkCard>
   <LinkCard title="bilirec-mobile（Android）" href="https://github.com/bilirec/bilirec-mobile">
-    **Android 客戶端** — 在手機上直接運行 bilirec 後端（內嵌 `libbilirec.so`），無需額外服務器即可錄製直播。
+    **Android 客戶端** — 在手機上直接運行 bilirec 後端（內嵌 `libbilirec.so`），無需額外伺服器即可錄製直播。
   </LinkCard>
 </CardGrid>
 
 ## 典型使用路徑
 
-### 路徑一：自架服務器 + Web 介面
+### 路徑一：自架伺服器 + Web 介面
 
 1. 在樹莓派、NAS 或 PC 上[安裝 bilirec 後端](/zh-tw/guides/installation/)
 2. 打開 [app.bilirec.org](https://app.bilirec.org/) 並連接你的後端地址
-3. 完成 B 站掃碼[登錄](/zh-tw/guides/quick-start/)
+3. 完成 B 站掃碼[登入](/zh-tw/guides/quick-start/)
 4. [訂閱或錄製](/zh-tw/guides/recording/)直播間
 
 ### 路徑二：Android 手機獨立運行
 
 1. 從 [bilirec-mobile Releases](https://github.com/bilirec/bilirec-mobile/releases) 安裝 APK
 2. 在 App 內[啟動後端](/zh-tw/guides/android/)
-3. 點擊「打開錄製程序」進入 PWA 管理介面
-4. 默認連接 `http://127.0.0.1:8080`（等同 `localhost`），直接點擊「登錄」即可
+3. 點擊「打開錄製程式」進入 PWA 管理介面
+4. 預設連接 `http://127.0.0.1:8080`（等同 `localhost`），直接點擊「登入」即可
 
-### 路徑三：遠程訪問（FRP）
+### 路徑三：遠端存取（FRP）
 
-1. 在自架服務器上[啟用 FRP](/zh-tw/guides/frp/)
+1. 在自架伺服器上[啟用 FRP](/zh-tw/guides/frp/)
 2. 從日誌獲取公網地址（如 `https://abc123.tunnel.bilirec.org`）
-3. 在 app.bilirec.org 登錄介面的服務器地址欄填入公網地址
+3. 在 app.bilirec.org 登入介面的伺服器地址欄填入公網地址
 
 ## 各端適用場景
 
 | 場景 | 推薦方案 |
 |------|---------|
 | 樹莓派 / NAS 24 小時錄製 | bilirec 後端 + bilirec-web PWA |
-| 外出時遠程管理 | bilirec 後端 + FRP + bilirec-web PWA |
+| 外出時遠端管理 | bilirec 後端 + FRP + bilirec-web PWA |
 | 手機上隨時錄製 | bilirec-mobile |
 | 腳本 / 自動化集成 | bilirec 後端 [REST API](/zh-tw/api/overview/) |
 | 自定義 Android App | `libbilirec.so` — 見 [Android 庫接口](/zh-tw/guides/android-library/) |
 
 <Aside type="tip">
-bilirec-web 是通用前端，可連接任何 bilirec 後端實例。你只需在登錄介面填入後端地址即可，無需為每個後端單獨部署前端。
+bilirec-web 是通用前端，可連接任何 bilirec 後端實例。你只需在登入介面填入後端地址即可，無需為每個後端單獨部署前端。
 </Aside>
 
 ## 社區交流

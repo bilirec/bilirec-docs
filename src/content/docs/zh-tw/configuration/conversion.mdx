@@ -7,11 +7,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 基本轉換
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `CONVERT_TO_MP4` | 錄製完成後轉為 MP4 | `false` |
 | `DELETE_SOURCE_AFTER_CONVERT` | 轉換後刪除原始源檔案 | `false` |
-| `NO_CONVERT_IF_INVALID` | 源檔案缺少音視頻流時是否停止轉碼；若系統未安裝 `ffprobe`，檢查會自動放行 | `false` |
+| `NO_CONVERT_IF_INVALID` | 源檔案缺少音影片流時是否停止轉碼；若系統未安裝 `ffprobe`，檢查會自動放行 | `false` |
 
 啟用 `CONVERT_TO_MP4` 後，錄製完成的 FLV/TS 檔案自動加入轉換隊列，由後臺異步轉換為 MP4。
 
@@ -19,10 +19,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 本地 FFmpeg
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `FFMPEG_CHECK_INTERVAL_SECS` | 轉換任務輪詢間隔（秒） | `60` |
-| `FFMPEG_MAX_CONCURRENT_TASKS` | 最大併發轉換任務數 | `1` |
+| `FFMPEG_MAX_CONCURRENT_TASKS` | 最大並發轉換任務數 | `1` |
 | `FFMPEG_ALLOW_DURING_RECORDING` | 錄製進行中是否允許 FFmpeg 轉換 | `false` |
 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `≤` 此值時才允許邊錄邊轉；`<1` 表示不設門檻（仍受 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
 
@@ -30,16 +30,16 @@ Docker 鏡像內置 FFmpeg 8.1.1。桌面環境需在 PATH 中安裝 FFmpeg 和 
 
 遺留別名 `FFMPEG_ALLOW_DURING_RECORDING_BELOW_ACTIVE_RECORDINGS` 與 `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` 等效。
 
-轉換失敗的任務會進入冷卻期，延後 `FFMPEG_CHECK_INTERVAL_SECS × 2` 再重試，避免多任務同時失敗後又立刻併發重試。
+轉換失敗的任務會進入冷卻期，延後 `FFMPEG_CHECK_INTERVAL_SECS × 2` 再重試，避免多任務同時失敗後又立刻並發重試。
 
 ## CloudConvert 雲端
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `CLOUDCONVERT_API_KEY` | API Key（為空則禁用） | (未設置) |
 | `CLOUDCONVERT_THRESHOLD` | 使用 CloudConvert 的檔案大小閾值（字節） | `1073741824` (1 GB) |
 | `CLOUDCONVERT_CHECK_INTERVAL_SECS` | 任務狀態輪詢間隔（秒） | `180` |
-| `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | 最大併發下載數 | `1` |
+| `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | 最大並發下載數 | `1` |
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 錄製進行中是否允許 CloudConvert 轉換 | `false` |
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `≤` 此值時才允許邊錄邊轉；`<1` 表示不設門檻（仍受 `CLOUDCONVERT_ALLOW_DURING_RECORDING` 控制） | `1` |
 

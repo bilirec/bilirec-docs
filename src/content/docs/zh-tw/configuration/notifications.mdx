@@ -5,7 +5,7 @@ description: Web Push 與 SSE 實時通知參數
 
 ## Web Push
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `WEBPUSH_SUBSCRIBER` | VAPID subject（建議 `mailto:you@example.com`） | `mailto:webpush@example.com` |
 
@@ -15,7 +15,7 @@ VAPID 公鑰/私鑰在啟動時自動生成並寫入 `SECRET_DIR`（`_webpush_pu
 
 ## SSE 通知
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `NOTIFY_SSE_TOKEN` | SSE 訂閱 token | (空字符串) |
 
@@ -26,6 +26,6 @@ GET /notify/sse?token=YOUR_NOTIFY_SSE_TOKEN
 Accept: text/event-stream
 ```
 
-推薦用於無法依賴 Google FCM 的場景（如中國大陸網絡），Android 後端通過 SSE 獲取通知後創建本地通知。建議通過 HTTPS 使用以避免 token 明文暴露。
+推薦用於無法依賴 Google FCM 的場景（如中國大陸網路），Android 後端通過 SSE 獲取通知後創建本地通知。建議通過 HTTPS 使用以避免 token 明文暴露。
 
 訂閱房間開啟 **開播通知** 後，後臺會定期檢查直播狀態並在開播時推送；檢查頻率與分組方式見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。

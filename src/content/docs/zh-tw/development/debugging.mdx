@@ -1,19 +1,19 @@
 ---
-title: 開發與調試
+title: 開發與除錯
 description: DEBUG 模式與 pprof 性能分析
 ---
 
-## 啟用調試
+## 啟用除錯
 
 ```bash
 export DEBUG=true
 ```
 
-服務器啟動時會在日誌中打印一個臨時十六進制令牌。
+伺服器啟動時會在日誌中打印一個臨時十六進制令牌。
 
 ## pprof 性能分析
 
-調試模式下在 `/debug/pprof` 掛載 pprof。該路由受保護：需在請求頭 `Authorization` 中填入啟動日誌中的十六進制令牌。
+除錯模式下在 `/debug/pprof` 掛載 pprof。該路由受保護：需在請求頭 `Authorization` 中填入啟動日誌中的十六進制令牌。
 
 實現位於 `internal/modules/rest/rest.go`。
 
@@ -23,4 +23,4 @@ export DEBUG=true
 make dev    # go run ./cmd/backend
 ```
 
-詳見[從源碼構建](/zh-tw/development/build-from-source/)。
+詳見[從源碼建置](/zh-tw/development/build-from-source/)。

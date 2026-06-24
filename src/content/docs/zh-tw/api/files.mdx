@@ -9,7 +9,7 @@ description: 瀏覽、下載、播放、預簽名與批量刪除 API
 GET /files/browse/*
 ```
 
-| 參數 | 說明 | 默認值 |
+| 參數 | 說明 | 預設值 |
 | ---- | ---- | ------ |
 | `offset` | 分頁偏移量 | `0` |
 | `limit` | 每頁最大條數（0=不限制，最大 200） | `0` |
@@ -34,7 +34,7 @@ GET /files/download/*
 
 若要將源檔案（FLV/TS）自動轉為 MP4，請啟用 `CONVERT_TO_MP4`。錄製結束後可轉換檔案會被加入轉換隊列：
 
-- 同時設置 `CLOUDCONVERT_API_KEY` 且檔案大小 `>= CLOUDCONVERT_THRESHOLD`（默認 1 GB）時，優先走 CloudConvert
+- 同時設置 `CLOUDCONVERT_API_KEY` 且檔案大小 `>= CLOUDCONVERT_THRESHOLD`（預設 1 GB）時，優先走 CloudConvert
 - 否則走本地 FFmpeg 後臺任務
 - 轉換任務可通過 `GET /convert/tasks` 查詢
 
@@ -44,7 +44,7 @@ GET /files/download/*
 POST /files/presigned/{path}?ttl=<seconds>
 ```
 
-需要 JWT 認證。`ttl` 默認 3600 秒。返回臨時令牌後：
+需要 JWT 認證。`ttl` 預設 3600 秒。返回臨時令牌後：
 
 ```http
 GET /files/tempdownload?presigned=<token>
@@ -73,7 +73,7 @@ DELETE /files/{path}
 GET /files/playback/{path}
 ```
 
-返回 MP4 視頻流，瀏覽器直接播放。支持 Range 請求（快進/快退）。
+返回 MP4 影片流，瀏覽器直接播放。支持 Range 請求（快進/快退）。
 
 - 僅支持 MP4 格式
 - 無法播放進行中的錄製檔案

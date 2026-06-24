@@ -1,9 +1,9 @@
 ---
-title: Bilibili 登錄
-description: controller 模式下的 B 站掃碼登錄 API
+title: Bilibili 登入
+description: controller 模式下的 B 站掃碼登入 API
 ---
 
-當 `BILIBILI_LOGIN_MODE=controller` 時，通過 `/auth/bilibili` 接口在服務運行後觸發掃碼登錄。
+當 `BILIBILI_LOGIN_MODE=controller` 時，通過 `/auth/bilibili` 接口在服務運行後觸發掃碼登入。
 
 ## 查詢認證狀態
 
@@ -13,7 +13,7 @@ GET /auth/bilibili/status
 
 返回當前認證狀態（`idle` / `awaiting_qr` / `authenticating` / `authenticated` / `failed`）。
 
-**已登錄：**
+**已登入：**
 
 ```json
 {
@@ -38,17 +38,17 @@ GET /auth/bilibili/status
 }
 ```
 
-## 初始化二維碼登錄
+## 初始化二維碼登入
 
 ```http
 POST /auth/bilibili/init
 ```
 
-創建新的二維碼登錄會話。支持賬號切換，即使已登錄也可重新發起。
+創建新的二維碼登入會話。支持帳號切換，即使已登入也可重新發起。
 
 - 成功：`201 Created`
 - `400` — 未啟用 controller 模式
-- `409` — 已存在未完成的登錄會話
+- `409` — 已存在未完成的登入會話
 - `500` — 獲取二維碼失敗
 
 **成功響應示例：**
@@ -93,4 +93,4 @@ curl -i -b cookies.txt -X POST http://127.0.0.1:8080/auth/bilibili/init
 curl -s -b cookies.txt http://127.0.0.1:8080/auth/bilibili/status
 ```
 
-已登錄用戶可隨時調用 `POST /auth/bilibili/init` 切換到新賬號。
+已登入用戶可隨時調用 `POST /auth/bilibili/init` 切換到新帳號。

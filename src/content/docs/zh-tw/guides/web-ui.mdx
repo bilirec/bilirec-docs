@@ -7,46 +7,46 @@ import { LinkCard, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 bilirec 的 Web 管理介面由 [bilirec-web](https://github.com/bilirec/bilirec-web) 提供，線上地址為 [app.bilirec.org](https://app.bilirec.org/)。它是一個通用前端，可連接任何 bilirec 後端實例。
 
-## 訪問 Web 介面
+## 存取 Web 介面
 
-1. 確保 bilirec 後端已啟動（默認端口為 `8080`，`HOST` 默認為空值即監聽所有網卡）
+1. 確保 bilirec 後端已啟動（預設端口為 `8080`，`HOST` 預設為空值即監聽所有網卡）
 2. 打開 [app.bilirec.org](https://app.bilirec.org/)
 
 <Tabs>
 <TabItem label="桌面端">
 
-![桌面端登錄介面](/images/web-ui/desktop-login.png)
+![桌面端登入介面](/images/web-ui/desktop-login.png)
 
 </TabItem>
 <TabItem label="移動端">
 
-![移動端登錄介面](/images/web-ui/mobile-login.png)
+![移動端登入介面](/images/web-ui/mobile-login.png)
 
 </TabItem>
 </Tabs>
 
-3. 在登錄介面填入後端地址（本地使用可留空或填 `http://localhost:8080`）
-4. 若設置了 `USERNAME` 和 `PASSWORD`，輸入賬號密碼登錄；未設置則直接進入
+3. 在登入介面填入後端地址（本地使用可留空或填 `http://localhost:8080`）
+4. 若設置了 `USERNAME` 和 `PASSWORD`，輸入帳號密碼登入；未設置則直接進入
 
-## B 站登錄
+## B 站登入
 
-進入主介面後，點擊「登錄」，再點擊右上角頭像按鈕完成 B 站掃碼登錄。
+進入主介面後，點擊「登入」，再點擊右上角頭像按鈕完成 B 站掃碼登入。
 
 <Tabs>
 <TabItem label="桌面端">
 
-![桌面端B站登錄介面](/images/web-ui/desktop-b-login.png)
+![桌面端B站登入介面](/images/web-ui/desktop-b-login.png)
 
 </TabItem>
 <TabItem label="移動端">
 
-![移動端B站登錄介面](/images/web-ui/mobile-b-login.png)
+![移動端B站登入介面](/images/web-ui/mobile-b-login.png)
 
 </TabItem>
 </Tabs>
 ## 連接自架後端
 
-若後端不在本機運行，在登錄介面的**服務器地址**欄填入後端 URL，例如：
+若後端不在本機運行，在登入介面的**伺服器地址**欄填入後端 URL，例如：
 
 - 局域網：`http://192.168.1.100:8080`
 - FRP 公網：`https://abc123.tunnel.bilirec.org`
@@ -131,7 +131,7 @@ bilirec-web 支持 PWA（Progressive Web App），可安裝到桌面或手機主
 </LinkCard>
 
 <Aside type="tip">
-Android 用戶可通過 [bilirec-mobile](/zh-tw/guides/android/) 啟動後端後，點擊「打開錄製程序」自動跳轉到 PWA。若已安裝 PWA，會優先打開 PWA 而非瀏覽器標籤頁。
+Android 用戶可通過 [bilirec-mobile](/zh-tw/guides/android/) 啟動後端後，點擊「打開錄製程式」自動跳轉到 PWA。若已安裝 PWA，會優先打開 PWA 而非瀏覽器標籤頁。
 </Aside>
 
 <Aside type="tip">

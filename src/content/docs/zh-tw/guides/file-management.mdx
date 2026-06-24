@@ -5,7 +5,7 @@ description: 瀏覽、下載、播放錄製檔案與 MP4 轉換
 
 import { Aside } from '@astrojs/starlight/components';
 
-bilirec 將錄製檔案保存在 `OUTPUT_DIR`（默認 `records`）目錄下，可通過 Web 介面或 REST API 管理。
+bilirec 將錄製檔案保存在 `OUTPUT_DIR`（預設 `records`）目錄下，可通過 Web 介面或 REST API 管理。
 
 ## 瀏覽檔案
 
@@ -58,7 +58,7 @@ curl -X DELETE http://127.0.0.1:8080/files/batch \
 
 ## MP4 轉換
 
-啟用 `CONVERT_TO_MP4=true` 後，錄製完成的 FLV/TS 檔案會自動加入轉換隊列。大檔案（≥ `CLOUDCONVERT_THRESHOLD`，默認 1 GB）優先使用 CloudConvert 雲端轉換。
+啟用 `CONVERT_TO_MP4=true` 後，錄製完成的 FLV/TS 檔案會自動加入轉換隊列。大檔案（≥ `CLOUDCONVERT_THRESHOLD`，預設 1 GB）優先使用 CloudConvert 雲端轉換。
 
 轉換任務狀態查詢見 [轉換任務 API](/zh-tw/api/convert/)，設定見 [轉換設定](/zh-tw/configuration/conversion/)。
 

@@ -1,11 +1,11 @@
 ---
 title: SSD/NVMe 調優
-description: 固態硬盤環境下的 I/O 設定方案
+description: 固態硬碟環境下的 I/O 設定方案
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-SSD 隨機讀寫很快，不必像 microSD 那樣擔心小塊寫入磨損；默認的「多路輪流寫盤」反而會限制 SSD 併發優勢。
+SSD 隨機讀寫很快，不必像 microSD 那樣擔心小塊寫入磨損；預設的「多路輪流寫盤」反而會限制 SSD 並發優勢。
 
 ## 推薦設定
 
@@ -25,8 +25,8 @@ export MAX_CONCURRENT_RECORDINGS=10
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | 監控數字可能略高，但錄完立刻播放更快 |
 | `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
 | `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤，檔案更完整 |
-| `SEQUENTIAL_WRITE=false` | 允許多路同時寫盤 | SSD 多路併發更順暢 |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128` | 加大寫盤前排隊 | 更能扛網絡突發，記憶體佔用上升 |
+| `SEQUENTIAL_WRITE=false` | 允許多路同時寫盤 | SSD 多路並發更順暢 |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128` | 加大寫盤前排隊 | 更能扛網路突發，記憶體佔用上升 |
 | `MAX_CONCURRENT_RECORDINGS=10` | 放寬同時錄製路數 | 視 CPU 與記憶體調整 |
 
 <Aside type="tip">

@@ -1,6 +1,6 @@
 ---
 title: 快速開始
-description: 首次啟動 bilirec、設定環境變量與 B 站登錄
+description: 首次啟動 bilirec、設定環境變量與 B 站登入
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -16,7 +16,7 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 ./bilirec-linux-amd64
 ```
 
-首次運行二進制時，程序會在可執行檔案同目錄生成 `.env` 模板檔案，你可以直接編輯它修改設定。
+首次運行二進制時，程式會在可執行檔案同目錄生成 `.env` 模板檔案，你可以直接編輯它修改設定。
 
 </TabItem>
 
@@ -28,7 +28,7 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 .\bilirec-windows.exe
 ```
 
-首次運行二進制時，程序會在可執行檔案同目錄生成 `.env` 模板檔案，你可以直接編輯它修改設定。
+首次運行二進制時，程式會在可執行檔案同目錄生成 `.env` 模板檔案，你可以直接編輯它修改設定。
 
 </TabItem>
 
@@ -66,27 +66,27 @@ docker run -d \
 <TabItem label="Linux / Windows">
 
 1. 打開 [app.bilirec.org](https://app.bilirec.org/)。
-2. 在登錄頁填入你的後端地址（本機可填 `http://localhost:8080`）。
-3. 若設定了 `USERNAME` / `PASSWORD`，先完成賬號登錄。
+2. 在登入頁填入你的後端地址（本機可填 `http://localhost:8080`）。
+3. 若設定了 `USERNAME` / `PASSWORD`，先完成帳號登入。
 
 </TabItem>
 
 <TabItem label="Android（bilirec-mobile）">
 
-1. 在 bilirec-mobile 內點擊「打開錄製程序」進入 PWA。
+1. 在 bilirec-mobile 內點擊「打開錄製程式」進入 PWA。
 2. 如未自動跳轉，也可手動打開 [app.bilirec.org](https://app.bilirec.org/)。
 3. 一般情況下後端地址已是 `http://127.0.0.1:8080`，可直接繼續下一步。
 
 </TabItem>
 </Tabs>
 
-## B 站登錄模式
+## B 站登入模式
 
 <Tabs>
 
-<TabItem label="controller（默認）">
+<TabItem label="controller（預設）">
 
-服務啟動後，打開 [app.bilirec.org](https://app.bilirec.org/)（或你設定的 `FRONTEND_URL`），點擊「登錄」，再到右上角點擊頭像按鈕完成 B 站掃碼登錄。
+服務啟動後，打開 [app.bilirec.org](https://app.bilirec.org/)（或你設定的 `FRONTEND_URL`），點擊「登入」，再到右上角點擊頭像按鈕完成 B 站掃碼登入。
 
 ```bash
 export BILIBILI_LOGIN_MODE=controller # 默認已經是
@@ -95,12 +95,12 @@ export BILIBILI_LOGIN_MODE=controller # 默認已經是
 <Tabs>
 <TabItem label="桌面端">
 
-![桌面端B站掃碼登錄介面](/images/web-ui/desktop-b-qrcode.png)
+![桌面端B站掃碼登入介面](/images/web-ui/desktop-b-qrcode.png)
 
 </TabItem>
 <TabItem label="移動端">
 
-![移動端B站掃碼登錄介面](/images/web-ui/mobile-b-qrcode.png)
+![移動端B站掃碼登入介面](/images/web-ui/mobile-b-qrcode.png)
 
 </TabItem>
 </Tabs>
@@ -109,7 +109,7 @@ export BILIBILI_LOGIN_MODE=controller # 默認已經是
 
 <TabItem label="startup">
 
-啟動時在終端顯示二維碼，用手機 B 站 App 掃碼登錄：
+啟動時在終端顯示二維碼，用手機 B 站 App 掃碼登入：
 
 ```bash
 export BILIBILI_LOGIN_MODE=startup
@@ -119,7 +119,7 @@ export BILIBILI_LOGIN_MODE=startup
 
 <TabItem label="anonymous">
 
-直接匿名登錄，無需掃碼。未登錄可能無法錄製 1080p 及以上畫質：
+直接匿名登入，無需掃碼。未登入可能無法錄製 1080p 及以上畫質：
 
 ```bash
 export BILIBILI_LOGIN_MODE=anonymous
@@ -134,12 +134,12 @@ export BILIBILI_LOGIN_MODE=anonymous
 <Tabs>
 <TabItem label="Web 介面">
 
-1. 訪問 [app.bilirec.org](https://app.bilirec.org/) 並連接後端。
+1. 存取 [app.bilirec.org](https://app.bilirec.org/) 並連接後端。
 2. 在「錄製管理」裡手動開始/停止錄製。
 3. 在「訂閱管理」裡添加房間並設定自動錄製。
 4. 在「錄製檔案」裡瀏覽、下載或預覽錄製結果。
 
-![桌面端登錄介面](/images/web-ui/desktop-login.png)
+![桌面端登入介面](/images/web-ui/desktop-login.png)
 ![桌面端錄製管理](/images/web-ui/desktop-recording.png)
 
 完整說明見 [Web 介面（PWA）](/zh-tw/guides/web-ui/)。
@@ -175,10 +175,10 @@ curl -X POST "http://127.0.0.1:8080/record/12345/stop"
 ## 下一步
 
 - [Web 介面使用](/zh-tw/guides/web-ui/) — 通過 PWA 管理錄製任務
-- [API 使用](/zh-tw/api/overview/) — 用腳本或程序接入錄製流程
+- [API 使用](/zh-tw/api/overview/) — 用腳本或程式接入錄製流程
 - [錄製直播間](/zh-tw/guides/recording/) — 手動或自動錄製
 - [設定與調優](/zh-tw/configuration/overview/) — 調整環境變量
 
 <Aside type="caution">
-若計劃將後端暴露到公網（如啟用 FRP），請務必設置 `USERNAME` 和 `PASSWORD` 保護 API 訪問。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
+若計劃將後端暴露到公網（如啟用 FRP），請務必設置 `USERNAME` 和 `PASSWORD` 保護 API 存取。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
 </Aside>

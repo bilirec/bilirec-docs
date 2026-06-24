@@ -4,18 +4,18 @@ description: bilirec 完整環境變量一覽表
 tableOfContents: false
 ---
 
-所有環境變量及其默認值。
+所有環境變量及其預設值。
 
-| 環境變量 | 說明 | 默認值 |
+| 環境變量 | 說明 | 預設值 |
 | ------- | ---- | ------ |
-| `BILIBILI_LOGIN_MODE` | 登錄模式：`startup` / `controller` / `anonymous` | `controller` |
+| `BILIBILI_LOGIN_MODE` | 登入模式：`startup` / `controller` / `anonymous` | `controller` |
 | `HOST` | API 服務綁定地址（空值時監聽所有網卡） | (空字符串) |
 | `PORT` | API 服務端口 | `8080` |
-| `SERVER_CRT` | 可選：HTTPS 證書檔案路徑；當與 `SERVER_KEY` 同時設置時，Fiber 默認啟用 HTTPS | (未設置) |
-| `SERVER_KEY` | 可選：HTTPS 私鑰檔案路徑；當與 `SERVER_CRT` 同時設置時，Fiber 默認啟用 HTTPS | (未設置) |
-| `TRUSTED_PROXIES` | 受信任反向代理 IP/CIDR 列表（逗號分隔），可填寫 Nginx/FRP 等代理 IP，用於安全信任 `X-Forwarded-For`；默認 `161.33.159.26` 為公共 FRP 服務 IP | `161.33.159.26` |
+| `SERVER_CRT` | 可選：HTTPS 證書檔案路徑；當與 `SERVER_KEY` 同時設置時，Fiber 預設啟用 HTTPS | (未設置) |
+| `SERVER_KEY` | 可選：HTTPS 私鑰檔案路徑；當與 `SERVER_CRT` 同時設置時，Fiber 預設啟用 HTTPS | (未設置) |
+| `TRUSTED_PROXIES` | 受信任反向代理 IP/CIDR 列表（逗號分隔），可填寫 Nginx/FRP 等代理 IP，用於安全信任 `X-Forwarded-For`；預設 `161.33.159.26` 為公共 FRP 服務 IP | `161.33.159.26` |
 | `FRP_ENABLED` | 是否啟用 FRP 內網穿透 | `false` |
-| `FRP_SERVER` | FRP 服務器地址（`host:port`） | `tunnel.bilirec.org:7000` |
+| `FRP_SERVER` | FRP 伺服器地址（`host:port`） | `tunnel.bilirec.org:7000` |
 | `FRP_TOKEN` | FRP 認證 Token；如果你有自己的 FRP 服務就填寫，沒有就留空 | (空字符串) |
 | `FRP_BASE_DOMAIN` | FRP 公網基礎域名 | `tunnel.bilirec.org` |
 | `FRP_HTTPS` | FRP 代理協議（`true`=HTTPS，`false`=HTTP） | `false` |
@@ -28,7 +28,7 @@ tableOfContents: false
 | `SECRET_DIR` | Cookie 和 Token 保存目錄 | `secrets` |
 | `CONVERT_TO_MP4` | 錄製完成後是否將可轉換源檔案（如 FLV/TS）轉為 MP4 | `false` |
 | `DELETE_SOURCE_AFTER_CONVERT` | 轉換後是否刪除原始源檔案 | `false` |
-| `NO_CONVERT_IF_INVALID` | 當源檔案缺少音視頻流時是否停止轉碼；`true` 時會阻止轉換並返回錯誤，`false` 時只記錄警告並繼續轉換。若當前系統未安裝 `ffprobe`，原始視頻檢查會自動放行，轉換仍會繼續執行 | `false` |
+| `NO_CONVERT_IF_INVALID` | 當源檔案缺少音影片流時是否停止轉碼；`true` 時會阻止轉換並返回錯誤，`false` 時只記錄警告並繼續轉換。若當前系統未安裝 `ffprobe`，原始影片檢查會自動放行，轉換仍會繼續執行 | `false` |
 | `PUBLIC_BASE_URL` | 後端公開基址（僅用於生成預簽名 URL，需為完整 URL） | (空字符串) |
 | `FRONTEND_URL` | 前端 URL（用於 CORS） | `http://localhost:8080` |
 | `WEBPUSH_SUBSCRIBER` | Web Push VAPID 的 subject（建議使用 `mailto:you@example.com`） | `mailto:webpush@example.com` |
@@ -38,18 +38,18 @@ tableOfContents: false
 | `VIEWER_USERNAME` | 可選：僅查看權限的訪客用戶名 | (未設置) |
 | `VIEWER_PASSWORD` | 可選：僅查看權限的訪客密碼 | (未設置) |
 | `JWT_SECRET` | JWT 簽名密鑰 | `bilirec_secret` |
-| `DEBUG` | 調試模式（詳見 [開發與調試](/zh-tw/development/debugging/)） | `false` |
+| `DEBUG` | 除錯模式（詳見 [開發與除錯](/zh-tw/development/debugging/)） | `false` |
 | `PRODUCTION_MODE` | 啟用生產模式（影響 cookie 與 CORS） | `false` |
-| `SILENT_ACCESS_LOG` | 啟用靜默訪問日誌（僅記錄 4xx/5xx 響應） | `false` |
+| `SILENT_ACCESS_LOG` | 啟用靜默存取日誌（僅記錄 4xx/5xx 響應） | `false` |
 | `DATABASE_DIR` | 本地數據庫目錄（bbolt，用於持久化轉換任務等） | `database` |
 | `CLOUDCONVERT_THRESHOLD` | 使用 CloudConvert 的檔案大小閾值（字節） | `1073741824` (1 GB) |
 | `CLOUDCONVERT_API_KEY` | 可選：CloudConvert API Key（為空則禁用 CloudConvert） | (未設置) |
 | `CLOUDCONVERT_CHECK_INTERVAL_SECS` | CloudConvert 任務狀態輪詢間隔（秒） | `180` |
-| `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | CloudConvert 最大併發下載數 | `1` |
+| `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | CloudConvert 最大並發下載數 | `1` |
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 是否允許在錄製進行中時執行 CloudConvert 轉換任務 | `false` |
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `<=` 此值時，才允許在錄製中執行 CloudConvert；`<1` 表示不設門檻（仍可通過 `CLOUDCONVERT_ALLOW_DURING_RECORDING` 控制） | `1` |
 | `FFMPEG_CHECK_INTERVAL_SECS` | 本地 FFmpeg 轉換任務輪詢間隔（秒） | `60` |
-| `FFMPEG_MAX_CONCURRENT_TASKS` | 本地 FFmpeg 最大併發轉換任務數 | `1` |
+| `FFMPEG_MAX_CONCURRENT_TASKS` | 本地 FFmpeg 最大並發轉換任務數 | `1` |
 | `FFMPEG_ALLOW_DURING_RECORDING` | 是否允許在錄製進行中時執行 FFmpeg 轉換任務 | `false` |
 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `<=` 此值時，才允許在錄製中執行 FFmpeg；`<1` 表示不設門檻（仍可通過 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
 | `SUBCHECK_CHECK_INTERVAL_SECS` | 訂閱房間自動錄製檢查的完整輪詢週期（秒）；K 個分片在該週期內輪流觸發，用於攤平 CPU 峰值 | `60` |
@@ -59,19 +59,19 @@ tableOfContents: false
 | `STREAM_WRITER_BUFFER_SIZE` | 流寫入器（寫入檔案）緩衝區大小（字節） | `1048576` (1 MB) |
 | `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下 FLV 每次讀取的緩衝塊大小（字節） | `524288` (512 KB) |
 | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K FLV 讀塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
-| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下，從網絡讀入時可排隊的塊數 | `16` |
-| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀入時可排隊的塊數（`qn ≥ 20000` 時自動啟用）；網絡抖動大時可酌情調大 | `48` |
+| `READ_STREAM_CHAN_BUFFER_SIZE` | 1080p 及以下，從網路讀入時可排隊的塊數 | `16` |
+| `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 2K/4K 讀入時可排隊的塊數（`qn ≥ 20000` 時自動啟用）；網路抖動大時可酌情調大 | `48` |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫盤前合併緩衝（字節）；越大寫盤越少，但記憶體佔用越高 | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 錄製中每隔多久強制整檔案落盤（秒）；`0`=只在關檔時落盤。與 `COLD_CACHE_RELEASE_SECS` 同時大於 0 時以本項為準：每次 整檔案落盤 成功後順帶釋放冷前綴；`COLD=0` 時僅落盤、不釋放緩存 | `0` |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中多久清理一次舊檔案緩存（秒，僅 Linux/Android）；`0`=關閉。默認 `60`，用於壓低容器監控曲線 | `60` |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把記憶體數據推進磁盤一次（秒）；越大寫盤越少，SD 更省，但異常斷電未寫入窗口略增 | `15` |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 錄製中多久清理一次舊檔案緩存（秒，僅 Linux/Android）；`0`=關閉。預設 `60`，用於壓低容器監控曲線 | `60` |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` | 多久把記憶體數據推進磁碟一次（秒）；越大寫盤越少，SD 更省，但異常斷電未寫入窗口略增 | `15` |
 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | 寫盤前可排隊的塊數；越大越能扛寫入延遲，但記憶體佔用越高 | `64` |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE` | 1080p 及以下寫側緩衝塊大小（字節） | `524288` (512 KB) |
 | `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` | 2K/4K 寫側塊大小（`qn ≥ 20000` 時自動啟用，見高碼率調參頁） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，延遲創建檔案並緩存記憶體的閾值（字節）；達到閾值後才開始落盤 | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
-| `DROP_FILE_PAGE_CACHE` | 錄製分段結束、本地 ffmpeg 轉碼成功、或在線播放/下載最後一次請求結束後（會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒，如果數值為0則默認為 60 秒），讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁盤讀取，可能變慢。默認 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
-| `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁盤時建議開啟。SSD 可關閉以提升併發。啟用之後 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 會成為一個完整寫盤週期，每路寫盤間隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同時錄製路數` 計算 | `true` |
-| `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁盤空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
+| `DROP_FILE_PAGE_CACHE` | 錄製分段結束、本地 ffmpeg 轉碼成功、或在線播放/下載最後一次請求結束後（會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒，如果數值為0則預設為 60 秒），讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁碟讀取，可能變慢。預設 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
+| `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁碟時建議開啟。SSD 可關閉以提升並發。啟用之後 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 會成為一個完整寫盤週期，每路寫盤間隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同時錄製路數` 計算 | `true` |
+| `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁碟空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
 
 各分類的詳細說明請參閱對應專題頁面。

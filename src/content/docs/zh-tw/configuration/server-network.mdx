@@ -1,13 +1,13 @@
 ---
-title: 服務器與網絡
+title: 伺服器與網路
 description: HOST、PORT、HTTPS 與代理相關設定
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-## 服務器綁定
+## 伺服器綁定
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `HOST` | API 綁定地址，空值監聽所有網卡 | (空) |
 | `PORT` | API 服務端口 | `8080` |
@@ -19,7 +19,7 @@ export PORT=8080
 
 ## HTTPS
 
-同時設置證書和私鑰時，Fiber 默認啟用 HTTPS：
+同時設置證書和私鑰時，Fiber 預設啟用 HTTPS：
 
 ```bash
 export SERVER_CRT=/path/to/server.crt
@@ -32,12 +32,12 @@ export SERVER_KEY=/path/to/server.key
 
 ## 反向代理
 
-| 變量 | 說明 | 默認值 |
+| 變量 | 說明 | 預設值 |
 |------|------|--------|
 | `TRUSTED_PROXIES` | 受信任代理 IP/CIDR（逗號分隔） | `161.33.159.26` |
 | `PUBLIC_BASE_URL` | 後端公開基址（生成預簽名 URL） | (空) |
 | `FRONTEND_URL` | 前端 URL（CORS） | `http://localhost:8080` |
 
-`TRUSTED_PROXIES` 默認值 `161.33.159.26` 為公共 FRP 服務 IP。使用 Nginx 等反向代理時，將代理 IP 加入此列表。
+`TRUSTED_PROXIES` 預設值 `161.33.159.26` 為公共 FRP 服務 IP。使用 Nginx 等反向代理時，將代理 IP 加入此列表。
 
 `PUBLIC_BASE_URL` 必須包含 `http://` 或 `https://` 前綴，為空時預簽名 URL 回退為相對地址。

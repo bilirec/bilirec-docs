@@ -1,11 +1,11 @@
 ---
 title: HDD/NAS 調優
-description: 機械硬盤與 DIY NAS 環境下的 I/O 設定方案
+description: 機械硬碟與 DIY NAS 環境下的 I/O 設定方案
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-機械硬盤最怕**磁頭來回找位置**。多路同時寫很多小檔案時，NAS 容易卡頓。調參核心是：**一次寫大一點**、**多路輪流寫**。
+機械硬碟最怕**磁頭來回找位置**。多路同時寫很多小檔案時，NAS 容易卡頓。調參核心是：**一次寫大一點**、**多路輪流寫**。
 
 ## 推薦設定
 
@@ -27,7 +27,7 @@ export MAX_CONCURRENT_RECORDINGS=5
 | `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤 |
 | `SEQUENTIAL_WRITE=true` | 多路輪流寫盤 | 磁頭尋道更少，多路更穩 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE=16MB` | 單次寫入更大 | 檔案在盤上更連續 |
-| `MAX_CONCURRENT_RECORDINGS=5` | 適度併發 | 視硬盤轉速與記憶體調整 |
+| `MAX_CONCURRENT_RECORDINGS=5` | 適度並發 | 視硬盤轉速與記憶體調整 |
 
 <Aside type="tip">
 **混合部署建議：**
