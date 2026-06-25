@@ -14,6 +14,7 @@ import { Aside } from '@astrojs/starlight/components';
 - **主要目标**：在 Android 上尽量稳定地保持 Bilirec 后台服务运行。
 - **技术方案**：Flutter UI + `flutter_foreground_task` 前台服务 + Dart FFI 调用原生动态库 + FFmpeg 视频转档。
 - **当前平台**：仅支持 Android（非 Android 平台启动服务时会提示不支持）。
+- **最低系统版本**：Android 10（API 29）或更高；集成测试矩阵以 API 29 为最低档。
 
 ## 技术栈
 
@@ -148,6 +149,7 @@ UI 侧（`lib/app/home_page.dart`）通过 `FlutterForegroundTask.addTaskDataCal
 ### 前置条件
 
 - 已安装 Flutter 与 Android 开发环境。
+- 目标设备或模拟器需为 **Android 10（API 29）** 或更高版本。
 - Dart SDK：`>=3.4.0 <4.0.0`（见 `pubspec.yaml`）。
 - 建议使用真机验证前台服务、电池优化行为与 FFmpeg 转档性能；模拟器可使用 `x86_64` ABI。
 
