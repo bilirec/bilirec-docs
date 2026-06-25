@@ -13,6 +13,9 @@ import { Aside } from '@astrojs/starlight/components';
 | `MAX_RECORDING_HOURS` | 单次录制最长时间（小时） | `5` |
 | `MAX_RECOVERY_ATTEMPTS` | 单次录制最大重连尝试次数（流仍在线但连接失败时） | `15` |
 | `MAX_RETRY_MINUTES` | 直播下线后判断容忍时间（分钟）；下线期间持续重试，超时后结束录制 | `10` |
+| `RECORDING_RECOVERY_DURATION` | 断流重试**成功并恢复录制**后，限时时长如何计算：`preserve`（沿用开始录制时的总时长）或 `reset`（从恢复时刻重新计算） | `preserve` |
+
+`RECORDING_RECOVERY_DURATION` 只影响流仍在线、重连恢复成功的情况，不改变 `MAX_RETRY_MINUTES` 的下线重试逻辑。若你设置了单次限时时长（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示从**第一次开始录制**起算；`reset` 表示每次重连成功后重新享有完整限时时长，适合担心管理员强切新场次时漏录的场景。
 
 `MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`（1080p 默认缓冲下可验证至 5 路），SSD 环境可放宽至 `10`。规划容器上限请参阅 [内存占用估算](/zh-cn/configuration/memory-estimation/)，详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
 

@@ -28,6 +28,8 @@ App 里每一项怎么设、对应哪些环境变量，见 [Android App](/zh-cn/
 | `FRP_ENABLED` | `false` | 手机无需内网穿透 |
 | `SILENT_ACCESS_LOG` | `true` | 减少访问日志 |
 
+Android App 的 **录制策略** 中可设置 **重试成功后的限时**（`preserve` / `reset`），对应 `RECORDING_RECOVERY_DURATION`；未设置时与上表默认 `preserve` 一致。
+
 ## 启动时自动限制资源
 
 根据 **同时录制上限**（`MAX_CONCURRENT_RECORDINGS`，默认 `3`），启动时会自动设置内存软上限与可用 CPU 核数，一般无需手改：
