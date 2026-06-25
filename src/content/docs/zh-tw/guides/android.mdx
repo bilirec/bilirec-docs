@@ -135,7 +135,7 @@ Android 預設連接 `http://127.0.0.1:8080`（等同 `localhost`），且預設
 | **單次錄製時長上限** | `MAX_RECORDING_HOURS` | `0`（不限）～ `12` 小時；滑塊顯示「不限」即 `0` |
 | **啟動前最低可用空間** | `MIN_DISK_SPACE_BYTES` | `2` / `5` / `10` GB |
 | **下線後服務重試時長** | `MAX_RETRY_MINUTES` | `5`～`30` 分鐘（步進 5） |
-| **重試成功後的限時** | `RECORDING_RECOVERY_DURATION` | **保留**（`preserve`）或 **重置**（`reset`）；斷流恢復成功後，限時時長是沿用開始錄製時的總時長，還是從恢復時刻重新計算 |
+| **重試成功後的時長計算** | `RECORDING_RECOVERY_DURATION` | **保留**（`preserve`）或 **重置**（`reset`）；斷流後若重試成功並恢復錄製，可選擇沿用開始錄製時的總時長，或從重試成功時重新計算錄製時長 |
 | **同時錄製上限** | `MAX_CONCURRENT_RECORDINGS` | `3`～`6` 路；提高會明顯增加發熱與耗電 |
 
 <Aside type="note">
