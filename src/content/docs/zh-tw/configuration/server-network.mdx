@@ -7,7 +7,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 伺服器綁定
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `HOST` | API 綁定地址，空值監聽所有網卡 | (空) |
 | `PORT` | API 服務端口 | `8080` |
@@ -19,7 +19,7 @@ export PORT=8080
 
 ## HTTPS
 
-同時設置證書和私鑰時，Fiber 預設啟用 HTTPS：
+同時設定證書和私鑰時，Fiber 預設啟用 HTTPS：
 
 ```bash
 export SERVER_CRT=/path/to/server.crt
@@ -27,12 +27,12 @@ export SERVER_KEY=/path/to/server.key
 ```
 
 <Aside type="caution">
-啟用 FRP 且 `FRP_HTTPS=true` 時，必須同時設置 `SERVER_CRT` + `SERVER_KEY`，否則協議不匹配導致 FRP 無法工作。詳見 [FRP 設定](/zh-tw/configuration/frp/)。
+啟用 FRP 且 `FRP_HTTPS=true` 時，必須同時設定 `SERVER_CRT` + `SERVER_KEY`，否則協議不匹配導致 FRP 無法工作。詳見 [FRP 設定](/zh-tw/configuration/frp/)。
 </Aside>
 
 ## 反向代理
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `TRUSTED_PROXIES` | 受信任代理 IP/CIDR（逗號分隔） | `161.33.159.26` |
 | `PUBLIC_BASE_URL` | 後端公開基址（生成預簽名 URL） | (空) |

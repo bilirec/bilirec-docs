@@ -30,12 +30,12 @@ GET /files/browse/*
 GET /files/download/*
 ```
 
-直接返回存儲的檔案。
+直接返回儲存的檔案。
 
 若要將源檔案（FLV/TS）自動轉為 MP4，請啟用 `CONVERT_TO_MP4`。錄製結束後可轉換檔案會被加入轉換隊列：
 
-- 同時設置 `CLOUDCONVERT_API_KEY` 且檔案大小 `>= CLOUDCONVERT_THRESHOLD`（預設 1 GB）時，優先走 CloudConvert
-- 否則走本地 FFmpeg 後臺任務
+- 同時設定 `CLOUDCONVERT_API_KEY` 且檔案大小 `>= CLOUDCONVERT_THRESHOLD`（預設 1 GB）時，優先走 CloudConvert
+- 否則走本地 FFmpeg 後台任務
 - 轉換任務可通過 `GET /convert/tasks` 查詢
 
 ## 預簽名下載

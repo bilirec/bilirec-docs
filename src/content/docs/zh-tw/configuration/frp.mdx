@@ -10,11 +10,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 啟用 FRP (`FRP_ENABLED=true`) 時，bilirec 作為遠端存取客戶端連接到 FRP 伺服器。
 
-僅設置 `FRP_ENABLED=true` 時，程式預設使用官方免費公共 FRP 服務；設置 `FRP_SERVER`、`FRP_BASE_DOMAIN` 或 `FRP_TOKEN` 時切換為自定義設定。
+僅設定 `FRP_ENABLED=true` 時，程式預設使用官方免費公共 FRP 服務；設定 `FRP_SERVER`、`FRP_BASE_DOMAIN` 或 `FRP_TOKEN` 時切換為自定義設定。
 
 ## 基礎參數
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `FRP_ENABLED` | 是否啟用 FRP | `false` |
 | `FRP_SERVER` | FRP 伺服器地址（`host:port`） | `tunnel.bilirec.org:7000` |
@@ -24,15 +24,15 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 協議設定
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `FRP_HTTPS` | FRP 代理協議（`true`=HTTPS） | `false` |
 | `FRP_SCHEME_HTTPS` | 公網 URL scheme | `true` |
 
 <Aside type="caution">
 **協議約束：**
-- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 時，**必須**同時設置 `SERVER_CRT` + `SERVER_KEY`
-- 同時設置 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 時，`FRP_HTTPS` **不能**為 `false`
+- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 時，**必須**同時設定 `SERVER_CRT` + `SERVER_KEY`
+- 同時設定 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 時，`FRP_HTTPS` **不能**為 `false`
 
 違反約束會導致協議不匹配，程式在啟動階段直接報錯退出。
 </Aside>

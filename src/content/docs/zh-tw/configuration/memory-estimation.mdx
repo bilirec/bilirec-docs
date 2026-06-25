@@ -7,11 +7,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 錄製時，直播數據會在記憶體裡「排隊」：先從網路讀進來，再排隊等待寫入磁碟。用下面公式估算**給容器留多少記憶體**即可（偏保守的上限；實際監控往往略低，見 [性能實測](/zh-tw/guides/performance-benchmark/)）。
 
-## 會影響記憶體佔用的環境變量
+## 會影響記憶體佔用的環境變數
 
-每路錄製時，記憶體裡同時等著處理的數據大致分三塊：**網路讀入排隊**、**等待寫盤排隊**、**寫盤前合併緩衝**。錄 **1080p** 用不帶 `_HIGH` 的變量；錄 **4K / 杜比**（`qn ≥ 20000`）會自動改用帶 `_HIGH` 的高畫質變量。
+每路錄製時，記憶體裡同時等著處理的數據大致分三塊：**網路讀入排隊**、**等待寫盤排隊**、**寫盤前合併緩衝**。錄 **1080p** 用不帶 `_HIGH` 的變數；錄 **4K / 杜比**（`qn ≥ 20000`）會自動改用帶 `_HIGH` 的高畫質變數。
 
-| 作用 | 1080p 環境變量 | 4K / 杜比環境變量 | 預設值 |
+| 作用 | 1080p 環境變數 | 4K / 杜比環境變數 | 預設值 |
 | ---- | -------------- | ----------------- | ------ |
 | 讀入時能排多少「塊」 | `READ_STREAM_CHAN_BUFFER_SIZE` | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 16 / 48 |
 | 讀入時每塊多大 | `READ_STREAM_BYTES_POOL_SIZE` | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 512 KB / 1 MB |
@@ -37,7 +37,7 @@ import { Aside } from '@astrojs/starlight/components';
 合併緩衝 = LIVE_STREAM_WRITER_BUFFER_SIZE
 ```
 
-其中 **43~50 MB** 是程式本身和系統固定開銷（和緩衝設定幾乎無關，也**不能通過環境變量調小**）。錄 4K / 杜比時，讀側兩個變量換成 `*_HIGH`，寫側塊大小換成 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`。
+其中 **43~50 MB** 是程式本身和系統固定開銷（和緩衝設定幾乎無關，也**不能通過環境變數調小**）。錄 4K / 杜比時，讀側兩個變數換成 `*_HIGH`，寫側塊大小換成 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`。
 
 ### 預設 1080p 示例
 
@@ -57,7 +57,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 （單路排隊：讀入約 49 MB + 寫盤約 65 MB + 合併 8 MB ≈ 122 MB）
 
-4K / 杜比使用 `*_HIGH` 讀側變量與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 時的預設估算。
+4K / 杜比使用 `*_HIGH` 讀側變數與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 時的預設估算。
 
 ## HLS 怎麼算
 
@@ -77,12 +77,12 @@ HLS 讀進來的是**一整段分片**（大小由 m3u8 決定，常見 2–6 MB
 
 容器或手機通知欄顯示的「總記憶體」，往往不只包含 bilirec 程式自己的緩衝。先判斷主要來源，再對症調整：
 
-| 可能來源 | 你怎麼分辨 | 相關環境變量 | 建議方向 |
+| 可能來源 | 你怎麼分辨 | 相關環境變數 | 建議方向 |
 | -------- | ---------- | ------------ | -------- |
 | **程式緩衝（讀入 / 寫盤排隊）** | 錄播時隨路數、畫質上漲；停錄後若仍偏高但穩定，可能還留著複用緩衝 | `READ_STREAM_*`、`LIVE_STREAM_WRITER_*`、`MAX_CONCURRENT_RECORDINGS` | 按上文公式估算；優先減小 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE`，見下文「想省記憶體」 |
 | **系統頁緩存（錄製寫入）** | 長錄、多路時監控遠高於 [性能實測](/zh-tw/guides/performance-benchmark/)，關檔後仍虛高 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`、`DROP_FILE_PAGE_CACHE` | 預設已開啟；仍偏高見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android) |
 | **系統頁緩存（在線播放 / 下載）** | 播完或下完仍居高不下 | 同上；播放空閒等待亦用 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 見 [常見問題 · 在線播放或下載後](/zh-tw/guides/faq/#在線播放或下載後監控記憶體一直很高) |
-| **停錄後緩衝複用** | 任務都停了，仍比剛啟動高約幾十 MB，且長期穩定 | （屬正常行為，無單獨開關） | 對照性能實測「恢復閒置」；想略降可調小緩衝相關變量 |
+| **停錄後緩衝複用** | 任務都停了，仍比剛啟動高約幾十 MB，且長期穩定 | （屬正常行為，無單獨開關） | 對照性能實測「恢復閒置」；想略降可調小緩衝相關變數 |
 
 規劃 **Docker 記憶體 limit** 請用上文公式（偏保守）；對照監控曲線請參考性能實測。
 

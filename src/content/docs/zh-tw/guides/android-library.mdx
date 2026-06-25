@@ -28,7 +28,7 @@ import { Aside } from '@astrojs/starlight/components';
 ```
 
 - `basePath` **必填** — 數據目錄根路徑
-- `env` **可選** — 覆蓋預設環境變量（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
+- `env` **可選** — 覆蓋預設環境變數（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
 
 ## 移動端預設行為
 
@@ -59,5 +59,5 @@ make android os=windows
 `libbilirec.so` 依賴 FFmpeg 進行 MP4 轉檔。bilirec-mobile 通過 Gradle 依賴 `com.antonkarpenko:ffmpeg-kit-min:2.1.0` 提供運行時。自定義集成時須自行提供兼容的 FFmpeg 庫。
 
 <Aside type="tip">
-推薦先參考 [bilirec-mobile 開發參考](/zh-tw/development/mobile/) 或 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 源碼瞭解完整集成方式，再基於此定製。
+推薦先參考 [bilirec-mobile 開發參考](/zh-tw/development/mobile/) 或 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 源碼了解完整集成方式，再基於此定製。
 </Aside>

@@ -3,7 +3,7 @@ title: 認證
 description: REST API JWT 認證
 ---
 
-若設置了 `USERNAME` 與 `PASSWORD`，REST API 啟用基於 JWT 的認證。
+若設定了 `USERNAME` 與 `PASSWORD`，REST API 啟用基於 JWT 的認證。
 
 ## 登入
 
@@ -14,7 +14,7 @@ Content-Type: application/json
 { "user": "<username>", "pass": "<password>" }
 ```
 
-登入成功後在響應中設置 JWT cookie（鍵名 `jwtToken`），後續對需要認證的接口請攜帶該 cookie。
+登入成功後在響應中設定 JWT cookie（鍵名 `jwtToken`），後續對需要認證的接口請攜帶該 cookie。
 
 ```bash
 curl -i -c cookies.txt -X POST http://127.0.0.1:8080/login \
@@ -28,6 +28,6 @@ curl -i -c cookies.txt -X POST http://127.0.0.1:8080/login \
 
 ## 公開存取
 
-未設置 `USERNAME` / `PASSWORD` 時，API 預設為公開存取，無需登入。
+未設定 `USERNAME` / `PASSWORD` 時，API 預設為公開存取，無需登入。
 
 設定詳見 [認證與安全](/zh-tw/configuration/auth-security/)。

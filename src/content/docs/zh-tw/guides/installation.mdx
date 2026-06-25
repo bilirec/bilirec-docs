@@ -13,7 +13,7 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
 從 [GitHub Releases](https://github.com/bilirec/bilirec/releases) 下載預編譯二進制：
 
-| 檔案 | 適用平臺 |
+| 檔案 | 適用平台 |
 |------|---------|
 | `bilirec-linux-amd64` | x86_64 Linux |
 | `bilirec-linux-arm64` | ARM64 Linux（樹莓派 5 等） |
@@ -90,5 +90,5 @@ docker run -d \
 </Tabs>
 
 <Aside type="note">
-二進制檔案在首次啟動時，程式會在可執行檔案同目錄自動生成 `.env` 設定檔案。Docker 環境下跳過 `.env` 加載，主要使用容器環境變量。
+二進制檔案在首次啟動時，程式會在可執行檔案同目錄自動生成 `.env` 設定檔案。Docker 環境下跳過 `.env` 載入，主要使用容器環境變數。
 </Aside>

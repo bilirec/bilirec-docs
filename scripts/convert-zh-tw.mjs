@@ -52,6 +52,14 @@ const termFixes = [
 	[/树莓派/g, '樹莓派'],
 	[/机械硬盘/g, '機械硬碟'],
 	[/固态硬盘/g, '固態硬碟'],
+	// Taiwan terminology (apply before OpenCC to avoid wrong variants like 設置/加載/嚐試)
+	[/设置/g, '設定'],
+	[/变量/g, '變數'],
+	[/加载/g, '載入'],
+	[/尝试/g, '嘗試'],
+	[/后台/g, '後台'],
+	[/存储/g, '儲存'],
+	[/平台/g, '平台'],
 ];
 
 // Safety net after OpenCC for terms that may still slip through
@@ -59,6 +67,18 @@ const postTermFixes = [
 	[/登錄/g, '登入'],
 	[/服務器/g, '伺服器'],
 	[/程序/g, '程式'],
+	// OpenCC mis-converts 只 → 隻 before 影/會 (e.g. 只影响 → 隻影響, 改大只会 → 改大隻會)
+	[/隻/g, '只'],
+	// OpenCC phrase bugs & terms missed by pre-fixes
+	[/嚐試/g, '嘗試'],
+	[/設置/g, '設定'],
+	[/變量/g, '變數'],
+	[/加載/g, '載入'],
+	[/後臺/g, '後台'],
+	[/存儲/g, '儲存'],
+	[/平臺/g, '平台'],
+	[/一臺/g, '一台'],
+	[/瞭解/g, '了解'],
 ];
 
 const pathFixes = [[/zh-cn/g, 'zh-tw']];

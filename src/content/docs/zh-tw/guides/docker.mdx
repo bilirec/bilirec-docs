@@ -44,11 +44,11 @@ docker run -d \
 
 ## Docker 環境特點
 
-- **跳過 `.env` 加載** — 檢測到 `/.dockerenv` 時僅使用環境變量
+- **跳過 `.env` 載入** — 檢測到 `/.dockerenv` 時僅使用環境變數
 - **內置 FFmpeg** — 鏡像包含 FFmpeg 8.1.1，無需額外安裝
 - **預設運行時限制** — `GOMEMLIMIT=768MiB`、`GOGC=100`
 - **預設時區** — `TZ=Asia/Hong_Kong`
 
 <Aside type="note">
-Docker 環境下建議通過 `-e` 傳入所有需要的設定。完整環境變量列表見[環境變量參考](/zh-tw/configuration/env-reference/)，示例設定見[設定示例](/zh-tw/configuration/examples/)。
+Docker 環境下建議通過 `-e` 傳入所有需要的設定。完整環境變數列表見[環境變數參考](/zh-tw/configuration/env-reference/)，示例設定見[設定示例](/zh-tw/configuration/examples/)。
 </Aside>

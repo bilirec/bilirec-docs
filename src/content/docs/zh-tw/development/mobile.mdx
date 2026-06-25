@@ -11,9 +11,9 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 項目定位
 
-- **主要目標**：在 Android 上儘量穩定地保持 Bilirec 後臺服務運行。
+- **主要目標**：在 Android 上儘量穩定地保持 Bilirec 後台服務運行。
 - **技術方案**：Flutter UI + `flutter_foreground_task` 前臺服務 + Dart FFI 調用原生動態庫 + FFmpeg 影片轉檔。
-- **當前平臺**：僅支持 Android（非 Android 平臺啟動服務時會提示不支持）。
+- **當前平台**：僅支持 Android（非 Android 平台啟動服務時會提示不支持）。
 
 ## 技術棧
 
@@ -21,10 +21,10 @@ import { Aside } from '@astrojs/starlight/components';
 |------|------|
 | Flutter | UI 與狀態管理 |
 | `flutter_foreground_task` | 前臺服務與通知欄常駐 |
-| `ffi` | 通過 Dart FFI 加載 `libbilirec.so` |
+| `ffi` | 通過 Dart FFI 載入 `libbilirec.so` |
 | `ffmpeg-kit-min`（Gradle 依賴） | 為 `libbilirec.so` 提供 FFmpeg 運行時 |
 | `network_lock`（本地 package） | 激進防休眠模式下的 Wi‑Fi / 蜂窩網路鎖 |
-| `shared_preferences` | 持久化設置與環境變量 |
+| `shared_preferences` | 持久化設定與環境變數 |
 
 Dart SDK 約束見 `pubspec.yaml`：`>=3.4.0 <4.0.0`。
 
@@ -33,8 +33,8 @@ Dart SDK 約束見 `pubspec.yaml`：`>=3.4.0 <4.0.0`。
 ```text
 ┌─────────────────────────────────────────────────────────┐
 │  UI 層（lib/app/）                                       │
-│  home_page.dart — 控制中心、啟停服務、設置入口            │
-│  settings_card.dart — 設置抽屜與環境變量映射              │
+│  home_page.dart — 控制中心、啟停服務、設定入口            │
+│  settings_card.dart — 設定抽屜與環境變數映射              │
 └───────────────────────┬─────────────────────────────────┘
                         │ FlutterForegroundTask 通信
 ┌───────────────────────▼─────────────────────────────────┐
@@ -56,7 +56,7 @@ Dart SDK 約束見 `pubspec.yaml`：`>=3.4.0 <4.0.0`。
 
 `BilirecTaskHandler`（`lib/foreground/bilirec_task_handler.dart`）運行在前臺任務隔離區，負責：
 
-1. 讀取 `Preferences` 中的輸出路徑、SSE 開關、防休眠開關、環境變量等設置。
+1. 讀取 `Preferences` 中的輸出路徑、SSE 開關、防休眠開關、環境變數等設定。
 2. 組裝 `StartConfig`（`basePath` + `env`），調用 `BilirecService.start(...)` 啟動原生核心。
 3. 若啟用 SSE 推送，生成隨機 token 寫入 `NOTIFY_SSE_TOKEN`，並連接 `GET /notify/sse?token=...`。
 4. 週期性（`onRepeatEvent`）：
@@ -72,7 +72,7 @@ UI 側（`lib/app/home_page.dart`）通過 `FlutterForegroundTask.addTaskDataCal
 
 ## 原生核心橋接
 
-`lib/foreground/bilirec_service.dart` 通過 FFI 在獨立 `Isolate` 中加載 `libbilirec.so`：
+`lib/foreground/bilirec_service.dart` 通過 FFI 在獨立 `Isolate` 中載入 `libbilirec.so`：
 
 - `Start(char* configJson)` — 傳入 JSON 設定，返回 `0` 表示成功。
 - `Stop()` — 停止服務。
@@ -91,7 +91,7 @@ UI 側（`lib/app/home_page.dart`）通過 `FlutterForegroundTask.addTaskDataCal
 ```
 
 - `basePath` 為 App 支持目錄（`getApplicationSupportDirectory()`）。
-- `env` 由設置頁中的策略開關與開發者選項組裝；開發者環境變量優先級高於策略開關。
+- `env` 由設定頁中的策略開關與開發者選項組裝；開發者環境變數優先級高於策略開關。
 
 ## SSE 本地通知
 
@@ -121,7 +121,7 @@ UI 側（`lib/app/home_page.dart`）通過 `FlutterForegroundTask.addTaskDataCal
 | `POST_NOTIFICATIONS` | 常駐通知與本地推送 |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | 電池優化豁免 |
 | `ACCESS_WIFI_STATE` / `ACCESS_NETWORK_STATE` | 網路鎖（防休眠） |
-| `READ/WRITE_EXTERNAL_STORAGE`（maxSdkVersion 29） | Android 10 及以下外部存儲 |
+| `READ/WRITE_EXTERNAL_STORAGE`（maxSdkVersion 29） | Android 10 及以下外部儲存 |
 
 前臺服務類型為 `specialUse|dataSync`，註冊了 `flutter_foreground_task` 的 `ForegroundService`。
 
@@ -131,13 +131,13 @@ UI 側（`lib/app/home_page.dart`）通過 `FlutterForegroundTask.addTaskDataCal
 |------|------|
 | `lib/main.dart` | 應用入口、語言切換 |
 | `lib/app/home_page.dart` | 主 UI、前臺服務控制、狀態流轉 |
-| `lib/app/widgets/settings_card.dart` | 設置抽屜、轉檔策略、日誌導出 |
+| `lib/app/widgets/settings_card.dart` | 設定抽屜、轉檔策略、日誌導出 |
 | `lib/foreground/bilirec_service.dart` | FFI 封裝與原生啟動參數 |
 | `lib/foreground/bilirec_task_handler.dart` | 前臺任務處理器 |
 | `lib/foreground/bilirec_sse_handler.dart` | SSE 事件與本地通知 |
 | `lib/foreground/resource_monitor.dart` | CPU/RAM 讀取與計算 |
 | `lib/foreground/network_lock_service.dart` | 網路鎖封裝 |
-| `lib/shared/preferences.dart` | 設置持久化 |
+| `lib/shared/preferences.dart` | 設定持久化 |
 | `lib/l10n/app_localizations.dart` | 簡繁中文文案 |
 | `packages/network_lock/` | Wi‑Fi / 蜂窩網路鎖原生插件 |
 | `android/app/src/main/jniLibs/` | 預置 `libbilirec.so`（按 ABI 分目錄） |
@@ -179,8 +179,8 @@ Debug 建置包含 `arm64-v8a` 與 `x86_64` 兩個 ABI；Release 建置僅保留
 
 ## 已知行為
 
-- 應用僅支持 Android；在非 Android 平臺會提示不支持。
+- 應用僅支持 Android；在非 Android 平台會提示不支持。
 - 轉檔功能（FFmpeg）會顯著增加耗電與發熱，建議連接電源或調低同時錄製路數。
 - 首次啟動服務時若通知權限未授予，將無法繼續啟動。
-- 若系統強制中斷後臺服務，應用會通過高優先級本地通知提示用戶重新啟動並檢查省電設置。
-- 設置必須在啟動服務**之前**完成；服務運行期間設置頁鎖定。
+- 若系統強制中斷後台服務，應用會通過高優先級本地通知提示用戶重新啟動並檢查省電設定。
+- 設定必須在啟動服務**之前**完成；服務運行期間設定頁鎖定。

@@ -224,10 +224,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 环境变量 | 大白话 | 默认 |
 | -------- | ------ | ---- |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **录製过程中**，每隔一段时间让系统释放「已经写好、暂时不会再读」的旧文件缓存 | `60`（秒） |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **录制过程中**，每隔一段时间让系统释放「已经写好、暂时不会再读」的旧文件缓存 | `60`（秒） |
 | `DROP_FILE_PAGE_CACHE` | **一段录完或转码结束后**，释放整份文件的系统页缓存 | `true` |
 
-两者配合，可避免 Docker / 手机监控里内存随录製一路顶到上限。代价是：刚录完立刻播放、或录製中回放已写好的前半段，可能要从磁盘重新读，略慢。
+两者配合，可避免 Docker / 手机监控里内存随录制一路顶到上限。代价是：刚录完立刻播放、或录制中回放已写好的前半段，可能要从磁盘重新读，略慢。
 
 **冷释放不是「每 60 秒必清一次」：** 单段文件要长到约 96 MB 以上才会开始清理旧前缀；短 HLS 分段主要靠关档时的 `DROP_FILE_PAGE_CACHE`。详见 [I/O 调优 · 录制文件缓存释放](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android)。
 
@@ -237,7 +237,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **和「周期性整文件落盘」(`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`) 的区别：**
 
-- `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 只是为了**断电少丢数据**，录製中反复把整个文件刷进卡，**很伤 microSD**，也**压不住**监控内存。
+- `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 只是为了**断电少丢数据**，录制中反复把整个文件刷进卡，**很伤 microSD**，也**压不住**监控内存。
 - 两个都设置了：以整文件落盘为准，不再单独按 60 秒清缓存；**仅当 `COLD_CACHE_RELEASE_SECS>0`** 时，每次落盘成功后才顺便释放当前页缓存。
 - `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` **本身不会自动释放缓存**：它只负责落盘；释放缓存靠落盘后的页缓存释放、需要配合设置 `DROP_FILE_PAGE_CACHE=true` 才能生效。
 

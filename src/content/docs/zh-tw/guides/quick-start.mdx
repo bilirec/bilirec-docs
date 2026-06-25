@@ -1,6 +1,6 @@
 ---
 title: 快速開始
-description: 首次啟動 bilirec、設定環境變量與 B 站登入
+description: 首次啟動 bilirec、設定環境變數與 B 站登入
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -45,7 +45,7 @@ docker run -d \
   eric1008818/bilirec:latest
 ```
 
-更多設定（環境變量、卷掛載說明、測試版本標籤）見 [Docker 指南](/zh-tw/guides/docker/)。
+更多設定（環境變數、卷掛載說明、測試版本標籤）見 [Docker 指南](/zh-tw/guides/docker/)。
 
 </TabItem>
 
@@ -163,12 +163,12 @@ curl -X POST "http://127.0.0.1:8080/record/12345/stop"
 </TabItem>
 </Tabs>
 
-## 設定檔案加載順序
+## 設定檔案載入順序
 
 1. 當前工作目錄下的 `.env.local`（若存在，優先）
 2. 可執行檔案同目錄的 `.env`（首次運行自動生成）
-3. 環境變量（覆蓋檔案中的值）
-4. Docker 環境：僅使用環境變量，不加載 `.env`
+3. 環境變數（覆蓋檔案中的值）
+4. Docker 環境：僅使用環境變數，不載入 `.env`
 
 詳見[設定概述](/zh-tw/configuration/overview/)。
 
@@ -177,8 +177,8 @@ curl -X POST "http://127.0.0.1:8080/record/12345/stop"
 - [Web 介面使用](/zh-tw/guides/web-ui/) — 通過 PWA 管理錄製任務
 - [API 使用](/zh-tw/api/overview/) — 用腳本或程式接入錄製流程
 - [錄製直播間](/zh-tw/guides/recording/) — 手動或自動錄製
-- [設定與調優](/zh-tw/configuration/overview/) — 調整環境變量
+- [設定與調優](/zh-tw/configuration/overview/) — 調整環境變數
 
 <Aside type="caution">
-若計劃將後端暴露到公網（如啟用 FRP），請務必設置 `USERNAME` 和 `PASSWORD` 保護 API 存取。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
+若計劃將後端暴露到公網（如啟用 FRP），請務必設定 `USERNAME` 和 `PASSWORD` 保護 API 存取。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
 </Aside>

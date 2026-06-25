@@ -9,7 +9,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 通用緩衝區
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `UPLOAD_BUFFER_SIZE` | 上傳/外部傳輸時一次讀多少數據（字節） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 下載檔案時一次讀多少數據（字節） | `5242880` (5 MB) |
@@ -19,7 +19,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 控制**從網路讀入**時能在記憶體裡先排多少隊。bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套緩衝；錄製時根據畫質 `qn` 自動選用，不用手動切換「4K 模式」。
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `READ_STREAM_BYTES_POOL_SIZE` | 1080p 及以下，每次從網路讀入的塊大小（字節） | `524288` (512 KB) |
 | `READ_STREAM_BYTES_POOL_SIZE_HIGH` | 2K/4K 讀入塊大小（`qn ≥ 20000` 時自動啟用） | `1048576` (1 MB) |
@@ -36,7 +36,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 控制**多久寫一次盤**、**寫盤前在記憶體裡攢多少**。
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | 寫盤前合併緩衝（字節）；越大，單次寫入越大 | `8388608` (8 MB) |
 | `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 錄製中每隔多久強制整檔案落盤（秒）；`0`=只在關檔時落盤 | `0` |
@@ -63,7 +63,7 @@ bilirec 會把直播數據寫入磁碟後，操作系統往往還會在記憶體
 
 為壓低這類監控曲線，預設在 Linux / Android 上開啟兩套互補機制（Windows 上無對應系統接口，會自動跳過，屬正常現象）：
 
-| 機制 | 對應變量 | 何時起作用 | 主要目的 |
+| 機制 | 對應變數 | 何時起作用 | 主要目的 |
 | ---- | -------- | ---------- | -------- |
 | **錄製中冷緩存釋放** | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 單段錄製**持續較長**、檔案已寫出相當多數據後，按間隔清理**檔案開頭**那段已不再寫入的緩存 | **省記憶體 / 監控好看** |
 | **關檔或轉碼後整份釋放** | `DROP_FILE_PAGE_CACHE` | 一段錄完關檔案、本地 ffmpeg 轉碼成功之後，或**在線播放/下載最後一次請求結束**且空閒等待期滿之後 | **省記憶體 / 監控好看** |
@@ -103,11 +103,11 @@ bilirec 會把直播數據寫入磁碟後，操作系統往往還會在記憶體
 | 1080p 及以下 | `< 20000` | 512 KB | 16 | 512 KB |
 | 2K / 4K / 杜比 | `≥ 20000` | 1 MB | 48 | 1 MB |
 
-對應環境變量見上表；高畫質專用變量帶 `_HIGH` 後綴。詳見 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。
+對應環境變數見上表；高畫質專用變數帶 `_HIGH` 後綴。詳見 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。
 
 ## 寫入保護
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `SKIP_SMALL_FLUSH_THRESHOLD` | 啟用 `SKIP_SMALL_FLUSH` 後，攢夠多少數據才開始建檔案（字節） | `1048576` (1 MB) |
 | `SKIP_SMALL_FLUSH` | 極短直播先只在記憶體裡攢，夠閾值再建檔案 | `true` |

@@ -7,25 +7,25 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## REST API 認證
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
-| `USERNAME` | 管理員用戶名 | (未設置) |
-| `PASSWORD` | 管理員密碼 | (未設置) |
-| `VIEWER_USERNAME` | 只讀訪客用戶名 | (未設置) |
-| `VIEWER_PASSWORD` | 只讀訪客密碼 | (未設置) |
+| `USERNAME` | 管理員用戶名 | (未設定) |
+| `PASSWORD` | 管理員密碼 | (未設定) |
+| `VIEWER_USERNAME` | 只讀訪客用戶名 | (未設定) |
+| `VIEWER_PASSWORD` | 只讀訪客密碼 | (未設定) |
 | `JWT_SECRET` | JWT 簽名密鑰 | `bilirec_secret` |
 
-設置 `USERNAME` 和 `PASSWORD` 後，REST API 啟用基於 JWT 的認證。登入通過 `POST /login` 獲取 `jwtToken` cookie。
+設定 `USERNAME` 和 `PASSWORD` 後，REST API 啟用基於 JWT 的認證。登入通過 `POST /login` 獲取 `jwtToken` cookie。
 
 `VIEWER_USERNAME` / `VIEWER_PASSWORD` 提供只讀帳號，寫操作仍需 admin 角色。
 
 <Aside type="caution">
-暴露到公網（如啟用 FRP）後**務必**設置 `USERNAME` 和 `PASSWORD`。未設置時 API 完全公開存取。
+暴露到公網（如啟用 FRP）後**務必**設定 `USERNAME` 和 `PASSWORD`。未設定時 API 完全公開存取。
 </Aside>
 
 ## 運行模式
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `DEBUG` | 除錯模式（詳見 [開發與除錯](/zh-tw/development/debugging/)） | `false` |
 | `PRODUCTION_MODE` | 生產模式（影響 cookie 與 CORS） | `false` |
@@ -35,7 +35,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## B 站登入
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `BILIBILI_LOGIN_MODE` | `startup` / `controller` / `anonymous` | `controller` |
 

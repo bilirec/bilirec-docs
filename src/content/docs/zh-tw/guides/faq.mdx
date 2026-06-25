@@ -18,7 +18,7 @@ import { Aside } from '@astrojs/starlight/components';
 **你可以：**
 1. 若本機**沒有**配證書，內網穿透用 HTTP 方式連回來（常見家用場景）。
 2. 若本機**已經**配了證書走 HTTPS，內網穿透也要用 HTTPS 方式連回來。
-3. 具體變量組合見 [遠端存取（FRP）](/zh-tw/configuration/frp/)。
+3. 具體變數組合見 [遠端存取（FRP）](/zh-tw/configuration/frp/)。
 
 ### FRP 伺服器地址填錯了？
 
@@ -93,7 +93,7 @@ import { Aside } from '@astrojs/starlight/components';
 **你可以：**
 1. 後端跑在本機時，用 `http://localhost:8080` 或 `http://127.0.0.1:8080`。
 2. 檢查瀏覽器是否打開了本地網路存取權限或者瀏覽器是否支持局域網存取。
-3. 後端在局域網另一臺機器上時，需要給後端配 **HTTPS**，或在同一臺機器上用瀏覽器打開管理頁，不能指望 HTTPS 的 app.bilirec.org 直接連家裡的 HTTP 地址。
+3. 後端在局域網另一台機器上時，需要給後端配 **HTTPS**，或在同一台機器上用瀏覽器打開管理頁，不能指望 HTTPS 的 app.bilirec.org 直接連家裡的 HTTP 地址。
 
 ### 收不到開播推送通知？
 
@@ -102,7 +102,7 @@ import { Aside } from '@astrojs/starlight/components';
 **為什麼：** 需要允許通知權限、成功連過後端，只讀帳號也不會推送。若用的是 **PWA 或 Chrome**，在內地網路下還可能因為**連不上 Google FCM** 而收不到推送。
 
 **你可以：**
-1. 在瀏覽器設置裡允許本站通知。
+1. 在瀏覽器設定裡允許本站通知。
 2. 確認登入頁的伺服器地址正確並已保存。
 3. 用管理員帳號訂閱推送；內地使用 PWA 或 Chrome 的用戶若仍無推送，可改用 SSE 等方案。詳見 [Web 介面](/zh-tw/guides/web-ui/) 與 [通知設定](/zh-tw/configuration/notifications/)。
 
@@ -112,20 +112,20 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 換到 SD 卡路徑後，錄製或介面變卡。
 
-**為什麼：** 外置 SD 通常比手機內置存儲慢。是否在 SD 上啟用「排隊寫盤」等策略，請在 **bilirec-mobile App 設置**裡調整（存儲策略 / **microSD 卡磨損保護**），不再由 androidlib 根據路徑自動開啟。
+**為什麼：** 外置 SD 通常比手機內置儲存慢。是否在 SD 上啟用「排隊寫盤」等策略，請在 **bilirec-mobile App 設定**裡調整（儲存策略 / **microSD 卡磨損保護**），不再由 androidlib 根據路徑自動開啟。
 
-**你可以：** 在 App 的存儲相關設置裡按需開關；追求速度可改回內置存儲。見 [Android 指南](/zh-tw/guides/android/) 與 [Android 預設設定](/zh-tw/configuration/android-defaults/)。
+**你可以：** 在 App 的儲存相關設定裡按需開關；追求速度可改回內置儲存。見 [Android 指南](/zh-tw/guides/android/) 與 [Android 預設設定](/zh-tw/configuration/android-defaults/)。
 
-### 啟動後切到後臺，過一會兒服務就自己停了？
+### 啟動後切到後台，過一會兒服務就自己停了？
 
 **你會看到：** 剛還能錄，划走 App 或鎖屏一會兒，通知欄服務沒了或 Web 連不上。
 
-**為什麼：** 最常見是**沒關電池優化**（或系統殺後臺）。Android 對後臺和省電管得很嚴，不按提示放行就容易被停掉。
+**為什麼：** 最常見是**沒關電池優化**（或系統殺後台）。Android 對後台和省電管得很嚴，不按提示放行就容易被停掉。
 
 **你可以：**
 1. 按 App 提示**關閉電池優化**、允許通知（前臺服務需要）。
-2. 若選了外置存儲路徑，按提示授予存儲權限。
-3. 儘量別讓系統「清理後臺」。見 [Android 指南](/zh-tw/guides/android/)。
+2. 若選了外置儲存路徑，按提示授予儲存權限。
+3. 儘量別讓系統「清理後台」。見 [Android 指南](/zh-tw/guides/android/)。
 
 ### 用 bilirec-mobile 打開 PWA 後，連不上本機後端？
 
@@ -151,14 +151,14 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 任務管理器或手機通知欄裡 CPU 百分比偶爾衝高。
 
-先對照下表判斷尖峰來源，再調對應環境變量：
+先對照下表判斷尖峰來源，再調對應環境變數：
 
-| 可能來源 | 你怎麼分辨 | 相關環境變量 | 建議方向 |
+| 可能來源 | 你怎麼分辨 | 相關環境變數 | 建議方向 |
 | -------- | ---------- | ------------ | -------- |
 | **寫盤 / flush 尖峰** | 正在錄製時週期性衝高；microSD、機械盤更明顯 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 適當加大合併緩衝、拉長 flush 間隔；**保持** `SYNC_PERIOD=0`（開週期性整檔案落盤會更吃 CPU） |
 | **多路搶同一張盤** | 多路同時錄到同一張 SD / HDD 時尖峰疊加 | `SEQUENTIAL_WRITE` | 同一張卡上多路錄製時保持 `true`（Android 輸出到 microSD 時在 App 開啟 **microSD 卡磨損保護**） |
 | **訂閱開播輪詢** | **閒置**時大約每隔固定秒數有小尖峰（預設約每 10 秒一組） | `SUBCHECK_CHECK_INTERVAL_SECS`<br />`SUBCHECK_SHARD_COUNT` | 增大分組數或略拉長完整週期，攤平單次檢查負載 |
-| **後臺轉碼** | 轉碼任務進行中 CPU 持續偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 儘量不要邊錄邊轉；並發轉碼保持 `1`；詳見 [轉換設定](/zh-tw/configuration/conversion/) |
+| **後台轉碼** | 轉碼任務進行中 CPU 持續偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 儘量不要邊錄邊轉；並發轉碼保持 `1`；詳見 [轉換設定](/zh-tw/configuration/conversion/) |
 
 **你可以：**
 1. 樹莓派 + microSD：從 [I/O 調優](/zh-tw/configuration/io-tuning/) 與 [樹莓派預設設定](/zh-tw/configuration/pi5-defaults/) 調整寫盤相關項。
@@ -198,7 +198,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你可以調：**
 
-| 想改善什麼 | 環境變量 | 方向 |
+| 想改善什麼 | 環境變數 | 方向 |
 | ---------- | -------- | ---- |
 | 讓系統忘掉檔案頁緩存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（預設已開）；關檔 / 轉碼後整份釋放 |
 | 錄製中更勤地清舊頁緩存 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 改小間隔（如 `60` → `30`）；`0` = 關閉錄製中冷釋放 |
@@ -212,7 +212,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 瀏覽器在線播放、或下載已錄好的 MP4 時，系統會為讀盤加速在記憶體裡**再留一份檔案副本**（與錄製寫入類似，還是屬於系統頁緩存）。播得越久、拖進度條越頻繁，這份緩存可能越大；**停播後**若監控仍居高不下，多半是緩存還沒被系統收回。
 
-**預設行為（`DROP_FILE_PAGE_CACHE=true`）：** 最後一次播放或下載請求結束後，會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（預設 **60**）再釋放該檔案的緩存；這段時間內若再次播放同一檔案，計時會重新算起。若你把該變量設為 `0`（僅關閉**錄製中**冷釋放），播放/下載空閒仍按預設 **60** 秒等待後釋放，避免與關檔釋放（`DROP_FILE_PAGE_CACHE`）綁死。
+**預設行為（`DROP_FILE_PAGE_CACHE=true`）：** 最後一次播放或下載請求結束後，會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（預設 **60**）再釋放該檔案的緩存；這段時間內若再次播放同一檔案，計時會重新算起。若你把該變數設為 `0`（僅關閉**錄製中**冷釋放），播放/下載空閒仍按預設 **60** 秒等待後釋放，避免與關檔釋放（`DROP_FILE_PAGE_CACHE`）綁死。
 
 **侷限：** 長時間連續播放、Range 請求不斷到來時，計時會被反覆重置，**播放過程中**監控仍可能上漲；本機制主要改善**停播 / 下載完成後**曲線不降的問題。
 
@@ -222,7 +222,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **預設已開啟**（一般不用改）：
 
-| 環境變量 | 大白話 | 預設 |
+| 環境變數 | 大白話 | 預設 |
 | -------- | ------ | ---- |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **錄製過程中**，每隔一段時間讓系統釋放「已經寫好、暫時不會再讀」的舊檔案緩存 | `60`（秒） |
 | `DROP_FILE_PAGE_CACHE` | **一段錄完或轉碼結束後**，釋放整份檔案的系統頁緩存 | `true` |
@@ -231,16 +231,16 @@ import { Aside } from '@astrojs/starlight/components';
 
 **冷釋放不是「每 60 秒必清一次」：** 單段檔案要長到約 96 MB 以上才會開始清理舊前綴；短 HLS 分段主要靠關檔時的 `DROP_FILE_PAGE_CACHE`。詳見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
-**適合保持預設：** 樹莓派、1GB 容器、Android 後臺、很少錄完馬上拖進度條。
+**適合保持預設：** 樹莓派、1GB 容器、Android 後台、很少錄完馬上拖進度條。
 
 **建議關閉（回放優先）：** SSD / NAS、錄完馬上要秒開播放。設 `DROP_FILE_PAGE_CACHE=false` 且 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0`。
 
 **和「週期性整檔案落盤」(`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`) 的區別：**
 
 - `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 只是為了**斷電少丟數據**，錄製中反覆把整個檔案刷進卡，**很傷 microSD**，也**壓不住**監控記憶體。
-- 兩個都設置了：以整檔案落盤為準，不再單獨按 60 秒清緩存；**僅當 `COLD_CACHE_RELEASE_SECS>0`** 時，每次落盤成功後才順便釋放當前頁緩存。
-- `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` **本身不會自動釋放緩存**：它只負責落盤；釋放緩存靠落盤後的頁緩存釋放、需要配合設置 `DROP_FILE_PAGE_CACHE=true` 才能生效。
+- 兩個都設定了：以整檔案落盤為準，不再單獨按 60 秒清緩存；**僅當 `COLD_CACHE_RELEASE_SECS>0`** 時，每次落盤成功後才順便釋放當前頁緩存。
+- `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` **本身不會自動釋放緩存**：它只負責落盤；釋放緩存靠落盤後的頁緩存釋放、需要配合設定 `DROP_FILE_PAGE_CACHE=true` 才能生效。
 
 若日誌出現 `釋放檔案頁緩存失敗` 或 `冷緩存釋放失敗`，錄製通常仍可繼續，只是記憶體可能降不下來；見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
-詳見 [環境變量說明](/zh-tw/configuration/env-reference/) · [I/O 調優](/zh-tw/configuration/io-tuning/)。
+詳見 [環境變數說明](/zh-tw/configuration/env-reference/) · [I/O 調優](/zh-tw/configuration/io-tuning/)。

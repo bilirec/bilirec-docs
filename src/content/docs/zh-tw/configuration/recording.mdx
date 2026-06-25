@@ -7,7 +7,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 並發與時長
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
@@ -15,13 +15,13 @@ import { Aside } from '@astrojs/starlight/components';
 | `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘）；下線期間持續重試，超時後結束錄製 | `10` |
 | `RECORDING_RECOVERY_DURATION` | 斷流重試**成功並恢復錄製**後，限時時長如何計算：`preserve`（沿用開始錄製時的總時長）或 `reset`（從恢復時刻重新計算） | `preserve` |
 
-`RECORDING_RECOVERY_DURATION` 隻影響流仍在線、重連恢復成功的情況，不改變 `MAX_RETRY_MINUTES` 的下線重試邏輯。若你設置了單次限時時長（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示從**第一次開始錄製**起算；`reset` 表示每次重連成功後重新享有完整限時時長，適合擔心管理員強切新場次時漏錄的場景。
+`RECORDING_RECOVERY_DURATION` 只影響流仍在線、重連恢復成功的情況，不改變 `MAX_RETRY_MINUTES` 的下線重試邏輯。若你設定了單次限時時長（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示從**第一次開始錄製**起算；`reset` 表示每次重連成功後重新享有完整限時時長，適合擔心管理員強切新場次時漏錄的場景。
 
 `MAX_CONCURRENT_RECORDINGS` 直接影響記憶體峰值。樹莓派預設 `3`（1080p 預設緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派預設](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
 
-## 存儲路徑
+## 儲存路徑
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `OUTPUT_DIR` | 錄製檔案保存目錄 | `records` |
 | `SECRET_DIR` | Cookie、Token、VAPID 密鑰目錄 | `secrets` |
@@ -37,7 +37,7 @@ Docker 部署時建議掛載為卷：
 
 ## 磁碟空間
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `MIN_DISK_SPACE_BYTES` | 錄製所需最小磁碟空間（字節） | `5368709120` (5 GB) |
 
@@ -45,9 +45,9 @@ Docker 部署時建議掛載為卷：
 
 ## 訂閱房間狀態檢查
 
-為任一訂閱房間開啟 **開播通知**（`notify`）或 **自動錄製**（`auto_record`）後，後臺會定期檢查直播狀態。檢測到新一場直播時，按房間設定推送通知和/或啟動錄製。服務啟動時先全量檢查一次，之後將相關房間分成若干組，在完整週期內分組輪流檢查，降低 CPU 峰值。
+為任一訂閱房間開啟 **開播通知**（`notify`）或 **自動錄製**（`auto_record`）後，後台會定期檢查直播狀態。檢測到新一場直播時，按房間設定推送通知和/或啟動錄製。服務啟動時先全量檢查一次，之後將相關房間分成若干組，在完整週期內分組輪流檢查，降低 CPU 峰值。
 
-| 變量 | 說明 | 預設值 |
+| 變數 | 說明 | 預設值 |
 |------|------|--------|
 | `SUBCHECK_CHECK_INTERVAL_SECS` | 完整輪詢週期（秒）；各分組在該週期內依次各檢查一輪 | `60` |
 | `SUBCHECK_SHARD_COUNT` | 檢查分組數；每個房間固定歸入其中一組，各組在不同時間點檢查。預設 60 秒週期、6 組時，大約每 10 秒檢查一組 | `6` |

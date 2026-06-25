@@ -1,18 +1,18 @@
 ---
-title: 環境變量參考
-description: bilirec 完整環境變量一覽表
+title: 環境變數參考
+description: bilirec 完整環境變數一覽表
 tableOfContents: false
 ---
 
-所有環境變量及其預設值。
+所有環境變數及其預設值。
 
-| 環境變量 | 說明 | 預設值 |
+| 環境變數 | 說明 | 預設值 |
 | ------- | ---- | ------ |
 | `BILIBILI_LOGIN_MODE` | 登入模式：`startup` / `controller` / `anonymous` | `controller` |
 | `HOST` | API 服務綁定地址（空值時監聽所有網卡） | (空字符串) |
 | `PORT` | API 服務端口 | `8080` |
-| `SERVER_CRT` | 可選：HTTPS 證書檔案路徑；當與 `SERVER_KEY` 同時設置時，Fiber 預設啟用 HTTPS | (未設置) |
-| `SERVER_KEY` | 可選：HTTPS 私鑰檔案路徑；當與 `SERVER_CRT` 同時設置時，Fiber 預設啟用 HTTPS | (未設置) |
+| `SERVER_CRT` | 可選：HTTPS 證書檔案路徑；當與 `SERVER_KEY` 同時設定時，Fiber 預設啟用 HTTPS | (未設定) |
+| `SERVER_KEY` | 可選：HTTPS 私鑰檔案路徑；當與 `SERVER_CRT` 同時設定時，Fiber 預設啟用 HTTPS | (未設定) |
 | `TRUSTED_PROXIES` | 受信任反向代理 IP/CIDR 列表（逗號分隔），可填寫 Nginx/FRP 等代理 IP，用於安全信任 `X-Forwarded-For`；預設 `161.33.159.26` 為公共 FRP 服務 IP | `161.33.159.26` |
 | `FRP_ENABLED` | 是否啟用 FRP 內網穿透 | `false` |
 | `FRP_SERVER` | FRP 伺服器地址（`host:port`） | `tunnel.bilirec.org:7000` |
@@ -34,17 +34,17 @@ tableOfContents: false
 | `FRONTEND_URL` | 前端 URL（用於 CORS） | `http://localhost:8080` |
 | `WEBPUSH_SUBSCRIBER` | Web Push VAPID 的 subject（建議使用 `mailto:you@example.com`） | `mailto:webpush@example.com` |
 | `NOTIFY_SSE_TOKEN` | SSE 通知訂閱 token（用於 `/notify/sse?token=...`；為空則禁用 SSE） | (空字符串) |
-| `USERNAME` | 可選：啟用用戶名/密碼認證時的用戶名 | (未設置) |
-| `PASSWORD` | 可選：啟用用戶名/密碼認證時的密碼 | (未設置) |
-| `VIEWER_USERNAME` | 可選：僅查看權限的訪客用戶名 | (未設置) |
-| `VIEWER_PASSWORD` | 可選：僅查看權限的訪客密碼 | (未設置) |
+| `USERNAME` | 可選：啟用用戶名/密碼認證時的用戶名 | (未設定) |
+| `PASSWORD` | 可選：啟用用戶名/密碼認證時的密碼 | (未設定) |
+| `VIEWER_USERNAME` | 可選：僅查看權限的訪客用戶名 | (未設定) |
+| `VIEWER_PASSWORD` | 可選：僅查看權限的訪客密碼 | (未設定) |
 | `JWT_SECRET` | JWT 簽名密鑰 | `bilirec_secret` |
 | `DEBUG` | 除錯模式（詳見 [開發與除錯](/zh-tw/development/debugging/)） | `false` |
 | `PRODUCTION_MODE` | 啟用生產模式（影響 cookie 與 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 啟用靜默存取日誌（僅記錄 4xx/5xx 響應） | `false` |
 | `DATABASE_DIR` | 本地數據庫目錄（bbolt，用於持久化轉換任務等） | `database` |
 | `CLOUDCONVERT_THRESHOLD` | 使用 CloudConvert 的檔案大小閾值（字節） | `1073741824` (1 GB) |
-| `CLOUDCONVERT_API_KEY` | 可選：CloudConvert API Key（為空則禁用 CloudConvert） | (未設置) |
+| `CLOUDCONVERT_API_KEY` | 可選：CloudConvert API Key（為空則禁用 CloudConvert） | (未設定) |
 | `CLOUDCONVERT_CHECK_INTERVAL_SECS` | CloudConvert 任務狀態輪詢間隔（秒） | `180` |
 | `CLOUDCONVERT_MAX_CONCURRENT_DOWNLOADS` | CloudConvert 最大並發下載數 | `1` |
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 是否允許在錄製進行中時執行 CloudConvert 轉換任務 | `false` |
