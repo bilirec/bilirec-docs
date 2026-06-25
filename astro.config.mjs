@@ -72,6 +72,7 @@ const sidebar = [
 		collapsed: true,
 		items: [
 			{ slug: 'development/architecture' },
+			{ slug: 'development/mobile' },
 			{ slug: 'development/debugging' },
 			{ slug: 'development/build-from-source' },
 		],

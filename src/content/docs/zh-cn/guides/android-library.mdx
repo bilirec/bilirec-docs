@@ -54,6 +54,10 @@ make android os=windows
 
 详见[从源码构建](/zh-cn/development/build-from-source/)。
 
+## FFmpeg 运行时
+
+`libbilirec.so` 依赖 FFmpeg 进行 MP4 转档。bilirec-mobile 通过 Gradle 依赖 `com.antonkarpenko:ffmpeg-kit-min:2.1.0` 提供运行时。自定义集成时须自行提供兼容的 FFmpeg 库。
+
 <Aside type="tip">
-推荐先参考 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 源码了解完整集成方式，再基于此定制。
+推荐先参考 [bilirec-mobile 开发参考](/zh-cn/development/mobile/) 或 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 源码了解完整集成方式，再基于此定制。
 </Aside>
