@@ -27,7 +27,6 @@ const sidebar = [
 			{ slug: 'guides/file-management' },
 			{ slug: 'guides/frp' },
 			{ slug: 'guides/android' },
-			{ slug: 'guides/android-library' },
 			{ slug: 'guides/docker' },
 		],
 	},
@@ -54,7 +53,8 @@ const sidebar = [
 		],
 	},
 	{
-		label: 'REST API',
+		label: '开发者集成',
+		translations: { 'zh-tw': '開發者集成' },
 		items: [
 			{ slug: 'api/overview' },
 			{ slug: 'api/auth' },
@@ -64,6 +64,7 @@ const sidebar = [
 			{ slug: 'api/files' },
 			{ slug: 'api/convert' },
 			{ slug: 'api/notify' },
+			{ slug: 'development/android-library' },
 		],
 	},
 	{
@@ -72,6 +73,7 @@ const sidebar = [
 		collapsed: true,
 		items: [
 			{ slug: 'development/architecture' },
+			{ slug: 'development/web' },
 			{ slug: 'development/mobile' },
 			{ slug: 'development/debugging' },
 			{ slug: 'development/build-from-source' },
@@ -96,7 +98,9 @@ export default defineConfig({
 		}),
 	},
 	redirects: {
-		'/': '/zh-cn'
+		'/': '/zh-cn',
+		'/zh-cn/guides/android-library': '/zh-cn/development/android-library',
+		'/zh-tw/guides/android-library': '/zh-tw/development/android-library',
 	},
 	integrations: [
 		starlight({

@@ -115,6 +115,28 @@ function walk(dir) {
 	}
 }
 
+/** Remove zh-tw pages with no matching zh-cn source (e.g. after moves/deletes). */
+function pruneOrphans(dir) {
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const destPath = path.join(dir, entry.name);
+		const rel = path.relative(destDir, destPath);
+		const srcPath = path.join(srcDir, rel);
+		if (entry.isDirectory()) {
+			pruneOrphans(destPath);
+			if (fs.readdirSync(destPath).length === 0) {
+				fs.rmdirSync(destPath);
+				console.log(`Removed empty dir: ${rel}`);
+			}
+		} else if (entry.name.endsWith('.mdx') || entry.name.endsWith('.md')) {
+			if (!fs.existsSync(srcPath)) {
+				fs.unlinkSync(destPath);
+				console.log(`Removed orphan: ${rel}`);
+			}
+		}
+	}
+}
+
 fs.mkdirSync(destDir, { recursive: true });
 walk(srcDir);
+pruneOrphans(destDir);
 console.log('Done.');

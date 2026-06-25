@@ -1,0 +1,147 @@
+---
+title: bilirec-web 開發參考
+description: React PWA 前端架構、本地開發與部署說明
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[bilirec-web](https://github.com/bilirec/bilirec-web) 是 bilirec 的通用 Web 管理介面，線上地址為 [app.bilirec.org](https://app.bilirec.org/)。它是一個獨立的前端項目，通過 REST API 連接任意 bilirec 後端實例。
+
+面向最終用戶的使用說明見 [Web 介面（PWA）](/zh-tw/guides/web-ui/)。API 端點詳見 [開發者集成](/zh-tw/api/overview/)。
+
+## 項目定位
+
+- **主要目標**：為 bilirec 後端提供移動優先的 PWA 管理介面。
+- **技術方案**：React SPA + Service Worker（PWA）+ Axios 調用後端 REST API。
+- **部署方式**：靜態資源託管（官方實例部署於 Cloudflare Pages）；後端須單獨運行。
+- **多後端支持**：登入頁可設定伺服器地址，地址保存在 `localStorage`（鍵名 `server-url`）。
+
+<Aside type="note">
+線上 `app.bilirec.org` 為 **HTTPS**。瀏覽器混合內容策略下，從該頁面只能連接本機 HTTP 後端（`localhost` / `127.0.0.1`）；遠端 HTTP 局域網地址會被攔截，須使用 HTTPS 隧道（如 [FRP](/zh-tw/guides/frp/)）。詳見 [Web 介面](/zh-tw/guides/web-ui/#連接自架後端)。
+</Aside>
+
+## 功能概覽
+
+| 功能 | 說明 |
+|------|------|
+| 錄製管理 | 啟動/停止錄製，查看 `recording` / `recovering` / `idle` 狀態 |
+| 直播訂閱 | 訂閱房間、管理自動錄製與通知設定 |
+| 網頁推送 | 通過 Service Worker 接收開播等 Web Push 通知 |
+| 檔案瀏覽 | 瀏覽錄製檔案，支持流式下載（File System Access API → StreamSaver 回退） |
+| MP4 預覽 | 應用內預覽 MP4 錄製 |
+| 檔案共享 | 生成帶過期時間的分享鏈接 |
+| 格式轉換 | 提交與管理 FLV/TS/FMP4 ↔ MP4 轉換任務 |
+| 磁碟監測 | 實時磁碟佔用與分項統計 |
+| 角色控制 | 管理員 / 查看者（查看者為只讀介面） |
+| 深色模式 | 淺色/深色主題，支持跟隨系統 |
+| 多語言 | 簡體中文 / 繁體中文（i18next） |
+
+## 技術棧
+
+| 組件 | 用途 |
+|------|------|
+| React 19 + TypeScript | UI 框架 |
+| Vite 7 | 建置工具 |
+| shadcn/ui + Radix UI | 組件庫 |
+| Tailwind CSS 4 | 樣式 |
+| Axios | HTTP 客戶端（`withCredentials: true`，JWT 存於 HttpOnly Cookie） |
+| SWR + TanStack React Query | 數據獲取與緩存 |
+| vite-plugin-pwa（injectManifest） | PWA 與自定義 Service Worker |
+| Framer Motion | 動畫 |
+| i18next | 國際化 |
+
+包管理器為 **pnpm**（見 `package.json` 的 `packageManager` 字段）。
+
+## 架構概覽
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  React 應用（src/App.tsx）                                 │
+│  LoginView — 伺服器地址 + 帳號登入                         │
+│  RecordsView / FilesView / ConvertsView / SubscribesView  │
+│  LeftSidebar（桌面）/ BottomNav（移動）                    │
+└───────────────────────┬─────────────────────────────────┘
+                        │ Axios（apiClient）
+┌───────────────────────▼─────────────────────────────────┐
+│  bilirec 後端 REST API                                     │
+│  預設 http://localhost:8080                                │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│  Service Worker（src/sw.ts）                               │
+│  靜態資源預緩存 + Web Push 通知處理                         │
+│  通過 shared-store（IndexedDB）讀取 server-url             │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 項目結構
+
+| 路徑 | 說明 |
+|------|------|
+| `src/App.tsx` | 應用入口、路由 Tab、主題與語言切換 |
+| `src/components/LoginView.tsx` | 登入頁，持久化 `server-url` |
+| `src/lib/api.ts` | Axios 封裝，對接全部 REST 端點 |
+| `src/lib/storage.ts` | `localStorage` 封裝 |
+| `src/lib/shared-store.ts` | IndexedDB，供 Service Worker 讀取後端地址 |
+| `src/lib/notifications.ts` | Web Push 訂閱與權限引導 |
+| `src/sw.ts` | 自定義 Service Worker（injectManifest 策略） |
+| `src/i18n/` | 簡繁中文文案 |
+| `public/manifest.json` | PWA 清單（建置時由 vite-plugin-pwa 生成） |
+| `wrangler.jsonc` | Cloudflare Pages 靜態資源部署設定 |
+
+## 本地開發
+
+### 前置條件
+
+- Node.js 與 **pnpm**
+- 一個正在運行的 bilirec 後端（本地或遠端 HTTPS）
+
+### 啟動項目
+
+```bash
+pnpm install
+pnpm dev
+```
+
+開發伺服器預設監聽 `http://localhost:3000`（`vite.config.ts` 中 `server.port = 3000`，`host: true` 允許局域網存取開發伺服器本身）。
+
+在登入頁填入後端地址。本地開發時若後端跑在本機，使用 `http://localhost:8080` 或 `http://127.0.0.1:8080`。
+
+### 建置與預覽
+
+```bash
+pnpm build    # tsc + vite build，輸出 dist/
+pnpm preview  # 本地預覽生產建置
+```
+
+## 部署
+
+官方 `app.bilirec.org` 通過 Cloudflare Pages 託管 `dist/` 靜態資源（見 `wrangler.jsonc`）。
+
+自行部署時：
+
+1. 執行 `pnpm build` 生成 `dist/`。
+2. 將 `dist/` 部署到任意靜態託管（Cloudflare Pages、Nginx、對象儲存 + CDN 等）。
+3. **須使用 HTTPS**，否則 PWA 安裝與 Web Push 等功能受限。
+4. 確保後端 `FRONTEND_URL` 包含你的前端域名（CORS）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/)。
+
+## 認證與後端連接
+
+- 登入時 `apiClient.setBaseURL(url)` 設定後端地址，並寫入 `localStorage` 的 `server-url`。
+- 若提供 `USERNAME` / `PASSWORD`，調用 `POST /login`，JWT 通過 **HttpOnly Cookie** 返回，不在 JavaScript 中儲存令牌。
+- 未設定帳號密碼時，前端會嘗試無認證存取；後端返回 401 則提示需要登入。
+
+## PWA 與 Service Worker
+
+- 建置策略：`vite-plugin-pwa` 的 **injectManifest**，入口為 `src/sw.ts`。
+- `registerType: 'prompt'` — 由瀏覽器決定是否顯示安裝提示。
+- Service Worker 處理 Web Push 事件，並從 IndexedDB 讀取 `server-url` 以定位推送訂閱端點。
+- 用戶安裝說明見 [Web 介面 — 安裝 PWA](/zh-tw/guides/web-ui/#安裝-pwa)。
+
+<Aside type="tip">
+修改 Service Worker 後須重新 `pnpm build` 並確保用戶刷新或更新 PWA，新 SW 才會生效。
+</Aside>
+
+## 實時刷新
+
+主介面每 **5 秒**自動輪詢後端狀態；頁面不可見（標籤頁隱藏）時暫停輪詢，以節省資源。

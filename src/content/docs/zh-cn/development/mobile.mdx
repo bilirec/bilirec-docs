@@ -7,14 +7,15 @@ import { Aside } from '@astrojs/starlight/components';
 
 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 是 Flutter Android 客户端，以前台服务方式托管 Bilirec 原生核心（`libbilirec.so`），并提供启动/停止、状态监控、输出路径配置以及基于 FFmpeg 的自动转档功能。
 
-面向最终用户的使用说明见 [Android App](/zh-cn/guides/android/)。若只需集成 `libbilirec.so`，请参阅 [Android 库接口](/zh-cn/guides/android-library/)。
+面向最终用户的使用说明见 [Android App](/zh-cn/guides/android/)。若只需集成 `libbilirec.so`，请参阅 [Android 库接口](/zh-cn/development/android-library/)。
 
 ## 项目定位
 
 - **主要目标**：在 Android 上尽量稳定地保持 Bilirec 后台服务运行。
 - **技术方案**：Flutter UI + `flutter_foreground_task` 前台服务 + Dart FFI 调用原生动态库 + FFmpeg 视频转档。
 - **当前平台**：仅支持 Android（非 Android 平台启动服务时会提示不支持）。
-- **最低系统版本**：Android 10（API 29）或更高；集成测试矩阵以 API 29 为最低档。
+- **推荐系统版本**：Android 14（API 34）或更高。
+- **最低兼容**：Android 10（API 29）；集成测试矩阵仍以 API 29 为最低档。
 
 ## 技术栈
 
@@ -149,7 +150,7 @@ UI 侧（`lib/app/home_page.dart`）通过 `FlutterForegroundTask.addTaskDataCal
 ### 前置条件
 
 - 已安装 Flutter 与 Android 开发环境。
-- 目标设备或模拟器需为 **Android 10（API 29）** 或更高版本。
+- 目标设备或模拟器推荐 **Android 14（API 34）** 或更高；最低兼容 Android 10（API 29）。
 - Dart SDK：`>=3.4.0 <4.0.0`（见 `pubspec.yaml`）。
 - 建议使用真机验证前台服务、电池优化行为与 FFmpeg 转档性能；模拟器可使用 `x86_64` ABI。
 
@@ -184,5 +185,4 @@ Debug 构建包含 `arm64-v8a` 与 `x86_64` 两个 ABI；Release 构建仅保留
 - 应用仅支持 Android；在非 Android 平台会提示不支持。
 - 转档功能（FFmpeg）会显著增加耗电与发热，建议连接电源或调低同时录制路数。
 - 首次启动服务时若通知权限未授予，将无法继续启动。
-- 若系统强制中断后台服务，应用会通过高优先级本地通知提示用户重新启动并检查省电设置。
 - 设置必须在启动服务**之前**完成；服务运行期间设置页锁定。

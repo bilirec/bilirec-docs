@@ -46,23 +46,58 @@ bilirec 的 Web 管理界面由 [bilirec-web](https://github.com/bilirec/bilirec
 </Tabs>
 ## 连接自架后端
 
-若后端不在本机运行，在登录界面的**服务器地址**栏填入后端 URL，例如：
+[app.bilirec.org](https://app.bilirec.org/) 通过 **HTTPS** 提供，而多数自架 bilirec 后端默认只提供 **HTTP**。浏览器出于混合内容（Mixed Content）安全策略，**禁止 HTTPS 页面请求 HTTP 的局域网地址**（如 `http://192.168.x.x:8080`），**仅允许**连接本机：
 
-- 局域网：`http://192.168.1.100:8080`
-- FRP 公网：`https://abc123.tunnel.bilirec.org`
+- `http://localhost:8080`
+- `http://127.0.0.1:8080`
+
+| 后端位置 | 能否用 app.bilirec.org 连接 |
+|---------|---------------------------|
+| 本机（bilirec-mobile、PC 本机后端） | 可以，填 `localhost` 或 `127.0.0.1` |
+| 局域网另一台设备上的 HTTP 后端 | **不能** — HTTPS 前端无法直连 HTTP 局域网地址 |
+| 公网 HTTPS（FRP 隧道等） | 可以，填 `https://xxx.tunnel.bilirec.org` |
+
+远程访问局域网内的 HTTP 后端，请使用 [FRP](/zh-cn/guides/frp/) 等提供 **HTTPS** 的方案。详见 [常见问题 — Web 管理界面](/zh-cn/guides/faq/#web-管理界面)。
 
 ## 安装 PWA
 
-bilirec-web 支持 PWA（Progressive Web App），可安装到桌面或手机主屏幕，获得接近原生 App 的体验。
+bilirec-web 支持 PWA（Progressive Web App），可安装到桌面或手机主屏幕，获得接近原生 App 的体验。安装后会记住上次连接的后端地址。
 
-**桌面浏览器（Chrome / Edge）：**
-- 地址栏右侧点击「安装」图标，或菜单 →「安装 bilirec」
+<Tabs>
+<TabItem label="Android Chrome">
 
-**手机浏览器：**
-- iOS Safari：分享 →「添加到主屏幕」
-- Android Chrome：菜单 →「安装应用」或「添加到主屏幕」
+若浏览器检测到可安装，页面顶部会出现安装横幅，点击 **安装** 即可：
 
-安装后，PWA 会记住上次连接的后端地址，下次打开直接进入管理界面。
+<img src="/images/web-ui/pwa-install-banner.png" alt="Android Chrome PWA 安装横幅" width="400" style="max-width:100%;height:auto;display:block;margin:0 auto" />
+
+也可通过菜单 **⋮**，选择 **新增至主屏幕**（部分机型显示为「安装应用」）：
+
+<img src="/images/web-ui/pwa-menu-add-home.png" alt="Chrome 菜单「新增至主屏幕」" width="400" style="max-width:100%;height:auto;display:block;margin:0 auto" />
+
+在确认对话框中点击 **安装**：
+
+<img src="/images/web-ui/pwa-install-dialog.png" alt="PWA 安装确认对话框" width="400" style="max-width:100%;height:auto;display:block;margin:0 auto" />
+
+</TabItem>
+<TabItem label="桌面浏览器（Chrome / Edge）">
+
+打开 [app.bilirec.org](https://app.bilirec.org/) 后，点击地址栏右侧的 **安装** 图标：
+
+<img src="/images/web-ui/pwa-desktop-login.png" alt="桌面 Chrome 登录页与地址栏安装按钮" style="max-width:100%;height:auto;display:block;margin:0 auto" />
+
+在「安装应用程序」对话框中点击 **安装**：
+
+<img src="/images/web-ui/pwa-desktop-install-dialog.png" alt="桌面 Chrome PWA 安装确认对话框" style="max-width:100%;height:auto;display:block;margin:0 auto" />
+
+若地址栏没有安装图标，可打开菜单 **⋮**，选择 **安装 Bilibili 录制管理**（或「安装 bilirec」）。
+
+</TabItem>
+<TabItem label="iOS Safari">
+
+点 **分享**，再选 **添加到主屏幕**。
+
+</TabItem>
+</Tabs>
 
 ## 页面预览
 
@@ -126,14 +161,14 @@ bilirec-web 支持 PWA（Progressive Web App），可安装到桌面或手机主
 </TabItem>
 </Tabs>
 
+<LinkCard title="bilirec-web 开发参考" href="/zh-cn/development/web/">
+  Web 前端架构、本地开发与部署说明。
+</LinkCard>
+
 <LinkCard title="bilirec-web 源码" href="https://github.com/bilirec/bilirec-web">
-  Web 前端开源仓库，支持自行部署或定制。
+  GitHub 开源仓库。
 </LinkCard>
 
 <Aside type="tip">
-Android 用户可通过 [bilirec-mobile](/zh-cn/guides/android/) 启动后端后，点击「打开录制程序」自动跳转到 PWA。若已安装 PWA，会优先打开 PWA 而非浏览器标签页。
-</Aside>
-
-<Aside type="tip">
-**常见问题：** HTTPS 的 `app.bilirec.org` 连 HTTP 局域网地址常被浏览器拦截；本机后端用 `http://localhost:8080`。手机端见 [常见问题](/zh-cn/guides/faq/#android)。
+Android 用户可通过 [bilirec-mobile](/zh-cn/guides/android/) 启动后端后，点击「打开录制管理程序」自动跳转到 PWA。若已安装 PWA，会优先打开 PWA 而非浏览器标签页。
 </Aside>

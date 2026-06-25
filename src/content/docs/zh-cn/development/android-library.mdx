@@ -8,7 +8,7 @@ import { Aside } from '@astrojs/starlight/components';
 若你正在将 `libbilirec.so` 集成到自己的 Android 项目，该库导出两个 C 方法：
 
 <Aside type="note">
-宿主 App 建议以 **Android 10（API 29）** 为最低目标版本，与官方 bilirec-mobile 客户端一致。
+推荐使用 **Android 14（API 34）** 或更高版本作为宿主 App 目标系统。`libbilirec.so` 与官方 bilirec-mobile 理论上最低兼容 **Android 10（API 29）**。
 </Aside>
 
 - `Start(configJson)` — 启动服务（传入 JSON 配置），返回 `C.int`

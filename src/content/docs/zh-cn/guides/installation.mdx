@@ -70,7 +70,7 @@ docker run -d \
 
 <TabItem label="Android（bilirec-mobile）">
 
-从 [bilirec-mobile Releases](https://github.com/bilirec/bilirec-mobile/releases) 下载 APK，安装后打开 App 即可，**无需手动构建**。
+从 [bilirec-mobile Releases](https://github.com/bilirec/bilirec-mobile/releases) 下载 APK，安装后打开 App 即可，**无需手动构建**。推荐使用 **Android 14（API 34）** 或更高版本；理论上最低支持 Android 10（API 29）。
 
 使用流程见 [Android App](/zh-cn/guides/android/)。
 
@@ -83,7 +83,7 @@ docker run -d \
 | `libbilirec-android-arm64-v8a.so` | ARM64 Android |
 | `libbilirec-android-x86_64.so` | x86_64 Android 模拟器 |
 
-由 `cmd/androidlib` 以 c-shared 方式编译。构建方法见[从源码构建](/zh-cn/development/build-from-source/)，集成方法见 [Android 库接口](/zh-cn/guides/android-library/)。
+由 `cmd/androidlib` 以 c-shared 方式编译。构建方法见[从源码构建](/zh-cn/development/build-from-source/)，集成方法见 [Android 库接口](/zh-cn/development/android-library/)。
 
 </TabItem>
 
