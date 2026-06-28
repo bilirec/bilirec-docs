@@ -157,12 +157,12 @@ import { Aside } from '@astrojs/starlight/components';
 | -------- | ---------- | ------------ | -------- |
 | **写盘 / flush 尖峰** | 正在录制时周期性冲高；microSD、机械盘更明显 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 适当加大合并缓冲、拉长 flush 间隔；**保持** `SYNC_PERIOD=0`（开周期性整文件落盘会更吃 CPU） |
 | **多路抢同一张盘** | 多路同时录到同一张 SD / HDD 时尖峰叠加 | `SEQUENTIAL_WRITE` | 同一张卡上多路录制时保持 `true`（Android 输出到 microSD 时在 App 开启 **microSD 卡磨损保护**） |
-| **订阅开播轮询** | **闲置**时大约每隔固定秒数有小尖峰（默认约每 10 秒一组） | `SUBCHECK_CHECK_INTERVAL_SECS`<br />`SUBCHECK_SHARD_COUNT` | 增大分组数或略拉长完整周期，摊平单次检查负载 |
+| **订阅开播轮询** | **闲置**时大约每隔固定秒数有小尖峰 | `SUBCHECK_ROOMS_PER_SHARD`<br />`SUBCHECK_MIN_INTERVAL_SECS` | 默认已按订阅规模自动调度；仍偏高可略增大每组房间数或周期下限 |
 | **后台转码** | 转码任务进行中 CPU 持续偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 尽量不要边录边转；并发转码保持 `1`；详见 [转换配置](/zh-cn/configuration/conversion/) |
 
 **你可以：**
 1. 树莓派 + microSD：从 [I/O 调优](/zh-cn/configuration/io-tuning/) 与 [树莓派默认配置](/zh-cn/configuration/pi5-defaults/) 调整写盘相关项。
-2. 订阅房间特别多：见 [录制配置 · 订阅房间状态检查](/zh-cn/configuration/recording/#订阅房间状态检查)。
+2. 订阅房间特别多：见 [录制配置 · 订阅房间状态检查](/zh-cn/configuration/recording/#订阅房间状态检查)（默认自动调度，一般无需随订阅改环境变量）。
 3. 转码与录制错峰：见 [转换配置](/zh-cn/configuration/conversion/)。
 
 ### 录制时内存占用很高怎么办？

@@ -53,8 +53,6 @@ tableOfContents: false
 | `FFMPEG_MAX_CONCURRENT_TASKS` | 本地 FFmpeg 最大並發轉換任務數 | `1` |
 | `FFMPEG_ALLOW_DURING_RECORDING` | 是否允許在錄製進行中時執行 FFmpeg 轉換任務 | `false` |
 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 僅當活躍錄製數 `<=` 此值時，才允許在錄製中執行 FFmpeg；`<1` 表示不設門檻（仍可通過 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
-| `SUBCHECK_CHECK_INTERVAL_SECS` | 訂閱房間自動錄製檢查的完整輪詢週期（秒）；K 個分片在該週期內輪流觸發，用於攤平 CPU 峰值 | `60` |
-| `SUBCHECK_SHARD_COUNT` | 訂閱檢查分片數（K）；房間按 `roomID % K` 分配，約每 `SUBCHECK_CHECK_INTERVAL_SECS / K` 秒處理一個分片。訂閱房間較多時可增大以降低單次 tick 的 CPU 峰值 | `6` |
 | `UPLOAD_BUFFER_SIZE` | 上傳時或向外部服務（如 CloudConvert）傳輸檔案使用的緩衝區大小（字節） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 檔案下載 / 導出時使用的緩衝區大小（字節） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流寫入器（寫入檔案）緩衝區大小（字節） | `1048576` (1 MB) |
@@ -74,5 +72,7 @@ tableOfContents: false
 | `DROP_FILE_PAGE_CACHE` | 錄製分段結束、本地 ffmpeg 轉碼成功、或在線播放/下載最後一次請求結束後（會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒，如果數值為0則預設為 60 秒），讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁碟讀取，可能變慢。預設 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
 | `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁碟時建議開啟。SSD 可關閉以提升並發。啟用之後 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 會成為一個完整寫盤週期，每路寫盤間隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同時錄製路數` 計算 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁碟空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
+
+訂閱檢查預設按規模自動調度，詳見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
 
 各分類的詳細說明請參閱對應專題頁面。

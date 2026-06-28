@@ -57,6 +57,21 @@ import { Aside } from '@astrojs/starlight/components';
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 缓冲越大，写盘次数越少。以 1080p 30fps、约 4.5Mbps 估算，大约每 14 秒攒满写一次
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=15`** — 每 15 秒推进一次磁盘，在「省电/省卡」和「异常断电少丢数据」之间折中
 
+### 多路录制与 flush 周期
+
+`SEQUENTIAL_WRITE=true` 时（默认），`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 表示**所有在录路径走完一轮写盘**的时长；每路实际间隔约为 `周期 ÷ 当前在录路数`。默认 3 路、15 秒周期时，每路大约每 5 秒轮到一次写盘。
+
+调高 `MAX_CONCURRENT_RECORDINGS` 却**不**同步拉长 flush 周期时，每路写盘会更勤，microSD / 机械盘上更容易感到周期性 CPU 或 I/O 尖峰。建议按路数同比例放大周期，使每路间隔与默认 3 路时接近：
+
+| 同时录制路数 | 建议 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` |
+| ------------ | ------------------------------------------- |
+| 3（默认）    | `15`                                        |
+| 5            | `25`                                        |
+| 6            | `30`                                        |
+| 10           | `45`（可视为常用上限）                      |
+
+计算式：`15 × 路数 ÷ 3`，结果夹在 `15`～`45` 秒之间。`SEQUENTIAL_WRITE=false`（常见于 SSD 调优）时各路独立写盘，一般不必按上表联动。
+
 ### 录制文件缓存释放（Linux / Android）
 
 bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里**再留一份副本**（文件页缓存），用来加速以后的读写。长时间、多路录制时，Docker 或手机监控里的「总内存」可能因此过高。
@@ -115,7 +130,7 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 | `DROP_FILE_PAGE_CACHE` | 关档或转码成功后释放整份文件缓存（仅 Linux/Android） | `true` |
 
 - **`SKIP_SMALL_FLUSH`** — 对几分钟就下播的低码率流特别有用：不到 1MB 不写文件，减少空文件和无效写盘
-- **`SEQUENTIAL_WRITE`** — 多路录到**同一张** microSD / 机械盘时建议保持开启：你会感觉到磁盘峰值更平稳；SSD 上可关闭以追求更高并发
+- **`SEQUENTIAL_WRITE`** — 多路录到**同一张** microSD / 机械盘时建议保持开启：你会感觉到磁盘峰值更平稳；SSD 上可关闭以追求更高并发。开启后若提高同时录制路数，请同步调整 flush 周期，见上文 [多路录制与 flush 周期](#多路录制与-flush-周期)
 - **`DROP_FILE_PAGE_CACHE`** — 关档/转码后释放文件缓存；默认已开。播放或下载结束后，按 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 空闲等待后释放该文件缓存（未配置或 `0` 时播放侧仍用默认 **60** 秒，仅关闭录制中冷释放）。与录制中的冷缓存释放配合，可压低监控曲线。**代价**：刚录完或停播后立刻再播可能要从磁盘重读，略慢。长时间连续播放时缓存仍可能上涨（计时会被新请求重置）。详见 [常见问题](/zh-cn/guides/faq/#在线播放或下载后监控内存一直很高)
 
 针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[内存占用估算](/zh-cn/configuration/memory-estimation/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。

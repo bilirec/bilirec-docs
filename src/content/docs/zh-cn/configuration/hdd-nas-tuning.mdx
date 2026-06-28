@@ -16,6 +16,7 @@ export DROP_FILE_PAGE_CACHE=false
 export SKIP_SMALL_FLUSH=false
 export SEQUENTIAL_WRITE=true
 export LIVE_STREAM_WRITER_BUFFER_SIZE=16777216
+export LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=25
 export MAX_CONCURRENT_RECORDINGS=5
 ```
 
@@ -27,7 +28,8 @@ export MAX_CONCURRENT_RECORDINGS=5
 | `SKIP_SMALL_FLUSH=false` | 不跳过极短直播保护 | 更早上盘 |
 | `SEQUENTIAL_WRITE=true` | 多路轮流写盘 | 磁头寻道更少，多路更稳 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE=16MB` | 单次写入更大 | 文件在盘上更连续 |
-| `MAX_CONCURRENT_RECORDINGS=5` | 适度并发 | 视硬盘转速与内存调整 |
+| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=25` | 与 5 路、`SEQUENTIAL_WRITE=true` 配套 | 每路写盘间隔与默认 3 路时接近 |
+| `MAX_CONCURRENT_RECORDINGS=5` | 适度并发 | 视硬盘转速与内存调整；路数再提高时请同步调整 flush 周期，见 [I/O 调优](/zh-cn/configuration/io-tuning/#多路录制与-flush-周期) |
 
 <Aside type="tip">
 **混合部署建议：**

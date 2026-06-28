@@ -19,6 +19,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 `MAX_CONCURRENT_RECORDINGS` 直接影響記憶體峰值。樹莓派預設 `3`（1080p 預設緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派預設](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
 
+調高同時錄製路數時，若保持 `SEQUENTIAL_WRITE=true`（microSD、機械盤、NAS 的預設建議），請**同步**按路數比例增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，避免每路寫盤間隔被壓得過短、寫盤更勤或 CPU 尖峰更明顯。換算方式與示例見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。Android 開啟 microSD 卡磨損保護時會自動處理，見 [Android 預設設定](/zh-tw/configuration/android-defaults/)。
+
 ## 儲存路徑
 
 | 變數 | 說明 | 預設值 |
@@ -47,13 +49,18 @@ Docker 部署時建議掛載為卷：
 
 為任一訂閱房間開啟 **開播通知**（`notify`）或 **自動錄製**（`auto_record`）後，後台會定期檢查直播狀態。檢測到新一場直播時，按房間設定推送通知和/或啟動錄製。服務啟動時先全量檢查一次，之後將相關房間分成若干組，在完整週期內分組輪流檢查，降低 CPU 峰值。
 
+程式會按當前需檢查的房間數（開啟通知或自動錄製的訂閱）自動計算分組數與完整輪詢週期，訂閱增刪後**無需改環境變數或重啟**。每組內房間通過批量 API 一次拉取；預設約每 50 間一組、每組間隔約 10 秒觸發。≤50 間時通常 60 秒一輪；訂閱更多時分組與週期會相應增大。
+
 | 變數 | 說明 | 預設值 |
 |------|------|--------|
-| `SUBCHECK_CHECK_INTERVAL_SECS` | 完整輪詢週期（秒）；各分組在該週期內依次各檢查一輪 | `60` |
-| `SUBCHECK_SHARD_COUNT` | 檢查分組數；每個房間固定歸入其中一組，各組在不同時間點檢查。預設 60 秒週期、6 組時，大約每 10 秒檢查一組 | `6` |
+| `SUBCHECK_ROOMS_PER_SHARD` | 每組目標房間數 | `50` |
+| `SUBCHECK_TICK_SECS` | 目標分組觸發間隔（秒） | `10` |
+| `SUBCHECK_MIN_INTERVAL_SECS` | 完整輪詢週期下限（秒） | `60` |
+| `SUBCHECK_MAX_INTERVAL_SECS` | 完整輪詢週期上限（秒） | `300` |
+| `SUBCHECK_MAX_SHARDS` | 分組數上限 | `32` |
 
-訂閱房間較多時可增大分組數，降低單次檢查的負載；分組越多，同一房間內兩次檢查之間的間隔通常也越長（約等於完整週期除以分組數）。使用流程見 [錄製直播間](/zh-tw/guides/recording/#訂閱房間)。
+訂閱極多且仍感到 CPU 尖峰偏高時，可略增大 `SUBCHECK_ROOMS_PER_SHARD`（每組更多房間、分組更少）或略增大 `SUBCHECK_MIN_INTERVAL_SECS`（接受稍慢的開播檢測）。使用流程見 [錄製直播間](/zh-tw/guides/recording/#訂閱房間)。
 
 <Aside type="tip">
-**常見問題：** 訂閱很多房間時 CPU 尖峰偏高，可調整上表分組與週期。詳見 [常見問題](/zh-tw/guides/faq/#cpu-突然飆高怎麼辦)。
+**常見問題：** 訂閱檢查引起的 CPU 尖峰，詳見 [常見問題](/zh-tw/guides/faq/#cpu-突然飆高怎麼辦)。
 </Aside>

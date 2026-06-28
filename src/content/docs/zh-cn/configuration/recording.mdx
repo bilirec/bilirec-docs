@@ -19,6 +19,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 `MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`（1080p 默认缓冲下可验证至 5 路），SSD 环境可放宽至 `10`。规划容器上限请参阅 [内存占用估算](/zh-cn/configuration/memory-estimation/)，详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
 
+调高同时录制路数时，若保持 `SEQUENTIAL_WRITE=true`（microSD、机械盘、NAS 的默认建议），请**同步**按路数比例增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，避免每路写盘间隔被压得过短、写盘更勤或 CPU 尖峰更明显。换算方式与示例见 [I/O 调优 · 多路录制与 flush 周期](/zh-cn/configuration/io-tuning/#多路录制与-flush-周期)。Android 开启 microSD 卡磨损保护时会自动处理，见 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
+
 ## 存储路径
 
 | 变量 | 说明 | 默认值 |
@@ -47,13 +49,18 @@ Docker 部署时建议挂载为卷：
 
 为任一订阅房间开启 **开播通知**（`notify`）或 **自动录制**（`auto_record`）后，后台会定期检查直播状态。检测到新一场直播时，按房间配置推送通知和/或启动录制。服务启动时先全量检查一次，之后将相关房间分成若干组，在完整周期内分组轮流检查，降低 CPU 峰值。
 
+程序会按当前需检查的房间数（开启通知或自动录制的订阅）自动计算分组数与完整轮询周期，订阅增删后**无需改环境变量或重启**。每组内房间通过批量 API 一次拉取；默认约每 50 间一组、每组间隔约 10 秒触发。≤50 间时通常 60 秒一轮；订阅更多时分组与周期会相应增大。
+
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `SUBCHECK_CHECK_INTERVAL_SECS` | 完整轮询周期（秒）；各分组在该周期内依次各检查一轮 | `60` |
-| `SUBCHECK_SHARD_COUNT` | 检查分组数；每个房间固定归入其中一组，各组在不同时间点检查。默认 60 秒周期、6 组时，大约每 10 秒检查一组 | `6` |
+| `SUBCHECK_ROOMS_PER_SHARD` | 每组目标房间数 | `50` |
+| `SUBCHECK_TICK_SECS` | 目标分组触发间隔（秒） | `10` |
+| `SUBCHECK_MIN_INTERVAL_SECS` | 完整轮询周期下限（秒） | `60` |
+| `SUBCHECK_MAX_INTERVAL_SECS` | 完整轮询周期上限（秒） | `300` |
+| `SUBCHECK_MAX_SHARDS` | 分组数上限 | `32` |
 
-订阅房间较多时可增大分组数，降低单次检查的负载；分组越多，同一房间内两次检查之间的间隔通常也越长（约等于完整周期除以分组数）。使用流程见 [录制直播间](/zh-cn/guides/recording/#订阅房间)。
+订阅极多且仍感到 CPU 尖峰偏高时，可略增大 `SUBCHECK_ROOMS_PER_SHARD`（每组更多房间、分组更少）或略增大 `SUBCHECK_MIN_INTERVAL_SECS`（接受稍慢的开播检测）。使用流程见 [录制直播间](/zh-cn/guides/recording/#订阅房间)。
 
 <Aside type="tip">
-**常见问题：** 订阅很多房间时 CPU 尖峰偏高，可调整上表分组与周期。详见 [常见问题](/zh-cn/guides/faq/#cpu-突然飙高怎么办)。
+**常见问题：** 订阅检查引起的 CPU 尖峰，详见 [常见问题](/zh-cn/guides/faq/#cpu-突然飙高怎么办)。
 </Aside>
