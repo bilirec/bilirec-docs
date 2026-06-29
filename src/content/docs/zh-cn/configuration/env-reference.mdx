@@ -53,6 +53,11 @@ tableOfContents: false
 | `FFMPEG_MAX_CONCURRENT_TASKS` | 本地 FFmpeg 最大并发转换任务数 | `1` |
 | `FFMPEG_ALLOW_DURING_RECORDING` | 是否允许在录制进行中时执行 FFmpeg 转换任务 | `false` |
 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `<=` 此值时，才允许在录制中执行 FFmpeg；`<1` 表示不设门槛（仍可通过 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
+| `SUBCHECK_ROOMS_PER_SHARD` | 订阅开播检查：每组目标房间数（程序按订阅规模自动算分组与周期） | `50` |
+| `SUBCHECK_TICK_SECS` | 订阅开播检查：目标分组触发间隔（秒） | `10` |
+| `SUBCHECK_MIN_INTERVAL_SECS` | 订阅开播检查：完整轮询周期下限（秒） | `60` |
+| `SUBCHECK_MAX_INTERVAL_SECS` | 订阅开播检查：完整轮询周期上限（秒） | `300` |
+| `SUBCHECK_MAX_SHARDS` | 订阅开播检查：分组数上限 | `32` |
 | `UPLOAD_BUFFER_SIZE` | 上传时或向外部服务（如 CloudConvert）传输文件使用的缓冲区大小（字节） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 文件下载 / 导出时使用的缓冲区大小（字节） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流写入器（写入文件）缓冲区大小（字节） | `1048576` (1 MB) |
@@ -73,6 +78,4 @@ tableOfContents: false
 | `SEQUENTIAL_WRITE` | 多路录制时轮流写盘，降低同一张盘上的写入峰值；多路写入同一物理磁盘时建议开启。SSD 可关闭以提升并发。启用之后 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 会成为一个完整写盘周期，每路写盘间隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同时录制路数` 计算 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 录制所需的最小磁盘空间（字节），低于此值将拒绝新录制任务 | `5368709120` (5 GB) |
 
-订阅检查默认按规模自动调度，详见 [录制配置 · 订阅房间状态检查](/zh-cn/configuration/recording/#订阅房间状态检查)。
-
-各分类的详细说明请参阅对应专题页面。
+各分类的详细说明请参阅对应专题页面。订阅检查调度逻辑见 [录制配置 · 订阅房间状态检查](/zh-cn/configuration/recording/#订阅房间状态检查)。
