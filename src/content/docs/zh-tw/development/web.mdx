@@ -13,7 +13,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 - **主要目標**：為 bilirec 後端提供移動優先的 PWA 管理介面。
 - **技術方案**：React SPA + Service Worker（PWA）+ Axios 調用後端 REST API。
-- **部署方式**：靜態資源託管（官方實例部署於 Cloudflare Pages）；後端須單獨運行。
+- **部署方式**：靜態資源託管（官方實例部署於 Cloudflare Workers）；後端須單獨運行。
 - **多後端支持**：登入頁可設定伺服器地址，地址保存在 `localStorage`（鍵名 `server-url`）。
 
 <Aside type="note">
@@ -87,7 +87,7 @@ import { Aside } from '@astrojs/starlight/components';
 | `src/sw.ts` | 自定義 Service Worker（injectManifest 策略） |
 | `src/i18n/` | 簡繁中文文案 |
 | `public/manifest.json` | PWA 清單（建置時由 vite-plugin-pwa 生成） |
-| `wrangler.jsonc` | Cloudflare Pages 靜態資源部署設定 |
+| `wrangler.jsonc` | Cloudflare Workers 靜態資源部署設定 |
 
 ## 本地開發
 
@@ -114,14 +114,31 @@ pnpm build    # tsc + vite build，輸出 dist/
 pnpm preview  # 本地預覽生產建置
 ```
 
-## 部署
+## 自行部署（Cloudflare）
 
-官方 `app.bilirec.org` 通過 Cloudflare Pages 託管 `dist/` 靜態資源（見 `wrangler.jsonc`）。
+官方 [app.bilirec.org](https://app.bilirec.org/) 通過 Cloudflare Workers 託管 `dist/` 靜態資源（見 `wrangler.jsonc`）。你也可以 fork 倉庫後一鍵部署到自己的 Cloudflare 帳號：
 
-自行部署時：
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/bilirec/bilirec-web)
+
+<Aside type="caution" title="部署注意事項">
+
+| 事項 | 說明 |
+|------|------|
+| 後端 `FRONTEND_URL` | 部署完成後，將 bilirec 後端的 `FRONTEND_URL` 設為你的前端 HTTPS 域名（CORS 與 Cookie 認證）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) |
+| 須使用 HTTPS | PWA 安裝與 Web Push 需要 HTTPS；自架 HTTPS 前端可連接局域網 HTTP 後端（官方 `app.bilirec.org` 僅允許連接本機 `localhost` / `127.0.0.1`） |
+| 與官方前端取捨 | `app.bilirec.org` 適合本機、Android 內嵌後端或 FRP HTTPS 隧道；自架前端適合自定義域名或需從 HTTPS 頁面連接局域網 HTTP 後端的場景 |
+| Fork 行為 | 按鈕會在你的 GitHub 創建倉庫 fork 並綁定 Workers Builds，後續 push 自動部署 |
+| 後端須單獨運行 | 前端僅為靜態資源，bilirec 錄製後端須另行[安裝與啟動](/zh-tw/guides/installation/) |
+| 首次連接 | 打開自架前端 → 填入 bilirec 後端地址 → 必要時登入 → 完成 B 站掃碼。見 [快速開始](/zh-tw/guides/quick-start/) |
+
+</Aside>
+
+### 手動部署
+
+自行部署時也可不使用 Cloudflare 按鈕：
 
 1. 執行 `pnpm build` 生成 `dist/`。
-2. 將 `dist/` 部署到任意靜態託管（Cloudflare Pages、Nginx、對象儲存 + CDN 等）。
+2. 將 `dist/` 部署到任意靜態託管（Cloudflare Pages、Nginx、對象儲存 + CDN 等），或使用 `pnpm deploy`（`wrangler deploy`）。
 3. **須使用 HTTPS**，否則 PWA 安裝與 Web Push 等功能受限。
 4. 確保後端 `FRONTEND_URL` 包含你的前端域名（CORS）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/)。
 

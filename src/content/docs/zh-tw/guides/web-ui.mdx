@@ -7,6 +7,27 @@ import { LinkCard, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 bilirec 的 Web 管理介面由 [bilirec-web](https://github.com/bilirec/bilirec-web) 提供，線上地址為 [app.bilirec.org](https://app.bilirec.org/)。它是一個通用前端，可連接任何 bilirec 後端實例。
 
+## 功能概覽
+
+| 功能 | 說明 |
+|------|------|
+| 錄製管理 | 手動開始/停止錄製，查看 `recording` / `recovering` / `idle` 狀態與統計 |
+| 直播訂閱 | 訂閱房間、設定自動錄製與開播通知 |
+| 網頁推送 | 通過 Service Worker 接收開播等 Web Push 通知 |
+| 檔案瀏覽 | 瀏覽錄製檔案，支持流式下載與 MP4 預覽 |
+| 檔案共享 | 生成帶過期時間的分享鏈接 |
+| 格式轉換 | 提交與管理 FLV/TS/FMP4 ↔ MP4 轉換任務 |
+| 磁碟監測 | 實時磁碟佔用與分項統計 |
+| 角色控制 | 管理員 / 查看者（查看者為只讀介面） |
+| 深色模式 | 淺色/深色主題，支持跟隨系統 |
+| 多語言 | 簡體中文 / 繁體中文 |
+| 多伺服器 | 登入頁可設定後端地址，連接不同 bilirec 實例 |
+| PWA | 可安裝到桌面或手機主屏幕，獲得接近原生 App 的體驗 |
+
+<Aside type="tip">
+bilirec-web 需配合正在運行的 [bilirec](https://github.com/bilirec/bilirec) 後端使用。也可[自行部署前端](/zh-tw/development/web/)以連接局域網 HTTP 後端或使用自定義域名。
+</Aside>
+
 ## 存取 Web 介面
 
 1. 確保 bilirec 後端已啟動（預設端口為 `8080`，`HOST` 預設為空值即監聽所有網卡）

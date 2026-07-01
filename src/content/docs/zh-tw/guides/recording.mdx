@@ -9,19 +9,23 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## 手動錄製
 
-在 Web 介面中輸入直播間房間號，選擇畫質與時長，點擊開始錄製。
+在 Web 介面中輸入直播間房間號，在確認頁選擇優先畫質、是否僅錄製音頻與時長，點擊開始錄製。
+
+<Aside type="note">
+Web 介面中「優先畫質」為請求偏好，不保證與所選檔位完全一致；「僅錄製音頻」對應 API 參數 `only_audio=true`。不傳 `qn` 時後端預設使用原畫（`10000`）。
+</Aside>
 
 <Tabs>
 <TabItem label="桌面端">
 
-![桌面端錄製管理-1](/images/web-ui/desktop-add-record-1.png)
-![桌面端錄製管理-2](/images/web-ui/desktop-add-record-2.png)
+![桌面端輸入房間號](/images/web-ui/desktop-add-record-1.png)
+![桌面端確認錄製（優先畫質與時長）](/images/web-ui/desktop-add-record-2.png)
 
 </TabItem>
 <TabItem label="移動端">
 
-![移動端錄製管理-1](/images/web-ui/mobile-add-record-1.png)
-![移動端錄製管理-2](/images/web-ui/mobile-add-record-2.png)
+![移動端輸入房間號](/images/web-ui/mobile-add-record-1.png)
+![移動端確認錄製（優先畫質與時長）](/images/web-ui/mobile-add-record-2.png)
 
 </TabItem>
 </Tabs>
@@ -43,6 +47,13 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 | `10000` | 原畫 |
 | `20000` | 4K |
 | `30000` | 杜比 |
+
+### 僅錄製音頻（only_audio）
+
+| 值 | 說明 |
+|----|------|
+| 不傳 / `false` | 錄製音影片 |
+| `true` | 僅錄製音頻 |
 
 ### 流格式（stream_profile）
 
