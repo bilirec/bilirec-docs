@@ -45,6 +45,6 @@ SSD 环境常需更高并发与更深排队，可根据 [内存占用估算](/zh
 
 <Aside type="tip">
 **混合部署建议：**
-- **ZFS 文件系统：** 可将 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 设为 `0`，少做应用层反复落盘
+- **ZFS 池：** 可将 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 设为 `0`，少做应用层反复落盘。池子以 SSD/NVMe 为主时，可像本节一样设 `SEQUENTIAL_WRITE=false`，让多路并发写盘；程序**不会**自动检测 ZFS，需手动配置。
 - **与同盘其他服务共存：** `SEQUENTIAL_WRITE=false` 时多路写盘更并发，注意与同盘影音库、备份等任务分摊 I/O
 </Aside>

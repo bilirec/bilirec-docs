@@ -55,6 +55,8 @@ NAS 往往比树莓派有更多内存，可根据 [内存占用估算](/zh-cn/co
 
 <Aside type="tip">
 **混合部署建议：**
-- **ZFS 文件系统：** 可考虑保持 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`，少做应用层反复落盘
-- **与私有云服务共存：** 若硬盘同时跑 Cloudreve、影音库等，建议保持 `SEQUENTIAL_WRITE=true`，避免多服务抢磁头
+- **ZFS 池（机械盘）：** 默认 `SEQUENTIAL_WRITE=true`、`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`。ZFS 会在内存里攒一批再落盘，有人尝试 `SEQUENTIAL_WRITE=false` 交给 ZFS 合并多路写入；若 NAS 变卡就改回 `true`。须手动配置，程序不自动检测 ZFS。
+- **ZFS 与 CPU：** 机械盘 ZFS 池上录制时，CPU 可能略高于 EXT4/XFS 等同级场景（校验与元数据），**与是否关闭 `SEQUENTIAL_WRITE` 无直接关系**，一般正常。详见 [常见问题 · ZFS 与 CPU](/zh-cn/guides/faq/#hdd-nas-用-zfs-cpu-比平时高一点)。
+- **ZFS 池（SSD/NVMe）：** 见 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
+- **与同盘其它服务共存：** 建议保持 `SEQUENTIAL_WRITE=true`。
 </Aside>

@@ -181,6 +181,17 @@ import { Aside } from '@astrojs/starlight/components';
 2. 訂閱房間特別多：見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)（預設自動調度，一般無需隨訂閱改環境變數）。
 3. 轉碼與錄製錯峰：見 [轉換設定](/zh-tw/configuration/conversion/)。
 
+### HDD NAS 用 ZFS，CPU 比平時高一點？
+
+**你會看到：** 同樣路數，輸出目錄在機械盤 **ZFS 池** 上時，CPU 比 EXT4/XFS 等同場景多幾個百分點，但錄製仍順暢。
+
+**為什麼：** ZFS 要做校驗、元數據與寫入合併，多路錄製時這部分開銷會疊加。這是 **ZFS 本身的代價**，與是否設 `SEQUENTIAL_WRITE=false` **無直接關係**。
+
+**你可以：**
+1. 一般不必處理，屬正常現象。
+2. 若是**週期性尖峰**或 NAS 明顯變卡，再對照上一節 [CPU 突然飆高](/zh-tw/guides/faq/#cpu-突然飆高怎麼辦) 排查寫盤、多路搶盤等項。
+3. ZFS 池調參見 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
+
 ### 錄製時記憶體佔用很高怎麼辦？
 
 **你會看到：** 監控裡記憶體在錄播時緩緩上漲。
