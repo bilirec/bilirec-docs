@@ -14,7 +14,7 @@ Content-Type: application/json
 { "user": "<username>", "pass": "<password>" }
 ```
 
-登入成功後在響應中設定 JWT cookie（鍵名 `jwtToken`），後續對需要認證的接口請攜帶該 cookie。
+登入成功後在響應中設定 JWT cookie（鍵名 `jwtToken`），後續對需要認證的接口需攜帶該 cookie。
 
 ```bash
 curl -i -c cookies.txt -X POST http://127.0.0.1:8080/login \

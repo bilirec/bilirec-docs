@@ -7,7 +7,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 [bilirec-mobile](https://github.com/bilirec/bilirec-mobile) 是 Flutter Android 客戶端，以前臺服務方式託管 Bilirec 原生核心（`libbilirec.so`），並提供啟動/停止、狀態監控、輸出路徑設定以及基於 FFmpeg 的自動轉檔功能。
 
-面向最終用戶的使用說明見 [Android App](/zh-tw/guides/android/)。若只需集成 `libbilirec.so`，請參閱 [Android 庫接口](/zh-tw/development/android-library/)。
+面向最終用戶的使用說明見 [Android App](/zh-tw/guides/android/)。若只需集成 `libbilirec.so`，可參考 [Android 庫接口](/zh-tw/development/android-library/)。
 
 ## 項目定位
 
@@ -185,4 +185,4 @@ Debug 建置包含 `arm64-v8a` 與 `x86_64` 兩個 ABI；Release 建置僅保留
 - 應用僅支持 Android；在非 Android 平台會提示不支持。
 - 轉檔功能（FFmpeg）會顯著增加耗電與發熱，建議連接電源或調低同時錄製路數。
 - 首次啟動服務時若通知權限未授予，將無法繼續啟動。
-- 設定必須在啟動服務**之前**完成；服務運行期間設定頁鎖定。
+- 設定宜在啟動服務**之前**完成；服務運行期間設定頁鎖定。

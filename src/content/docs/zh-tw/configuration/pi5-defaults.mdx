@@ -20,6 +20,6 @@ Bilirec 當前預設設定已針對**樹莓派 5B + microSD** 場景優化，在
 
 官方 Docker 鏡像已內置適合樹莓派的運行參數，一般無需再改。
 
-若把 `MAX_CONCURRENT_RECORDINGS` 從預設 `3` 提高到 `5` 路或更多，請同步增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（例如 5 路約 `25` 秒、6 路約 `30` 秒），詳見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。
+若把 `MAX_CONCURRENT_RECORDINGS` 從預設 `3` 提高到 `5` 路或更多，建議同步增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（例如 5 路約 `25` 秒、6 路約 `30` 秒），詳見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。
 
-若錄製 4K / 杜比，程式會根據 `qn` 自動啟用高畫質緩衝，一般無需改 1080p 基礎變數；卡頓時參閱 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。規劃容器記憶體請參閱 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。儲存介質為 SSD 或 HDD/NAS 時請參閱 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 或 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
+若錄製 4K / 杜比，程式會根據 `qn` 自動啟用高畫質緩衝，一般無需改 1080p 基礎變數；卡頓時可參考 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/)。規劃容器記憶體可參考 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)。儲存介質為 SSD 或 HDD/NAS 時可參考 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 或 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。

@@ -31,8 +31,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 <Aside type="caution">
 **协议约束：**
-- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 时，**必须**同时设置 `SERVER_CRT` + `SERVER_KEY`
-- 同时设置 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 时，`FRP_HTTPS` **不能**为 `false`
+- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 时，建议同时设置 `SERVER_CRT` + `SERVER_KEY`
+- 同时设置 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 时，`FRP_HTTPS` 宜为 `true`（设为 `false` 时协议不匹配）
 
 违反约束会导致协议不匹配，程序在启动阶段直接报错退出。
 </Aside>
@@ -78,5 +78,5 @@ FRP enabled in custom-selfhost mode    # 自定义 FRP
 操作流程见 [远程访问指南](/zh-cn/guides/frp/)。
 
 <Aside type="tip">
-**常见问题：** 内网穿透与 HTTPS 开关要一致；地址请写成 `主机:端口`；自架 FRP 需填 Token；通过 app.bilirec.org 登录需 `PRODUCTION_MODE=true`。详见 [常见问题](/zh-cn/guides/faq/)。
+**常见问题：** 内网穿透与 HTTPS 开关要一致；地址建议写成 `主机:端口`；自架 FRP 需填 Token；通过 app.bilirec.org 登录建议设 `PRODUCTION_MODE=true`。详见 [常见问题](/zh-cn/guides/faq/)。
 </Aside>

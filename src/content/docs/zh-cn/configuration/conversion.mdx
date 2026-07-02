@@ -43,7 +43,7 @@ Docker 镜像内置 FFmpeg 8.1.1。桌面环境需在 PATH 中安装 FFmpeg 和 
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING` | 录制进行中是否允许 CloudConvert 转换 | `false` |
 | `CLOUDCONVERT_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `≤` 此值时才允许边录边转；`<1` 表示不设门槛（仍受 `CLOUDCONVERT_ALLOW_DURING_RECORDING` 控制） | `1` |
 
-文件大小 ≥ 阈值时优先使用 CloudConvert。`PUBLIC_BASE_URL` 必须有效，否则 CloudConvert 会拒绝创建任务。
+文件大小 ≥ 阈值时优先使用 CloudConvert。`PUBLIC_BASE_URL` 需为可从外网访问的完整 URL，否则 CloudConvert 会拒绝创建任务。
 
 <Aside type="tip">
 **常见问题：** 录完不转、转码反复失败、大文件云端任务失败——见 [常见问题](/zh-cn/guides/faq/#后端录制)。

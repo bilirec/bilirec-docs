@@ -17,9 +17,9 @@ import { Aside } from '@astrojs/starlight/components';
 
 `RECORDING_RECOVERY_DURATION` 只影响流仍在线、重连恢复成功的情况，不改变 `MAX_RETRY_MINUTES` 的下线重试逻辑。若你设置了单次录制时长上限（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示录制时长从**第一次开始录制**起算、不延长；`reset` 表示每次重连成功后重新享有完整录制时长，适合担心管理员强切新场次时漏录的场景。
 
-`MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`（1080p 默认缓冲下可验证至 5 路），SSD 环境可放宽至 `10`。规划容器上限请参阅 [内存占用估算](/zh-cn/configuration/memory-estimation/)，详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
+`MAX_CONCURRENT_RECORDINGS` 直接影响内存峰值。树莓派默认 `3`（1080p 默认缓冲下可验证至 5 路），SSD 环境可放宽至 `10`。规划容器上限可参考 [内存占用估算](/zh-cn/configuration/memory-estimation/)，详见 [树莓派默认](/zh-cn/configuration/pi5-defaults/) 与 [SSD 调优](/zh-cn/configuration/ssd-tuning/)。
 
-调高同时录制路数时，若保持 `SEQUENTIAL_WRITE=true`（microSD、机械盘、NAS 的默认建议），请**同步**按路数比例增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，避免每路写盘间隔被压得过短、写盘更勤或 CPU 尖峰更明显。换算方式与示例见 [I/O 调优 · 多路录制与 flush 周期](/zh-cn/configuration/io-tuning/#多路录制与-flush-周期)。Android 开启 microSD 卡磨损保护时会自动处理，见 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
+调高同时录制路数时，若保持 `SEQUENTIAL_WRITE=true`（microSD、机械盘、NAS 的默认建议），建议按路数比例同步增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，以免每路写盘间隔被压得过短、写盘更勤或 CPU 尖峰更明显。换算方式与示例见 [I/O 调优 · 多路录制与 flush 周期](/zh-cn/configuration/io-tuning/#多路录制与-flush-周期)。Android 开启 microSD 卡磨损保护时会自动处理，见 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
 
 ## 存储路径
 

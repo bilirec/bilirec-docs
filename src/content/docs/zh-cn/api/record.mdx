@@ -48,7 +48,7 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 **注意：**
 
-- 录 4K / 杜比请显式传 `qn`（如 `qn=20000`、`qn=30000`）
+- 录 4K / 杜比建议显式传 `qn`（如 `qn=20000`、`qn=30000`）
 - `qn ≥ 20000` 时自动启用 `*_HIGH` 高画质内存池，一般无需改环境变量
 - 若遇卡顿或内存不足，参见 [高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/) 与 [内存占用估算](/zh-cn/configuration/memory-estimation/)
 

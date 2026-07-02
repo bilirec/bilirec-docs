@@ -20,7 +20,7 @@ import { Aside } from '@astrojs/starlight/components';
 `VIEWER_USERNAME` / `VIEWER_PASSWORD` 提供只讀帳號，寫操作仍需 admin 角色。
 
 <Aside type="caution">
-暴露到公網（如啟用 FRP）後**務必**設定 `USERNAME` 和 `PASSWORD`。未設定時 API 完全公開存取。
+暴露到公網（如啟用 FRP）後，**建議**設定 `USERNAME` 和 `PASSWORD`。未設定時 API 完全公開存取。
 </Aside>
 
 ## 運行模式
@@ -40,10 +40,10 @@ import { Aside } from '@astrojs/starlight/components';
 | `false`（預設） | 本機 `localhost` / `127.0.0.1` |
 | `true` | 通過 [app.bilirec.org](https://app.bilirec.org/) 連接遠端 HTTPS 後端（[FRP](/zh-tw/guides/frp/)、自架域名、Nginx 反代等） |
 
-[app.bilirec.org](https://app.bilirec.org/) 和你的後端地址是兩個不同網站——**不限於 FRP**，自架 API 也一樣。遠端管理時必須開 `PRODUCTION_MODE=true`，瀏覽器才能正常記住登入狀態；否則介面可能反覆提示「會話已過期」。
+[app.bilirec.org](https://app.bilirec.org/) 和你的後端地址是兩個不同網站——**不限於 FRP**，自架 API 也一樣。遠端管理時建議開啟 `PRODUCTION_MODE=true`，瀏覽器才能正常記住登入狀態；否則介面可能反覆提示「會話已過期」。
 
 <Aside type="caution">
-通過 app.bilirec.org 管理遠端後端（FRP 或自架 HTTPS）時，請設定 `PRODUCTION_MODE=true` 並將 `FRONTEND_URL` 設為 `https://app.bilirec.org`。若仍反覆提示會話過期，請到瀏覽器設定裡**允許第三方 Cookie**（或將 `app.bilirec.org` 與後端域名加入例外）——管理頁和後端是不同網站，部分瀏覽器預設會攔。
+通過 app.bilirec.org 管理遠端後端（FRP 或自架 HTTPS）時，建議設定 `PRODUCTION_MODE=true` 並將 `FRONTEND_URL` 設為 `https://app.bilirec.org`。若仍反覆提示會話過期，可到瀏覽器設定裡**允許第三方 Cookie**（或將 `app.bilirec.org` 與後端域名加入例外）——管理頁和後端是不同網站，部分瀏覽器預設會攔。
 </Aside>
 
 **推薦（app.bilirec.org + 遠端 HTTPS 後端）：**
@@ -56,7 +56,7 @@ export JWT_SECRET=一個固定的長隨機字符串
 export FRONTEND_URL=https://app.bilirec.org
 ```
 
-`JWT_SECRET` 請在首次部署時設定並長期保持不變；若重啟後改了密鑰，需要重新登入。
+`JWT_SECRET` 建議在首次部署時設定並長期保持不變；若重啟後改了密鑰，需要重新登入。
 
 ## B 站登入
 

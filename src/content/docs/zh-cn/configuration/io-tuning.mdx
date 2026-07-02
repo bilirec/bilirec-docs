@@ -101,7 +101,7 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 
 - 冷释放会先让已写好的旧数据落盘，再释放缓存；长录时会带来**有节奏的额外写回**，但默认间隔 60 秒、且每次只处理「冷」前缀，通常比「全程周期性整文件落盘」温和。
 - 若你**更在意卡寿命、内存又够用**，可把 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 设为 `0`，只靠关档时释放；代价是长录时监控内存可能更高。
-- 若你**更在意断电安全**，应开 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`（写卡更勤； 连带 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS > 0` 后冷前缀会在每次整文件落盘成功后一并释放）。
+- 若你**更在意断电安全**，可考虑开启 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS`（写卡更勤； 连带 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS > 0` 后冷前缀会在每次整文件落盘成功后一并释放）。
 
 **失败时你会看到什么：**
 
@@ -130,7 +130,7 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 | `DROP_FILE_PAGE_CACHE` | 关档或转码成功后释放整份文件缓存（仅 Linux/Android） | `true` |
 
 - **`SKIP_SMALL_FLUSH`** — 对几分钟就下播的低码率流特别有用：不到 1MB 不写文件，减少空文件和无效写盘
-- **`SEQUENTIAL_WRITE`** — 多路录到**同一张** microSD / 机械盘时建议保持开启：你会感觉到磁盘峰值更平稳；SSD 上可关闭以追求更高并发。开启后若提高同时录制路数，请同步调整 flush 周期，见上文 [多路录制与 flush 周期](#多路录制与-flush-周期)
+- **`SEQUENTIAL_WRITE`** — 多路录到**同一张** microSD / 机械盘时建议保持开启：你会感觉到磁盘峰值更平稳；SSD 上可关闭以追求更高并发。提高同时录制路数时，建议同步调整 flush 周期，见上文 [多路录制与 flush 周期](#多路录制与-flush-周期)
 - **`DROP_FILE_PAGE_CACHE`** — 关档/转码后释放文件缓存；默认已开。播放或下载结束后，按 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 空闲等待后释放该文件缓存（未配置或 `0` 时播放侧仍用默认 **60** 秒，仅关闭录制中冷释放）。与录制中的冷缓存释放配合，可压低监控曲线。**代价**：刚录完或停播后立刻再播可能要从磁盘重读，略慢。长时间连续播放时缓存仍可能上涨（计时会被新请求重置）。详见 [常见问题](/zh-cn/guides/faq/#在线播放或下载后监控内存一直很高)
 
 针对不同硬件的推荐配置见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[内存占用估算](/zh-cn/configuration/memory-estimation/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。

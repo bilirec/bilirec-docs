@@ -5,34 +5,56 @@ description: 機械硬碟與 DIY NAS 環境下的 I/O 設定方案
 
 import { Aside } from '@astrojs/starlight/components';
 
-機械硬碟最怕**磁頭來回找位置**。多路同時寫很多小檔案時，NAS 容易卡頓。調參核心是：**一次寫大一點**、**多路輪流寫**。
+機械硬碟最怕**磁頭來回找位置**。多路同時寫盤、寫盤過勤時，NAS 容易卡頓。程式預設已偏向機械盤友好（`SEQUENTIAL_WRITE=true`、8 MB 合併緩衝等），多數情況**保持預設即可**。
 
 ## 推薦設定
 
 ```bash
-export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45
-export LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0
-export DROP_FILE_PAGE_CACHE=false
-export SKIP_SMALL_FLUSH=false
 export SEQUENTIAL_WRITE=true
-export LIVE_STREAM_WRITER_BUFFER_SIZE=16777216
-export LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=25
-export MAX_CONCURRENT_RECORDINGS=5
+export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0
 ```
 
 | 參數 | 調整 | 你會注意到什麼 |
 |------|------|----------------|
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=45` | 適當拉長整檔案落盤間隔 | 減少打斷順序寫入；`COLD=0` 時 整檔案落盤 後不會釋放頁緩存 |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | NAS 記憶體通常更大，回放更順 |
-| `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
-| `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤 |
-| `SEQUENTIAL_WRITE=true` | 多路輪流寫盤 | 磁頭尋道更少，多路更穩 |
-| `LIVE_STREAM_WRITER_BUFFER_SIZE=16MB` | 單次寫入更大 | 檔案在盤上更連續 |
-| `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=25` | 與 5 路、`SEQUENTIAL_WRITE=true` 配套 | 每路寫盤間隔與預設 3 路時接近 |
-| `MAX_CONCURRENT_RECORDINGS=5` | 適度並發 | 視硬盤轉速與記憶體調整；路數再提高時請同步調整 flush 週期，見 [I/O 調優](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期) |
+| `SEQUENTIAL_WRITE=true` | 沿用預設 | 多路輪流寫盤，磁頭尋道更少；與 [SSD 調優](/zh-tw/configuration/ssd-tuning/) 相反 |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0` | 沿用預設 | 錄製中不反覆整檔案落盤，順序寫更少被打斷；關檔時仍會完整保存 |
+
+有 UPS、更在意斷電丟數據時，可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 改為 `30`～`60`，代價是週期性落盤更勤。
+
+## 多路錄製與 flush 週期
+
+`SEQUENTIAL_WRITE=true` 時，多路錄製共享一個寫盤輪次。`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 表示**所有在錄路徑走完一輪寫盤**的時長；每路實際間隔約為 `週期 ÷ 當前在錄路數`。預設 3 路、15 秒週期時，每路大約每 5 秒輪到一次寫盤。
+
+調高 `MAX_CONCURRENT_RECORDINGS` 卻**不**同步拉長 flush 週期時，每路寫盤會更勤，機械盤上更容易感到週期性卡頓或 CPU 尖峰。建議按路數同比例放大週期，使每路間隔與預設 3 路時接近：
+
+| 同時錄製路數 | 建議 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` |
+| ------------ | ------------------------------------------- |
+| 3（預設）    | `15`                                        |
+| 5            | `25`                                        |
+| 6            | `30`                                        |
+| 8            | `40`                                        |
+| 10           | `45`（可視為常用上限）                      |
+
+計算式：`15 × 路數 ÷ 3`，結果夾在 `15`～`45` 秒之間。更多背景見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。
+
+`LIVE_STREAM_WRITER_BUFFER_SIZE` 預設 **8 MB**，1080p 約每 14 秒攢滿寫一次，對機械盤通常已夠用。磁碟仍明顯週期性卡頓時，可在確認容器記憶體有餘量後再酌情調大；每加大 4～8 MB，每路程式緩衝隨之上升。
+
+## 記憶體與頁緩存
+
+NAS 往往比樹莓派有更多記憶體，可根據 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 與容器 limit，**按自身情況酌情調大**路數、合併緩衝或頁緩存策略。本節各項都會**明顯增加記憶體佔用**：前幾項抬的是程式緩衝，後幾項還會讓系統**長期保留檔案頁緩存**，容器監控曲線可能遠高於程式本身佔用。
+
+| 參數 | 預設 | 說明 |
+|------|------|------|
+| `MAX_CONCURRENT_RECORDINGS` | `3` | 每加一路，程式緩衝約線性 +49 MB（1080p 預設緩衝）；調大後配合同上 flush 表 |
+| `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 每路合併緩衝；加大 4～8 MB 即每路多佔相應程式記憶體，見上一節 |
+| `SKIP_SMALL_FLUSH` | `true` | 沿用預設即可：延遲建檔案（攢夠 1 MB），正常直播仍走 8 MB 合併緩衝；改為 `false` 僅當必須保留不足 1 MB 的場次 |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 設為 `0` 時，長錄期間**頁緩存明顯累積**，監控曲線會顯著升高，但回放更順 |
+| `DROP_FILE_PAGE_CACHE` | `true` | 設為 `false` 時，關檔後仍保留整份檔案緩存，**記憶體佔用明顯上升**；常與上項搭配 |
+
+`COLD_CACHE_RELEASE` 與 `DROP_FILE_PAGE_CACHE` 對監控數字的影響通常大於單純加大路數或 `BUFFER_SIZE`，NAS 記憶體充裕且更在意錄完立刻播放時可考慮調整。
 
 <Aside type="tip">
 **混合部署建議：**
-- **ZFS 檔案系統：** 可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0` 或 `60`，少做應用層反覆落盤
+- **ZFS 檔案系統：** 可考慮保持 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`，少做應用層反覆落盤
 - **與私有云服務共存：** 若硬盤同時跑 Cloudreve、影音庫等，建議保持 `SEQUENTIAL_WRITE=true`，避免多服務搶磁頭
 </Aside>

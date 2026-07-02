@@ -13,7 +13,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你会看到：** 一启动就退出，日志里提到 FRP 或 HTTPS 配置不对。
 
-**为什么：** 内网穿透连回本机的协议，必须和你本机是否开 HTTPS 一致。两边开关对不上，程序会拒绝启动，避免连上却用不了。
+**为什么：** 内网穿透连回本机的协议，需与你本机是否开 HTTPS 一致。两边开关对不上，程序会拒绝启动，避免连上却用不了。
 
 **你可以：**
 1. 若本机**没有**配证书，内网穿透用 HTTP 方式连回来（常见家用场景）。
@@ -24,7 +24,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你会看到：** 日志里写「无效的 FRP_SERVER 格式」，或隧道一直连不上。
 
-**为什么：** 地址一般应写成 `主机名或IP:端口`，例如 `tunnel.bilirec.org:7000`。只写域名时，程序会默认用 7000 端口；不要写成带 `http://` 的网址。
+**为什么：** 地址一般宜写成 `主机名或IP:端口`，例如 `tunnel.bilirec.org:7000`。只写域名时，程序会默认用 7000 端口；带 `http://` 的网址可能无法正确解析。
 
 **你可以：** 改成 `地址:端口` 后重启；自架 FRP 时还要填好 Token（见下一条）。
 
@@ -78,7 +78,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你会看到：** 日志里和「公开地址」「预签名」有关的错误。
 
-**为什么：** 云端要回来拉你的文件，需要填一个**能从外网访问到的完整网址**（`PUBLIC_BASE_URL`），不能留空或只写内网地址。
+**为什么：** 云端要回来拉你的文件，需要填一个**能从外网访问到的完整网址**（`PUBLIC_BASE_URL`）；留空或只写内网地址时，CloudConvert 无法拉取文件。
 
 **你可以：** 在配置里设好对外的 `http://` 或 `https://` 地址，或改用本机 ffmpeg 转小文件。见 [转换配置](/zh-cn/configuration/conversion/)。
 
@@ -93,7 +93,7 @@ import { Aside } from '@astrojs/starlight/components';
 **你可以：**
 1. 后端跑在本机时，用 `http://localhost:8080` 或 `http://127.0.0.1:8080`。
 2. 检查浏览器是否打开了本地网络访问权限或者浏览器是否支持局域网访问。
-3. 后端在局域网另一台机器上时，需要给后端配 **HTTPS**，或在同一台机器上用浏览器打开管理页，不能指望 HTTPS 的 app.bilirec.org 直接连家里的 HTTP 地址。
+3. 后端在局域网另一台机器上时，需要给后端配 **HTTPS**，或在同一台机器上用浏览器打开管理页；HTTPS 的 app.bilirec.org 无法直接连家里的 HTTP 地址。
 
 ### 用 app.bilirec.org 连远程后端，一直提示「会话已过期」？
 
@@ -126,7 +126,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你会看到：** 换到 SD 卡路径后，录制或界面变卡。
 
-**为什么：** 外置 SD 通常比手机内置存储慢。若输出路径在 microSD 卡上，请在 App **存储策略**里开启 **microSD 卡磨损保护**。
+**为什么：** 外置 SD 通常比手机内置存储慢。若输出路径在 microSD 卡上，建议在 App **存储策略**里开启 **microSD 卡磨损保护**。
 
 **你可以：** 在 App 的存储相关设置里按需开关；追求速度可改回内置存储。见 [Android 指南](/zh-cn/guides/android/) 与 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
 
@@ -139,7 +139,7 @@ import { Aside } from '@astrojs/starlight/components';
 **你可以：**
 1. 按 App 提示**关闭电池优化**、允许通知（前台服务需要）。
 2. 若选了外置存储路径，按提示授予存储权限。
-3. 尽量别让系统「清理后台」。见 [Android 指南](/zh-cn/guides/android/)。
+3. 建议避免让系统「清理后台」。见 [Android 指南](/zh-cn/guides/android/)。
 
 ### 用 bilirec-mobile 打开 PWA 后，连不上本机后端？
 
@@ -172,7 +172,7 @@ import { Aside } from '@astrojs/starlight/components';
 | **写盘 / flush 尖峰** | 正在录制时周期性冲高；microSD、机械盘更明显 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 适当加大合并缓冲、拉长 flush 间隔；**保持** `SYNC_PERIOD=0`（开周期性整文件落盘会更吃 CPU） |
 | **多路抢同一张盘** | 多路同时录到同一张 SD / HDD 时尖峰叠加 | `SEQUENTIAL_WRITE` | 同一张卡上多路录制时保持 `true`（Android 输出到 microSD 时在 App 开启 **microSD 卡磨损保护**） |
 | **订阅开播轮询** | **闲置**时大约每隔固定秒数有小尖峰 | `SUBCHECK_ROOMS_PER_SHARD`<br />`SUBCHECK_MIN_INTERVAL_SECS` | 默认已按订阅规模自动调度；仍偏高可略增大每组房间数或周期下限 |
-| **后台转码** | 转码任务进行中 CPU 持续偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 尽量不要边录边转；并发转码保持 `1`；详见 [转换配置](/zh-cn/configuration/conversion/) |
+| **后台转码** | 转码任务进行中 CPU 持续偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 建议避免边录边转；并发转码可保持 `1`；详见 [转换配置](/zh-cn/configuration/conversion/) |
 
 **你可以：**
 1. 树莓派 + microSD：从 [I/O 调优](/zh-cn/configuration/io-tuning/) 与 [树莓派默认配置](/zh-cn/configuration/pi5-defaults/) 调整写盘相关项。

@@ -78,4 +78,4 @@ tableOfContents: false
 | `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁碟時建議開啟。SSD 可關閉以提升並發。啟用之後 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 會成為一個完整寫盤週期，每路寫盤間隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同時錄製路數` 計算 | `true` |
 | `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁碟空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
 
-各分類的詳細說明請參閱對應專題頁面。訂閱檢查調度邏輯見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
+各分類的詳細說明可參考對應專題頁面。訂閱檢查調度邏輯見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。

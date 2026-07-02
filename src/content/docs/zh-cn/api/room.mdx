@@ -116,4 +116,4 @@ Content-Type: application/json
 
 `record_duration_minutes`：`0`=系统预设，`-1`=无限，正整数=N 分钟。仅在 `auto_record: true` 时生效。
 
-若希望手动录制也使用该时长，请在 `POST /record/:roomID/start` 时显式传入 `duration_minutes`；否则手动录制仍按系统预设或本次请求参数执行。
+若希望手动录制也使用该时长，可在 `POST /record/:roomID/start` 时显式传入 `duration_minutes`；否则手动录制仍按系统预设或本次请求参数执行。

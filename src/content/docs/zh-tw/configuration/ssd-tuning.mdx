@@ -5,30 +5,46 @@ description: 固態硬碟環境下的 I/O 設定方案
 
 import { Aside } from '@astrojs/starlight/components';
 
-SSD 隨機讀寫很快，不必像 microSD 那樣擔心小塊寫入磨損；預設的「多路輪流寫盤」反而會限制 SSD 並發優勢。
+SSD 隨機讀寫很快，不必像 microSD 那樣擔心小塊寫入磨損。預設的「多路輪流寫盤」反而會限制 SSD 並發優勢，多數情況只需關掉 `SEQUENTIAL_WRITE` 並酌情調整落盤策略。
 
 ## 推薦設定
 
 ```bash
-export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30
-export LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0
-export DROP_FILE_PAGE_CACHE=false
-export SKIP_SMALL_FLUSH=false
 export SEQUENTIAL_WRITE=false
-export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128
-export MAX_CONCURRENT_RECORDINGS=10
+export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30
 ```
 
 | 參數 | 調整 | 你會注意到什麼 |
 |------|------|----------------|
-| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30` | 錄製中定期整檔案落盤 | 斷電少丟數據；僅當 `COLD_CACHE_RELEASE_SECS>0` 時 整檔案落盤 後才會順帶釋放冷前綴 |
-| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS=0` | 關閉錄製中清理檔案緩存 | 監控數字可能略高，但錄完立刻播放更快 |
-| `DROP_FILE_PAGE_CACHE=false` | 關檔時不釋放檔案緩存 | 錄完立刻播放更快 |
-| `SKIP_SMALL_FLUSH=false` | 不跳過極短直播保護 | 更早上盤，檔案更完整 |
-| `SEQUENTIAL_WRITE=false` | 允許多路同時寫盤 | SSD 多路並發更順暢 |
-| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=128` | 加大寫盤前排隊 | 更能扛網路突發，記憶體佔用上升 |
-| `MAX_CONCURRENT_RECORDINGS=10` | 放寬同時錄製路數 | 視 CPU 與記憶體調整 |
+| `SEQUENTIAL_WRITE=false` | 關閉多路輪流寫盤 | 多路可同時寫盤，SSD 並發更順暢；與 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/) 相反 |
+| `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=30` | 錄製中定期整檔案落盤 | 斷電少丟數據；僅當 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS>0` 時，整檔案落盤後才會順帶釋放冷前綴 |
+
+使用 ZFS 等自帶大塊緩存的檔案系統、或更在意寫入吞吐時，可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0`，減少應用層反覆落盤。
+
+## 多路錄製與 flush 週期
+
+`SEQUENTIAL_WRITE=false` 時，各路**獨立**寫盤，一般**不必**像機械盤那樣按路數同比例拉長 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（預設 `15` 秒通常即可）。瓶頸更多在 CPU 與程式緩衝記憶體，而非磁碟尋道。
+
+SSD 上常把 `MAX_CONCURRENT_RECORDINGS` 提高到 `6`～`10`，但每加一路程式緩衝記憶體都會上升。建議先按 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 規劃容器 limit，再酌情調大路數。flush 機制說明見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。
+
+`LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` 預設 **64**，單路寫盤排隊約 32 MB。網路波動大、偶發掉幀時，可提到 `128` 以更能扛突發；每路寫盤排隊記憶體約翻倍，加大前確認容器餘量。
+
+## 記憶體與頁緩存
+
+SSD 環境常需更高並發與更深排隊，可根據 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 與容器 limit，**按自身情況酌情調大**路數、寫盤排隊或頁緩存策略。本節各項都會**明顯增加記憶體佔用**：前幾項抬的是程式緩衝，後幾項還會讓系統**長期保留檔案頁緩存**，容器監控曲線可能遠高於程式本身佔用。
+
+| 參數 | 預設 | 說明 |
+|------|------|------|
+| `MAX_CONCURRENT_RECORDINGS` | `3` | 每加一路，程式緩衝約線性 +49 MB（1080p 預設緩衝）；SSD 上常見 `6`～`10`，調大前對照估算公式 |
+| `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE` | `64` | 提到 `128` 時單路寫盤排隊約翻倍（見上一節） |
+| `SKIP_SMALL_FLUSH` | `true` | 改為 `false` 時極短直播也會建檔案；對 SSD 磨損影響很小，更在意完整性時可考慮 |
+| `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 設為 `0` 時，長錄期間**頁緩存明顯累積**，監控曲線會顯著升高，但回放更順 |
+| `DROP_FILE_PAGE_CACHE` | `true` | 設為 `false` 時，關檔後仍保留整份檔案緩存，**記憶體佔用明顯上升**；常與上項搭配 |
+
+`COLD_CACHE_RELEASE` 與 `DROP_FILE_PAGE_CACHE` 對監控數字的影響通常大於單純加大路數或 `CHAN_BUFFER_SIZE`，記憶體充裕且更在意錄完立刻播放時可考慮調整。
 
 <Aside type="tip">
-若底層使用 ZFS 等自帶大塊緩存的檔案系統，可把 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0` 或 `60`，減少應用層反覆落盤。
+**混合部署建議：**
+- **ZFS 檔案系統：** 可將 `LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` 設為 `0`，少做應用層反覆落盤
+- **與同盤其他服務共存：** `SEQUENTIAL_WRITE=false` 時多路寫盤更並發，注意與同盤影音庫、備份等任務分攤 I/O
 </Aside>

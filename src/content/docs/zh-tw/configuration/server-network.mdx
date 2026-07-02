@@ -27,7 +27,7 @@ export SERVER_KEY=/path/to/server.key
 ```
 
 <Aside type="caution">
-啟用 FRP 且 `FRP_HTTPS=true` 時，必須同時設定 `SERVER_CRT` + `SERVER_KEY`，否則協議不匹配導致 FRP 無法工作。詳見 [FRP 設定](/zh-tw/configuration/frp/)。
+啟用 FRP 且 `FRP_HTTPS=true` 時，建議同時設定 `SERVER_CRT` + `SERVER_KEY`，否則協議不匹配可能導致 FRP 無法工作。詳見 [FRP 設定](/zh-tw/configuration/frp/)。
 </Aside>
 
 ## 反向代理
@@ -42,4 +42,4 @@ export SERVER_KEY=/path/to/server.key
 
 `FRONTEND_URL` 設為 `https://app.bilirec.org` 時，表示允許該管理頁跨域存取你的 API。若通過 app.bilirec.org 管理自架 HTTPS 後端，還需開啟 `PRODUCTION_MODE=true`，詳見 [認證與安全](/zh-tw/configuration/auth-security/#何時需要生產模式)。
 
-`PUBLIC_BASE_URL` 必須包含 `http://` 或 `https://` 前綴，為空時預簽名 URL 回退為相對地址。
+`PUBLIC_BASE_URL` 建議包含 `http://` 或 `https://` 前綴，為空時預簽名 URL 回退為相對地址。
