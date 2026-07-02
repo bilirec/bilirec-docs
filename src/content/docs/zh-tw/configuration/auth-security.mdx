@@ -40,10 +40,12 @@ import { Aside } from '@astrojs/starlight/components';
 | `false`（預設） | 本機 `localhost` / `127.0.0.1` |
 | `true` | 通過 [app.bilirec.org](https://app.bilirec.org/) 連接遠端 HTTPS 後端（[FRP](/zh-tw/guides/frp/)、自架域名、Nginx 反代等） |
 
-[app.bilirec.org](https://app.bilirec.org/) 和你的後端地址是兩個不同網站——**不限於 FRP**，自架 API 也一樣。遠端管理時建議開啟 `PRODUCTION_MODE=true`，瀏覽器才能正常記住登入狀態；否則介面可能反覆提示「會話已過期」。
+[app.bilirec.org](https://app.bilirec.org/) 和你的後端地址是兩個不同網址——**不限於 FRP**，自架 API 也一樣。遠端管理時建議開啟 `PRODUCTION_MODE=true`，瀏覽器才能正常記住登入狀態；否則介面可能反覆提示「會話已過期」。
 
 <Aside type="caution">
-通過 app.bilirec.org 管理遠端後端（FRP 或自架 HTTPS）時，建議設定 `PRODUCTION_MODE=true` 並將 `FRONTEND_URL` 設為 `https://app.bilirec.org`。若仍反覆提示會話過期，可到瀏覽器設定裡**允許第三方 Cookie**（或將 `app.bilirec.org` 與後端域名加入例外）——管理頁和後端是不同網站，部分瀏覽器預設會攔。
+通過 app.bilirec.org 管理遠端後端時，建議 `PRODUCTION_MODE=true` 且 `FRONTEND_URL=https://app.bilirec.org`。與 `*.tunnel.bilirec.org` 同屬 `bilirec.org` 根域名，**通常不必**為了登入去允許第三方 Cookie。
+
+若你[自架前端](/zh-tw/development/web/)（如 `https://bilirec.example.com`）並連接**根域名不同**的後端（如 FRP 的 `https://xxx.tunnel.bilirec.org`），除 `PRODUCTION_MODE=true` 與正確的 `FRONTEND_URL` 外，可能還需在瀏覽器**允許第三方 Cookie**。詳見 [遠端存取 — 根域名是否相同](/zh-tw/guides/frp/#根域名是否相同)。
 </Aside>
 
 **推薦（app.bilirec.org + 遠端 HTTPS 後端）：**

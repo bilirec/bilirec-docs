@@ -47,7 +47,7 @@ export FRP_ENABLED=true
 - 刚进主界面几秒，又弹出「会话已过期，请重新登录」
 - 反复登录仍一样
 
-部分浏览器的隐私设置较严，也会拦下登录状态，表现相同。
+部分浏览器的隐私设置较严，在**特定组合**下也会拦下登录状态（见下文「根域名是否相同」）。
 
 **推荐配置（通过 app.bilirec.org 连接远程 HTTPS 后端时）：**
 
@@ -61,15 +61,24 @@ export FRONTEND_URL=https://app.bilirec.org
 
 若使用 FRP，再加上 `export FRP_ENABLED=true`。改完后**重启 bilirec**，在登录页填入**当前**的后端地址再登录（FRP 每次重启子域名可能变化）。
 
-**若仍登录不上**，还可以在浏览器里**允许第三方 Cookie**（管理页和后端是不同网站，部分浏览器默认会拦）：
+### 根域名是否相同
+
+管理页和后端是否属于**同一个根域名**（例如都是 `bilirec.org` 旗下），决定了除 `PRODUCTION_MODE=true` 外，是否还要处理浏览器的第三方 Cookie 限制：
+
+| 管理页 | 后端（FRP 等） | 根域名 | 一般还需允许第三方 Cookie？ |
+|--------|----------------|--------|---------------------------|
+| [app.bilirec.org](https://app.bilirec.org/) | `https://xxx.tunnel.bilirec.org` | 同为 `bilirec.org` | **通常不需要** — 即使浏览器封锁第三方 Cookie，登录也大多正常 |
+| 自架前端，如 `https://bilirec.example.com` | `https://xxx.tunnel.bilirec.org` 或其它不同根域名的地址 | **不同**（如 `example.com` 与 `bilirec.org`） | **往往需要** — 浏览器会把后端的登录状态当作「第三方」，默认可能拦下 |
+
+**自架前端 + 不同根域名后端**时，除 `PRODUCTION_MODE=true` 外，还须把后端的 `FRONTEND_URL` 设为**你的前端 HTTPS 地址**（不能仍写 `app.bilirec.org`）。若仍登录不上，再到浏览器里**允许第三方 Cookie**，或将前端与后端域名加入例外：
 
 | 浏览器 | 大致路径 |
 |--------|---------|
-| Chrome / Edge | 设置 → 隐私和安全 → 第三方 Cookie → 选择「允许第三方 Cookie」，或将 `app.bilirec.org` 与你的**后端域名**（如 `tunnel.bilirec.org`、`api.example.com`）加入允许名单 |
-| Firefox | 设置 → 隐私与安全 → 在「增强型跟踪保护」中为 `app.bilirec.org` 关闭保护，或放宽 Cookie 限制 |
-| Safari（iOS / macOS） | 设置 → Safari → 关闭「阻止跨站跟踪」，或在访问 `app.bilirec.org` 时允许该网站使用 Cookie |
+| Chrome / Edge | 设置 → 隐私和安全 → 第三方 Cookie → 选择「允许第三方 Cookie」，或将**前端域名**与**后端域名**加入允许名单 |
+| Firefox | 设置 → 隐私与安全 → 在「增强型跟踪保护」中为前端域名关闭保护，或放宽 Cookie 限制 |
+| Safari（iOS / macOS） | 设置 → Safari → 关闭「阻止跨站跟踪」，或在前端站点允许 Cookie |
 
-自架后端时，把域名换成你实际使用的地址。改完浏览器设置后，重新打开管理页再登录一次。
+改完浏览器设置后，重新打开管理页再登录一次。
 
 本机开发（`http://localhost:8080`）不受此影响。详见 [认证与安全 — 生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式) 与 [常见问题](/zh-cn/guides/faq/#用-appbilirecorg-连远程后端一直提示会话过期)。
 

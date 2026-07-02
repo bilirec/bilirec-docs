@@ -40,10 +40,12 @@ import { Aside } from '@astrojs/starlight/components';
 | `false`（默认） | 本机 `localhost` / `127.0.0.1` |
 | `true` | 通过 [app.bilirec.org](https://app.bilirec.org/) 连接远程 HTTPS 后端（[FRP](/zh-cn/guides/frp/)、自架域名、Nginx 反代等） |
 
-[app.bilirec.org](https://app.bilirec.org/) 和你的后端地址是两个不同网站——**不限于 FRP**，自架 API 也一样。远程管理时建议开启 `PRODUCTION_MODE=true`，浏览器才能正常记住登录状态；否则界面可能反复提示「会话已过期」。
+[app.bilirec.org](https://app.bilirec.org/) 和你的后端地址是两个不同网址——**不限于 FRP**，自架 API 也一样。远程管理时建议开启 `PRODUCTION_MODE=true`，浏览器才能正常记住登录状态；否则界面可能反复提示「会话已过期」。
 
 <Aside type="caution">
-通过 app.bilirec.org 管理远程后端（FRP 或自架 HTTPS）时，建议设置 `PRODUCTION_MODE=true` 并将 `FRONTEND_URL` 设为 `https://app.bilirec.org`。若仍反复提示会话过期，可到浏览器设置里**允许第三方 Cookie**（或将 `app.bilirec.org` 与后端域名加入例外）——管理页和后端是不同网站，部分浏览器默认会拦。
+通过 app.bilirec.org 管理远程后端时，建议 `PRODUCTION_MODE=true` 且 `FRONTEND_URL=https://app.bilirec.org`。与 `*.tunnel.bilirec.org` 同属 `bilirec.org` 根域名，**通常不必**为了登录去允许第三方 Cookie。
+
+若你[自架前端](/zh-cn/development/web/)（如 `https://bilirec.example.com`）并连接**根域名不同**的后端（如 FRP 的 `https://xxx.tunnel.bilirec.org`），除 `PRODUCTION_MODE=true` 与正确的 `FRONTEND_URL` 外，可能还需在浏览器**允许第三方 Cookie**。详见 [远程访问 — 根域名是否相同](/zh-cn/guides/frp/#根域名是否相同)。
 </Aside>
 
 **推荐（app.bilirec.org + 远程 HTTPS 后端）：**

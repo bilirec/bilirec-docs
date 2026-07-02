@@ -99,12 +99,14 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你会看到：** 账号密码明明正确，登录后刚进主界面几秒就弹出「会话已过期，请重新登录」；怎么重登都一样。后端本身可能一直正常。
 
-**为什么：** [app.bilirec.org](https://app.bilirec.org/) 和你的后端地址（FRP 的 `https://xxx.tunnel.bilirec.org`、自架的 `https://api.example.com` 等）是**两个不同网站**。默认配置下，浏览器往往记不住登录状态，界面会先显示成功，几秒后又让你重登。若使用 FRP 且 bilirec 重启过，子域名可能已变，旧地址上的登录也会失效。
+**为什么：** [app.bilirec.org](https://app.bilirec.org/) 和你的后端地址（FRP 的 `https://xxx.tunnel.bilirec.org`、自架的 `https://api.example.com` 等）是**两个不同网址**。默认配置下，浏览器往往记不住登录状态，界面会先显示成功，几秒后又让你重登。若使用 FRP 且 bilirec 重启过，子域名可能已变，旧地址上的登录也会失效。
+
+**根域名不同时**（例如自架前端 `https://bilirec.example.com` 连 FRP 的 `https://xxx.tunnel.bilirec.org`），浏览器还可能把登录状态当作第三方 Cookie 拦下；**app.bilirec.org 连 `*.tunnel.bilirec.org` 同属 `bilirec.org`，一般不会有这个问题**，优先检查 `PRODUCTION_MODE` 即可。
 
 **你可以：**
-1. 在后端设置 `PRODUCTION_MODE=true`，并配置 `USERNAME`、`PASSWORD`、固定的 `JWT_SECRET` 与 `FRONTEND_URL=https://app.bilirec.org`，然后重启 bilirec。
+1. 在后端设置 `PRODUCTION_MODE=true`，并配置 `USERNAME`、`PASSWORD`、固定的 `JWT_SECRET`；`FRONTEND_URL` 填你实际使用的管理页地址（官方页用 `https://app.bilirec.org`，自架前端填你的 HTTPS 域名），然后重启 bilirec。
 2. 在登录页填入**当前**的后端地址（FRP 每次重启子域名可能变化；自架域名一般不变）。
-3. 在浏览器里**允许第三方 Cookie**——管理页和后端是两个网站，浏览器若默认拦截，登录状态就存不住。Chrome / Edge 可在「设置 → 隐私和安全 → 第三方 Cookie」里允许，或将 `app.bilirec.org` 与你的后端域名加入例外；Safari 可关闭「阻止跨站跟踪」；Firefox 可在隐私设置里对 `app.bilirec.org` 放宽限制。
+3. **仅当前端与后端根域名不同**（自架前端 + FRP 等）且仍登录不上时：在浏览器里**允许第三方 Cookie**，或将前端与后端域名加入例外。Chrome / Edge：「设置 → 隐私和安全 → 第三方 Cookie」；Safari：关闭「阻止跨站跟踪」；Firefox：对前端域名放宽隐私保护。
 4. 本机 `localhost` 开发不受此影响，无需改 `PRODUCTION_MODE`。
 
 详见 [远程访问（FRP）— 通过 app.bilirec.org 登录](/zh-cn/guides/frp/#通过-appbilirecorg-登录)（自架 HTTPS 后端同样适用）与 [认证与安全](/zh-cn/configuration/auth-security/#何时需要生产模式)。

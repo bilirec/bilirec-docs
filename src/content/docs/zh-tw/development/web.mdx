@@ -125,6 +125,7 @@ pnpm preview  # 本地預覽生產建置
 | 事項 | 說明 |
 |------|------|
 | 後端 `FRONTEND_URL` | 部署完成後，將 bilirec 後端的 `FRONTEND_URL` 設為你的前端 HTTPS 域名（CORS 與 Cookie 認證）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) |
+| 自架前端 + 不同根域名後端 | 若前端域名與後端（如 FRP 的 `*.tunnel.bilirec.org`）**根域名不同**，除 `PRODUCTION_MODE=true` 外，可能還需在瀏覽器允許第三方 Cookie。官方 `app.bilirec.org` 連 FRP 一般無此問題。見 [FRP — 根域名是否相同](/zh-tw/guides/frp/#根域名是否相同) |
 | 須使用 HTTPS | PWA 安裝與 Web Push 需要 HTTPS；自架 HTTPS 前端可連接局域網 HTTP 後端（官方 `app.bilirec.org` 僅允許連接本機 `localhost` / `127.0.0.1`） |
 | 與官方前端取捨 | `app.bilirec.org` 適合本機、Android 內嵌後端或 FRP HTTPS 隧道；自架前端適合自定義域名或需從 HTTPS 頁面連接局域網 HTTP 後端的場景 |
 | Fork 行為 | 按鈕會在你的 GitHub 創建倉庫 fork 並綁定 Workers Builds，後續 push 自動部署 |
