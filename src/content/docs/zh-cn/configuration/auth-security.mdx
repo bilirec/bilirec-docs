@@ -15,7 +15,7 @@ import { Aside } from '@astrojs/starlight/components';
 | `VIEWER_PASSWORD` | 只读访客密码 | (未设置) |
 | `JWT_SECRET` | JWT 签名密钥 | `bilirec_secret` |
 
-设置 `USERNAME` 和 `PASSWORD` 后，REST API 启用基于 JWT 的认证。登录通过 `POST /login` 获取 `jwtToken` cookie。
+设置 `USERNAME` 和 `PASSWORD` 后，访问 API 需要先登录。Web 管理页通过登录接口验证账号密码。
 
 `VIEWER_USERNAME` / `VIEWER_PASSWORD` 提供只读账号，写操作仍需 admin 角色。
 
@@ -28,10 +28,35 @@ import { Aside } from '@astrojs/starlight/components';
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `DEBUG` | 调试模式（详见 [开发与调试](/zh-cn/development/debugging/)） | `false` |
-| `PRODUCTION_MODE` | 生产模式（影响 cookie 与 CORS） | `false` |
+| `PRODUCTION_MODE` | 生产模式（远程登录时建议开启） | `false` |
 | `SILENT_ACCESS_LOG` | 静默访问日志（仅 4xx/5xx） | `false` |
 
 `DEBUG=true` 时在 `/debug/pprof` 挂载 pprof，需 Authorization 头填入启动日志中的十六进制令牌。详见[开发与调试](/zh-cn/development/debugging/)。
+
+### 何时需要生产模式
+
+| `PRODUCTION_MODE` | 适合场景 |
+|-------------------|---------|
+| `false`（默认） | 本机 `localhost` / `127.0.0.1` |
+| `true` | 通过 [app.bilirec.org](https://app.bilirec.org/) 连接远程 HTTPS 后端（[FRP](/zh-cn/guides/frp/)、自架域名、Nginx 反代等） |
+
+[app.bilirec.org](https://app.bilirec.org/) 和你的后端地址是两个不同网站——**不限于 FRP**，自架 API 也一样。远程管理时必须开 `PRODUCTION_MODE=true`，浏览器才能正常记住登录状态；否则界面可能反复提示「会话已过期」。
+
+<Aside type="caution">
+通过 app.bilirec.org 管理远程后端（FRP 或自架 HTTPS）时，请设置 `PRODUCTION_MODE=true` 并将 `FRONTEND_URL` 设为 `https://app.bilirec.org`。若仍反复提示会话过期，请到浏览器设置里**允许第三方 Cookie**（或将 `app.bilirec.org` 与后端域名加入例外）——管理页和后端是不同网站，部分浏览器默认会拦。
+</Aside>
+
+**推荐（app.bilirec.org + 远程 HTTPS 后端）：**
+
+```bash
+export PRODUCTION_MODE=true
+export USERNAME=admin
+export PASSWORD=你的强密码
+export JWT_SECRET=一个固定的长随机字符串
+export FRONTEND_URL=https://app.bilirec.org
+```
+
+`JWT_SECRET` 请在首次部署时设定并长期保持不变；若重启后改了密钥，需要重新登录。
 
 ## B 站登录
 

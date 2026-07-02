@@ -40,4 +40,6 @@ export SERVER_KEY=/path/to/server.key
 
 `TRUSTED_PROXIES` 默认值 `161.33.159.26` 为公共 FRP 服务 IP。使用 Nginx 等反向代理时，将代理 IP 加入此列表。
 
+`FRONTEND_URL` 设为 `https://app.bilirec.org` 时，表示允许该管理页跨域访问你的 API。若通过 app.bilirec.org 管理自架 HTTPS 后端，还需开启 `PRODUCTION_MODE=true`，详见 [认证与安全](/zh-cn/configuration/auth-security/#何时需要生产模式)。
+
 `PUBLIC_BASE_URL` 必须包含 `http://` 或 `https://` 前缀，为空时预签名 URL 回退为相对地址。

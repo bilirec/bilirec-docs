@@ -95,6 +95,20 @@ import { Aside } from '@astrojs/starlight/components';
 2. 检查浏览器是否打开了本地网络访问权限或者浏览器是否支持局域网访问。
 3. 后端在局域网另一台机器上时，需要给后端配 **HTTPS**，或在同一台机器上用浏览器打开管理页，不能指望 HTTPS 的 app.bilirec.org 直接连家里的 HTTP 地址。
 
+### 用 app.bilirec.org 连远程后端，一直提示「会话已过期」？
+
+**你会看到：** 账号密码明明正确，登录后刚进主界面几秒就弹出「会话已过期，请重新登录」；怎么重登都一样。后端本身可能一直正常。
+
+**为什么：** [app.bilirec.org](https://app.bilirec.org/) 和你的后端地址（FRP 的 `https://xxx.tunnel.bilirec.org`、自架的 `https://api.example.com` 等）是**两个不同网站**。默认配置下，浏览器往往记不住登录状态，界面会先显示成功，几秒后又让你重登。若使用 FRP 且 bilirec 重启过，子域名可能已变，旧地址上的登录也会失效。
+
+**你可以：**
+1. 在后端设置 `PRODUCTION_MODE=true`，并配置 `USERNAME`、`PASSWORD`、固定的 `JWT_SECRET` 与 `FRONTEND_URL=https://app.bilirec.org`，然后重启 bilirec。
+2. 在登录页填入**当前**的后端地址（FRP 每次重启子域名可能变化；自架域名一般不变）。
+3. 在浏览器里**允许第三方 Cookie**——管理页和后端是两个网站，浏览器若默认拦截，登录状态就存不住。Chrome / Edge 可在「设置 → 隐私和安全 → 第三方 Cookie」里允许，或将 `app.bilirec.org` 与你的后端域名加入例外；Safari 可关闭「阻止跨站跟踪」；Firefox 可在隐私设置里对 `app.bilirec.org` 放宽限制。
+4. 本机 `localhost` 开发不受此影响，无需改 `PRODUCTION_MODE`。
+
+详见 [远程访问（FRP）— 通过 app.bilirec.org 登录](/zh-cn/guides/frp/#通过-appbilirecorg-登录)（自架 HTTPS 后端同样适用）与 [认证与安全](/zh-cn/configuration/auth-security/#何时需要生产模式)。
+
 ### 收不到开播推送通知？
 
 **你会看到：** 浏览器或 PWA 里从没弹过通知。

@@ -17,27 +17,61 @@ export FRP_ENABLED=true
 
 僅設定 `FRP_ENABLED=true` 即可，程式會自動使用 bilirec.org 官方 FRP 服務。
 
+若要通過 [app.bilirec.org](https://app.bilirec.org/) 登入並管理後端，還需同時開啟生產模式並設定帳號密碼（見下文）。
+
 ## 操作流程
 
 1. **啟動後端**並確認 FRP 已啟用
-2. **查看日誌**，找到公網存取地址，例如：
+2. **查看日誌**，找到公網存取地址。啟動成功後會顯示「內網穿透已建立」信息框，**遠端地址**一行即公網地址：
 
-   ```
-   FRP enabled in official-public mode
-   https://abc1234567.tunnel.bilirec.org
-   ```
-
-   {/* TODO: 請提供日誌中公網地址截圖 */}
+   ![啟動日誌中的公網地址](/images/frp/tunnel-log.png)
 
 3. **打開** [app.bilirec.org](https://app.bilirec.org/)
-4. 在登入介面的**伺服器地址**欄填入公網地址（如 `https://abc1234567.tunnel.bilirec.org`）
-5. 使用 `USERNAME` 和 `PASSWORD` 登入
+4. 在登入介面的**伺服器地址**欄填入上一步的公網地址，再輸入 `USERNAME` 和 `PASSWORD` 登入：
 
-   {/* TODO: 請提供 PWA 填入伺服器地址截圖 */}
+   <img src="/images/frp/login-server-url.png" alt="在登入頁填入公網地址" width="400" style="max-width:100%;height:auto;display:block;margin:0 auto" />
 
 <Aside type="caution">
 暴露到公網後**務必**設定 `USERNAME` 和 `PASSWORD`，否則 API 將完全公開存取。詳見[認證與安全](/zh-tw/configuration/auth-security/)。
 </Aside>
+
+## 通過 app.bilirec.org 登入
+
+<Aside type="note">
+以下說明**不只適用於 FRP**，也適用於你在 NAS、VPS 等**自架 HTTPS 後端**（例如 `https://api.example.com`、Nginx 反代後的域名）。只要管理頁在 [app.bilirec.org](https://app.bilirec.org/)，而後端在**另一個網址**，就可能遇到同樣的問題。
+</Aside>
+
+管理頁和後端地址（無論是 FRP 的 `https://abc123.tunnel.bilirec.org`，還是自架的 `https://api.example.com`）是**兩個不同的網站**。登入後，瀏覽器需要「記住」你已登入；預設設定下往往記不住，於是出現：
+
+- 點了登入，介面顯示成功
+- 剛進主介面幾秒，又彈出「會話已過期，請重新登入」
+- 反覆登入仍一樣
+
+部分瀏覽器的隱私設定較嚴，也會攔下登入狀態，表現相同。
+
+**推薦設定（通過 app.bilirec.org 連接遠端 HTTPS 後端時）：**
+
+```bash
+export PRODUCTION_MODE=true
+export USERNAME=你的用戶名
+export PASSWORD=你的密碼
+export JWT_SECRET=一個固定的長隨機字符串
+export FRONTEND_URL=https://app.bilirec.org
+```
+
+若使用 FRP，再加上 `export FRP_ENABLED=true`。改完後**重啟 bilirec**，在登入頁填入**當前**的後端地址再登入（FRP 每次重啟子域名可能變化）。
+
+**若仍登入不上**，還可以在瀏覽器裡**允許第三方 Cookie**（管理頁和後端是不同網站，部分瀏覽器預設會攔）：
+
+| 瀏覽器 | 大致路徑 |
+|--------|---------|
+| Chrome / Edge | 設定 → 隱私和安全 → 第三方 Cookie → 選擇「允許第三方 Cookie」，或將 `app.bilirec.org` 與你的**後端域名**（如 `tunnel.bilirec.org`、`api.example.com`）加入允許名單 |
+| Firefox | 設定 → 隱私與安全 → 在「增強型跟蹤保護」中為 `app.bilirec.org` 關閉保護，或放寬 Cookie 限制 |
+| Safari（iOS / macOS） | 設定 → Safari → 關閉「阻止跨站跟蹤」，或在存取 `app.bilirec.org` 時允許該網站使用 Cookie |
+
+自架後端時，把域名換成你實際使用的地址。改完瀏覽器設定後，重新打開管理頁再登入一次。
+
+本機開發（`http://localhost:8080`）不受此影響。詳見 [認證與安全 — 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式) 與 [常見問題](/zh-tw/guides/faq/#用-appbilirecorg-連遠端後端一直提示會話過期)。
 
 ## 自建 FRP 伺服器
 

@@ -76,9 +76,9 @@ bilirec-web 需配合正在運行的 [bilirec](https://github.com/bilirec/bilire
 |---------|---------------------------|
 | 本機（bilirec-mobile、PC 本機後端） | 可以，填 `localhost` 或 `127.0.0.1` |
 | 局域網另一台設備上的 HTTP 後端 | **不能** — HTTPS 前端無法直連 HTTP 局域網地址 |
-| 公網 HTTPS（FRP 隧道等） | 可以，填 `https://xxx.tunnel.bilirec.org` |
+| 公網 HTTPS（FRP、自架域名、反向代理等） | 可以，填 `https://你的後端地址`；需 `PRODUCTION_MODE=true`，見 [常見問題](/zh-tw/guides/faq/#用-appbilirecorg-連遠端後端一直提示會話過期) |
 
-遠端存取局域網內的 HTTP 後端，請使用 [FRP](/zh-tw/guides/frp/) 等提供 **HTTPS** 的方案。詳見 [常見問題 — Web 管理介面](/zh-tw/guides/faq/#web-管理介面)。
+遠端存取局域網內的 HTTP 後端，請使用 [FRP](/zh-tw/guides/frp/) 等提供 **HTTPS** 的方案。自架 HTTPS 後端（不限於 FRP）通過 app.bilirec.org 登入時，同樣需要開啟生產模式。詳見 [常見問題 — Web 管理介面](/zh-tw/guides/faq/#web-管理介面)。
 
 ## 安裝 PWA
 

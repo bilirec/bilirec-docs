@@ -45,6 +45,18 @@ import { Aside } from '@astrojs/starlight/components';
 export FRP_ENABLED=true
 ```
 
+通过 [app.bilirec.org](https://app.bilirec.org/) 远程登录时（**不限于 FRP**，自架 HTTPS API 也一样），还需 `PRODUCTION_MODE=true` 及账号密码，否则可能反复提示会话过期。见 [认证与安全 — 生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式)。
+
+**app.bilirec.org + 官方 FRP（完整示例）：**
+
+```bash
+export FRP_ENABLED=true
+export PRODUCTION_MODE=true
+export USERNAME=admin
+export PASSWORD=你的强密码
+export JWT_SECRET=一个固定的长随机字符串
+```
+
 **自定义 FRP：**
 
 ```bash
@@ -66,5 +78,5 @@ FRP enabled in custom-selfhost mode    # 自定义 FRP
 操作流程见 [远程访问指南](/zh-cn/guides/frp/)。
 
 <Aside type="tip">
-**常见问题：** 内网穿透与 HTTPS 开关要一致；地址请写成 `主机:端口`；自架 FRP 需填 Token。详见 [常见问题](/zh-cn/guides/faq/#后端录制)。
+**常见问题：** 内网穿透与 HTTPS 开关要一致；地址请写成 `主机:端口`；自架 FRP 需填 Token；通过 app.bilirec.org 登录需 `PRODUCTION_MODE=true`。详见 [常见问题](/zh-cn/guides/faq/)。
 </Aside>
