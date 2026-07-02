@@ -172,6 +172,7 @@ import { Aside } from '@astrojs/starlight/components';
 | 可能來源 | 你怎麼分辨 | 相關環境變數 | 建議方向 |
 | -------- | ---------- | ------------ | -------- |
 | **寫盤 / flush 尖峰** | 正在錄製時週期性衝高；microSD、機械盤更明顯 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 適當加大合併緩衝、拉長 flush 間隔；**保持** `SYNC_PERIOD=0`（開週期性整檔案落盤會更吃 CPU） |
+| **Go 頻繁 GC（Docker）** | 容器記憶體很空但 CPU 仍週期性抖；多發生在 limit 很大卻未改 `GOMEMLIMIT` | `GOMEMLIMIT` | 把 `GOMEMLIMIT` 調到約為容器 limit 的 75%～85%；見 [Docker 指南](/zh-tw/guides/docker/#go-記憶體上限gomemlimit) |
 | **多路搶同一張盤** | 多路同時錄到同一張 SD / HDD 時尖峰疊加 | `SEQUENTIAL_WRITE` | 同一張卡上多路錄製時保持 `true`（Android 輸出到 microSD 時在 App 開啟 **microSD 卡磨損保護**） |
 | **訂閱開播輪詢** | **閒置**時大約每隔固定秒數有小尖峰 | `SUBCHECK_ROOMS_PER_SHARD`<br />`SUBCHECK_MIN_INTERVAL_SECS` | 預設已按訂閱規模自動調度；仍偏高可略增大每組房間數或週期下限 |
 | **後台轉碼** | 轉碼任務進行中 CPU 持續偏高 | `FFMPEG_MAX_CONCURRENT_TASKS`<br />`FFMPEG_ALLOW_DURING_RECORDING`<br />`FFMPEG_CHECK_INTERVAL_SECS` | 建議避免邊錄邊轉；並發轉碼可保持 `1`；詳見 [轉換設定](/zh-tw/configuration/conversion/) |
@@ -191,6 +192,17 @@ import { Aside } from '@astrojs/starlight/components';
 1. 一般不必處理，屬正常現象。
 2. 若是**週期性尖峰**或 NAS 明顯變卡，再對照上一節 [CPU 突然飆高](/zh-tw/guides/faq/#cpu-突然飆高怎麼辦) 排查寫盤、多路搶盤等項。
 3. ZFS 池調參見 [HDD/NAS 調優](/zh-tw/configuration/hdd-nas-tuning/)。
+
+### Docker 記憶體明明很空，卻頻繁 GC？
+
+**你會看到：** 容器 memory limit 設得很大（如 2GB、4GB），`docker stats` 裡用量還不到一半，但 CPU 週期性抖動，錄製偶爾微卡；調高 `MAX_CONCURRENT_RECORDINGS` 後更明顯。**僅 Docker 部署**會遇到；二進制直跑、Android 無鏡像內建的 `GOMEMLIMIT` 預設值。
+
+**為什麼：** 官方 **Docker 鏡像**預設 `GOMEMLIMIT=768MiB`（其它部署方式沒有寫死）。Go 按這個數自律堆記憶體，**不會**因為你給容器分了更多 limit 就自動多用。堆快碰到 768MiB 就會勤 GC，而容器監控裡的「空餘」對 Go 堆不一定可用。
+
+**你可以：**
+1. 用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 估路數需求，再設容器 memory limit。
+2. 用 `-e GOMEMLIMIT=...` 把它調到**略低於** limit（約 75%～85%），與 limit 一起放大。詳見 [Docker 指南 · GOMEMLIMIT](/zh-tw/guides/docker/#go-記憶體上限gomemlimit)。
+3. 若 limit 本就約 1GB、只錄少數路，預設 `768MiB` 一般不必改。
 
 ### 錄製時記憶體佔用很高怎麼辦？
 

@@ -7,6 +7,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 錄製時，直播數據會在記憶體裡「排隊」：先從網路讀進來，再排隊等待寫入磁碟。用下面公式估算**給容器留多少記憶體**即可（偏保守的上限；實際監控往往略低，見 [性能實測](/zh-tw/guides/performance-benchmark/)）。
 
+<Aside type="tip">
+**僅 Docker 官方鏡像**需要關注 `GOMEMLIMIT`（鏡像內預設 `768MiB`）。估好容器 memory limit 後，若比預設大很多，請用 `-e` 同步調高，否則 Go 仍會頻繁 GC。二進制直跑、Android 等無此預設。見 [Docker 指南 · GOMEMLIMIT](/zh-tw/guides/docker/#go-記憶體上限gomemlimit)。
+</Aside>
+
 ## 會影響記憶體佔用的環境變數
 
 每路錄製時，記憶體裡同時等著處理的數據大致分三塊：**網路讀入排隊**、**等待寫盤排隊**、**寫盤前合併緩衝**。錄 **1080p** 用不帶 `_HIGH` 的變數；錄 **4K / 杜比**（`qn ≥ 20000`）會自動改用帶 `_HIGH` 的高畫質變數。

@@ -46,8 +46,44 @@ docker run -d \
 
 - **跳过 `.env` 加载** — 检测到 `/.dockerenv` 时仅使用环境变量
 - **内置 FFmpeg** — 镜像包含 FFmpeg 8.1.1，无需额外安装
-- **默认运行时限制** — `GOMEMLIMIT=768MiB`、`GOGC=100`
 - **默认时区** — `TZ=Asia/Hong_Kong`
+
+## Go 内存上限（GOMEMLIMIT）
+
+**仅官方 Docker 镜像**在 Dockerfile 里写死了下面两项；直接跑二进制、systemd、Android 等**默认没有**这个限制，一般不必管 `GOMEMLIMIT`。
+
+```bash
+GOMEMLIMIT=768MiB
+GOGC=100
+```
+
+`GOMEMLIMIT` 告诉 Go 运行时：**堆内存尽量别超过这个数**。快碰到上限时，运行会更勤快地回收内存（GC）。
+
+<Aside type="caution">
+若你给容器分了很大内存（例如 `docker run -m 4g`），却**没有**用 `-e` 改掉 `GOMEMLIMIT`，程序仍按 **768MiB** 自律。容器监控里明明还有很多空余，Go 却会一直提前 GC——你可能感到 **CPU 周期性抖动**，录制偶发微卡，误以为是磁盘或路数问题。
+
+反过来，容器 memory limit **小于** `GOMEMLIMIT` 时，可能先被 Docker OOM 杀掉，而不是由 Go 平稳降内存。
+</Aside>
+
+**建议做法：**
+
+1. 用 [内存占用估算](/zh-cn/configuration/memory-estimation/) 估目标路数需要多少内存。
+2. 给容器的 memory limit 留约 **两成余量**（还要算上页缓存、转码子进程等）。
+3. 把 `GOMEMLIMIT` 设成**略低于**该 limit（常见取 limit 的 **75%～85%**），运行时用 `-e` 传入。
+
+示例：计划录 8 路 1080p，容器 limit 约 2GB：
+
+```bash
+docker run -d \
+  --memory=2g \
+  -e GOMEMLIMIT=1536MiB \
+  -e MAX_CONCURRENT_RECORDINGS=8 \
+  ...
+```
+
+只录 3～5 路、容器 limit 约 1GB 时，默认 `768MiB` 通常够用，不必改。
+
+更多现象说明见 [常见问题 · Docker 内存明明很空却频繁 GC](/zh-cn/guides/faq/#docker-内存明明很空却频繁-gc)。
 
 <Aside type="note">
 Docker 环境下建议通过 `-e` 传入所有需要的配置。完整环境变量列表见[环境变量参考](/zh-cn/configuration/env-reference/)，示例配置见[配置示例](/zh-cn/configuration/examples/)。
