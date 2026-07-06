@@ -58,6 +58,7 @@ tableOfContents: false
 | `SUBCHECK_MIN_INTERVAL_SECS` | 訂閱開播檢查：完整輪詢週期下限（秒） | `60` |
 | `SUBCHECK_MAX_INTERVAL_SECS` | 訂閱開播檢查：完整輪詢週期上限（秒） | `300` |
 | `SUBCHECK_MAX_SHARDS` | 訂閱開播檢查：分組數上限 | `32` |
+| `SUBCHECK_JITTER_SECS` | 訂閱開播檢查：每組觸發前的最大隨機延遲（秒），打散請求節奏以降低反爬風控風險 | `2` |
 | `UPLOAD_BUFFER_SIZE` | 上傳時或向外部服務（如 CloudConvert）傳輸檔案使用的緩衝區大小（字節） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 檔案下載 / 導出時使用的緩衝區大小（字節） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流寫入器（寫入檔案）緩衝區大小（字節） | `1048576` (1 MB) |

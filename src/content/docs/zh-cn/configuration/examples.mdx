@@ -26,6 +26,7 @@ export MAX_RETRY_MINUTES=10
 # export SUBCHECK_MIN_INTERVAL_SECS=60
 # export SUBCHECK_MAX_INTERVAL_SECS=300
 # export SUBCHECK_MAX_SHARDS=32
+# export SUBCHECK_JITTER_SECS=2  # 打散轮询节奏，降低反爬风控
 export OUTPUT_DIR=/path/to/records
 export SECRET_DIR=/path/to/secrets
 export NO_CONVERT_IF_INVALID=false

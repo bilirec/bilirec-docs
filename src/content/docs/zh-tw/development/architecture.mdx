@@ -38,7 +38,8 @@ description: bilirec 項目結構與核心實現
 - **自動分段輪轉（HTTP-FLV / HLS-fMP4）** — FLV 在 PK/分辨率切換時輪轉；HLS-fMP4 在 init 內容變更時輪轉（相同 init 重發不切分），新分段帶完整 init
 - **2K/4K 雙池** — 根據 `qn` 自動選用 1080p 或高畫質記憶體池，高畫質池懶載入
 - **自動錄製** — 訂閱房間開啟 `auto_record` 後，檢測到開播自動啟動錄製
-- **開播檢測** — `subcheck` 分組輪詢已開啟通知或自動錄製的房間，檢測新場次並觸發推送或錄製
+- **開播檢測** — `subcheck` 分組輪詢已開啟通知或自動錄製的房間，檢測新場次並觸發推送或錄製；每組觸發前帶隨機抖動（`SUBCHECK_JITTER_SECS`），避免固定間隔被識別為機器輪詢
+- **直播間信息風控切換** — 查詢是否在播時預設匿名請求；B 站返回風控類 API 碼時自動改用已登入 Cookie 重試，並在日誌中記錄切換與恢復
 - **實時通知** — Web Push + SSE
 - **記憶體池** — `pool.BufferPool` 減少 GC 壓力；讀/寫 bytes pool 的空閒複用塊數量由 channel 深度自動推導（約為讀側 channel 的 1/4、寫側的 1/8），在途記憶體公式不變
 - **SWR 緩存** — 房間信息 Stale-While-Revalidate（軟 TTL 5 分鐘，硬 TTL 30 分鐘）

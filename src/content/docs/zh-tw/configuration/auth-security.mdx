@@ -67,3 +67,15 @@ export FRONTEND_URL=https://app.bilirec.org
 | `BILIBILI_LOGIN_MODE` | `startup` / `controller` / `anonymous` | `controller` |
 
 詳見[快速開始](/zh-tw/guides/quick-start/)中的登入模式說明。
+
+### 直播間信息查詢與風控
+
+無論 `BILIBILI_LOGIN_MODE` 為何，**查詢直播間是否在播**時程式都會優先使用匿名請求。僅當 B 站 API 返回風控類錯誤碼時，才會自動改用你已登入帳號的 Cookie 重試（需 `controller` / `startup` 且已完成掃碼登入）。
+
+這意味著：
+
+- **推薦**日常使用 `controller`（預設）：平時輪詢不碰帳號；只有本地 IP 被 B 站臨時限制時才短暫使用 Cookie。
+- **`anonymous`**：全程不帶 Cookie，被風控時**無法**自動切換，訂閱檢測與手動查房間信息可能間歇失敗。
+- **日誌**：切換與恢復時後端會輸出警告/信息級日誌，Web 介面無額外提示。
+
+機制細節見 [錄製設定 · 直播間信息查詢](/zh-tw/configuration/recording/#直播間信息查詢風控自動切換)。
