@@ -35,7 +35,12 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 <TabItem label="Docker">
 
 ```bash
+# Docker Hub
 docker pull eric1008818/bilirec:latest
+
+# GHCR（国内若 Docker Hub 拉取困难）
+docker pull ghcr.io/bilirec/bilirec:latest
+
 docker run -d \
   --name bilirec \
   -p 8080:8080 \
@@ -44,6 +49,8 @@ docker run -d \
   -v /path/to/database:/app/database \
   eric1008818/bilirec:latest
 ```
+
+`docker run` 时把镜像名换成 `ghcr.io/bilirec/bilirec:latest` 即可使用 GHCR。
 
 更多配置（环境变量、卷挂载说明、测试版本标签）见 [Docker 指南](/zh-cn/guides/docker/)。
 

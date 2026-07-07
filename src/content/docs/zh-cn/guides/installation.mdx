@@ -51,10 +51,17 @@ docker run -d \
   bilirec:latest
 ```
 
-**从 Docker Hub 拉取：**
+**从镜像仓库拉取：**
+
+国内若 Docker Hub 拉取困难，可改用 [GHCR](https://ghcr.io/bilirec/bilirec)（`ghcr.io/bilirec/bilirec`）。详细说明见 [Docker 指南](/zh-cn/guides/docker/)。
 
 ```bash
+# Docker Hub
 docker pull eric1008818/bilirec:latest # 最新测试版本建议用 :edge
+
+# GHCR（国内推荐）
+docker pull ghcr.io/bilirec/bilirec:latest
+
 docker run -d \
   --name bilirec \
   -p 8080:8080 \
@@ -63,6 +70,8 @@ docker run -d \
   -v /path/to/database:/app/database \
   eric1008818/bilirec:latest
 ```
+
+`docker run` 时把镜像名换成 `ghcr.io/bilirec/bilirec:latest` 即可使用 GHCR。
 
 详细 Docker 配置见 [Docker 指南](/zh-cn/guides/docker/)。
 

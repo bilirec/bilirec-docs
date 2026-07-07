@@ -21,7 +21,11 @@ docker run -d \
   bilirec:latest
 ```
 
-## 从 Docker Hub 拉取
+## 从镜像仓库拉取
+
+官方镜像同步发布到 Docker Hub 与 [GitHub Container Registry（GHCR）](https://ghcr.io/bilirec/bilirec)。国内若 Docker Hub 拉取困难或被墙，建议改用 GHCR。
+
+**Docker Hub：**
 
 ```bash
 docker pull eric1008818/bilirec:latest # 最新测试版本建议用 :edge
@@ -32,6 +36,19 @@ docker run -d \
   -v /path/to/secrets:/app/secrets \
   -v /path/to/database:/app/database \
   eric1008818/bilirec:latest
+```
+
+**GHCR（国内推荐）：**
+
+```bash
+docker pull ghcr.io/bilirec/bilirec:latest # 最新测试版本建议用 :edge
+docker run -d \
+  --name bilirec \
+  -p 8080:8080 \
+  -v /path/to/records:/app/records \
+  -v /path/to/secrets:/app/secrets \
+  -v /path/to/database:/app/database \
+  ghcr.io/bilirec/bilirec:latest
 ```
 
 ## 挂载卷说明
