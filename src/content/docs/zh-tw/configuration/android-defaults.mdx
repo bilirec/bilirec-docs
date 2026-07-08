@@ -17,6 +17,7 @@ App 裡每一項怎麼設、對應哪些環境變數，見 [Android App](/zh-tw/
 | `READ_STREAM_CHAN_BUFFER_SIZE_HIGH` | 32 | 48 | 4K 讀入排隊更淺 |
 | `SEQUENTIAL_WRITE` | `false` | `true` | 內置儲存隨機 I/O 較好；**輸出到 microSD 時建議在 App 開啟 microSD 卡磨損保護** |
 | `SKIP_SMALL_FLUSH` | `false` | `true` | 優先保證錄製完整性，不延遲建檔案 |
+| `CHECK_UPDATE` | `false` | 未設定視為 `true` | 啟動時檢查 GitHub 更新；Android 預設關閉 |
 
 其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）與伺服器相同。開啟 **microSD 卡磨損保護** 時，App 會同時傳入 `SEQUENTIAL_WRITE=true` 與按「同時錄製上限」計算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路約 15 秒，6 路約 30 秒）。
 
@@ -26,6 +27,7 @@ App 裡每一項怎麼設、對應哪些環境變數，見 [Android App](/zh-tw/
 | ---- | ------ | ---- |
 | `BILIBILI_LOGIN_MODE` | `controller` | 通過 Web UI 掃碼登入 |
 | `FRP_ENABLED` | `false` | 手機無需內網穿透 |
+| `CHECK_UPDATE` | `false` | 啟動時不檢查 GitHub 更新 |
 | `SILENT_ACCESS_LOG` | `true` | 減少存取日誌 |
 
 Android App 的 **錄製策略** 中可設定 **重試成功後的時長計算**（`preserve` / `reset`），對應 `RECORDING_RECOVERY_DURATION`；未設定時與上表預設 `preserve` 一致。

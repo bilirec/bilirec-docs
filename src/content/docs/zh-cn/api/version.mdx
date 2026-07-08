@@ -1,0 +1,96 @@
+---
+title: 版本与更新检查
+description: 查询当前版本与手动检查 GitHub Release 更新
+---
+
+官方 release 构建会在二进制中嵌入版本号（GitHub tag）。本地 `go build` 或未注入版本的构建没有嵌入版本，无法与 GitHub 比对。
+
+## 查询版本状态
+
+读取最近一次检查结果（启动时自动检查或手动 POST 后的缓存），**不会**再次请求 GitHub。
+
+```http
+GET /version
+```
+
+无需 JWT，公开访问。
+
+```bash
+curl -s http://127.0.0.1:8080/version
+```
+
+示例响应（已检查且有待更新版本）：
+
+```json
+{
+  "current": "v1.0.0",
+  "latest": "v1.2.3",
+  "outdated": true,
+  "checked": true,
+  "url": "https://github.com/bilirec/bilirec/releases/latest",
+  "error": ""
+}
+```
+
+| 字段 | 说明 |
+| ---- | ---- |
+| `current` | 当前运行版本（构建嵌入）；非 release 构建为空字符串 |
+| `latest` | GitHub 上最新 tag（`checked` 且 `error` 为空时有效） |
+| `outdated` | 是否有可升级的新版本 |
+| `checked` | 是否至少执行过一次检查 |
+| `url` | Release 下载页 |
+| `error` | 最近一次检查失败时的用户可读说明；成功为空字符串 |
+| `error_code` | 失败类型：`github_rate_limit` / `github_unreachable` / `github_error` / `no_embedded_version`；成功时省略 |
+| `retry_after_secs` | 仅在 `error_code=github_rate_limit` 时可能有值，表示建议等待秒数 |
+
+启动后若尚未检查（例如 `CHECK_UPDATE=false`），`checked` 为 `false`，仅 `current` 与 `url` 有意义。
+
+限流示例（`POST /version/check` 返回 `502`）：
+
+```json
+{
+  "current": "v1.0.0",
+  "latest": "",
+  "outdated": false,
+  "checked": false,
+  "url": "https://github.com/bilirec/bilirec/releases/latest",
+  "error": "GitHub 检查请求过于频繁，请约 29 分钟后重试，或直接打开 Release 页面查看",
+  "error_code": "github_rate_limit",
+  "retry_after_secs": 1715
+}
+```
+
+## 手动检查更新
+
+向 GitHub 查询最新 tag 并更新缓存，供前端（如 bilirec-web）展示。**不会在服务端终端打印更新提示框**；UI 请根据响应 JSON 自行提示用户。
+
+```http
+POST /version/check
+```
+
+启用 `USERNAME` / `PASSWORD` 时需先登录并携带 `jwtToken` cookie。
+
+```bash
+curl -s -b cookies.txt -X POST http://127.0.0.1:8080/version/check
+```
+
+- 忽略 `CHECK_UPDATE` 环境变量（可随时手动触发）
+- 未嵌入版本时返回 `400`：
+
+```json
+{
+  "current": "",
+  "latest": "",
+  "outdated": false,
+  "checked": false,
+  "url": "https://github.com/bilirec/bilirec/releases/latest",
+  "error": "当前构建未嵌入版本号，无法检查更新",
+  "error_code": "no_embedded_version"
+}
+```
+
+- 网络或 GitHub API 失败时返回 `502`，JSON 中 `error` 为中文说明、`error_code` 标识失败类型；`checked` 为 `false`
+
+启动时若 `CHECK_UPDATE=true` 且为 release 构建，程序会自动检查一次；发现新版本时会在**终端 stdout** 打印醒目提示框。检查失败时写入 **Warn**（中文说明）与 **Debug**（原始错误），不打印 stdout 提示框。
+
+相关环境变量见 [环境变量参考 · CHECK_UPDATE](/zh-cn/configuration/env-reference/)。

@@ -40,6 +40,7 @@ tableOfContents: false
 | `VIEWER_PASSWORD` | 可选：仅查看权限的访客密码 | (未设置) |
 | `JWT_SECRET` | JWT 签名密钥 | `bilirec_secret` |
 | `DEBUG` | 调试模式（详见 [开发与调试](/zh-cn/development/debugging/)） | `false` |
+| `CHECK_UPDATE` | 启动时是否检查 GitHub Release 是否有新版本；仅**官方 release 构建**（已嵌入版本号）时有效。未设置时桌面/Docker 默认 `true`，Android 默认 `false`。设为 `false` 可关闭启动检查，仍可通过 [POST /version/check](/zh-cn/api/version/) 手动检查 | 桌面/Docker：未设置视为 `true`；Android：`false` |
 | `PRODUCTION_MODE` | 启用生产模式（影响 cookie 与 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 启用静默访问日志（仅记录 4xx/5xx 响应） | `false` |
 | `DATABASE_DIR` | 本地数据库目录（bbolt，用于持久化转换任务等） | `database` |

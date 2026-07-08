@@ -58,6 +58,7 @@ const sidebar = [
 		items: [
 			{ slug: 'api/overview' },
 			{ slug: 'api/auth' },
+			{ slug: 'api/version' },
 			{ slug: 'api/bilibili-auth' },
 			{ slug: 'api/record' },
 			{ slug: 'api/room' },
