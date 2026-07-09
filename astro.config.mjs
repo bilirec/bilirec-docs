@@ -27,7 +27,7 @@ const sidebar = [
 			{ slug: 'guides/file-management' },
 			{ slug: 'guides/frp' },
 			{ slug: 'guides/android' },
-			{ slug: 'guides/android-huawei' },
+			{ slug: 'guides/android-mainland' },
 			{ slug: 'guides/docker' },
 		],
 	},
@@ -103,6 +103,8 @@ export default defineConfig({
 		'/': '/zh-cn',
 		'/zh-cn/guides/android-library': '/zh-cn/development/android-library',
 		'/zh-tw/guides/android-library': '/zh-tw/development/android-library',
+		'/zh-cn/guides/android-huawei': '/zh-cn/guides/android-mainland',
+		'/zh-tw/guides/android-huawei': '/zh-tw/guides/android-mainland',
 	},
 	integrations: [
 		starlight({
