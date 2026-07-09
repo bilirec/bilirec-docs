@@ -27,6 +27,7 @@ const sidebar = [
 			{ slug: 'guides/file-management' },
 			{ slug: 'guides/frp' },
 			{ slug: 'guides/android' },
+			{ slug: 'guides/android-huawei' },
 			{ slug: 'guides/docker' },
 		],
 	},
