@@ -17,6 +17,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 `RECORDING_RECOVERY_DURATION` 只影響流仍在線、重連恢復成功的情況，不改變 `MAX_RETRY_MINUTES` 的下線重試邏輯。若你設定了單次錄製時長上限（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示錄製時長從**第一次開始錄製**起算、不延長；`reset` 表示每次重連成功後重新享有完整錄製時長，適合擔心管理員強切新場次時漏錄的場景。
 
+斷流恢復後會**用新的時間戳開一個新檔案**（例如 `標題-20260711_160512.flv`），不會覆蓋斷流前的錄製，也不會和直播輪轉產生的 `-1`/`-2` 後綴檔案混用同一套命名。`preserve` 與 `reset` 只影響「還能錄多久」，不影響檔案名規則。
+
 `MAX_CONCURRENT_RECORDINGS` 直接影響記憶體峰值。樹莓派預設 `3`（1080p 預設緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限可參考 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派預設](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
 
 調高同時錄製路數時，若保持 `SEQUENTIAL_WRITE=true`（microSD、機械盤、NAS 的預設建議），建議按路數比例同步增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，以免每路寫盤間隔被壓得過短、寫盤更勤或 CPU 尖峰更明顯。換算方式與示例見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。Android 開啟 microSD 卡磨損保護時會自動處理，見 [Android 預設設定](/zh-tw/configuration/android-defaults/)。

@@ -24,7 +24,7 @@ tableOfContents: false
 | `MAX_RECORDING_HOURS` | 单次录制最长时间（小时） | `5` |
 | `MAX_RECOVERY_ATTEMPTS` | 单次录制的最大重连尝试次数 | `15` |
 | `MAX_RETRY_MINUTES` | 直播中断后判断是否仍在直播的最长容忍时间（分钟） | `10` |
-| `RECORDING_RECOVERY_DURATION` | 断流重试成功后录制时长计算：`preserve`（保留，从开始录制起算）/ `reset`（重置，从重试成功时重新计算） | `preserve` |
+| `RECORDING_RECOVERY_DURATION` | 断流重试成功后录制时长计算：`preserve`（保留，从开始录制起算）/ `reset`（重置，从重试成功时重新计算）；两种模式都会用新时间戳开新文件，不覆盖旧录制 | `preserve` |
 | `OUTPUT_DIR` | 录制文件保存目录 | `records` |
 | `SECRET_DIR` | Cookie 和 Token 保存目录 | `secrets` |
 | `CONVERT_TO_MP4` | 录制完成后是否将可转换源文件（如 FLV/TS）转为 MP4 | `false` |
