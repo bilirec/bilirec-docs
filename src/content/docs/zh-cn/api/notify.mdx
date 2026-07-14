@@ -38,9 +38,9 @@ Accept: text/event-stream
 ```
 
 - 用于无法依赖 Google FCM 的场景（如中国大陆）
-- Android 后端通过 SSE 获取通知后创建本地通知
+- bilirec-mobile 等客户端可通过 SSE 接收事件并创建本地通知
 - `token` 来源于 `NOTIFY_SSE_TOKEN` 环境变量
 - 为空时返回 `503`（禁用）
-- 建议通过 HTTPS 使用
+- 本机回环（如 Android App）无需 HTTPS；远程暴露时建议使用 HTTPS
 
 配置详见 [通知配置](/zh-cn/configuration/notifications/)。

@@ -28,7 +28,7 @@ import { Aside } from '@astrojs/starlight/components';
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `DEBUG` | 调试模式（详见 [开发与调试](/zh-cn/development/debugging/)） | `false` |
-| `PRODUCTION_MODE` | 生产模式（远程登录时建议开启） | `false` |
+| `PRODUCTION_MODE` | 生产模式（远程登录时建议开启；影响 Cookie 安全属性与 CORS） | `false` |
 | `SILENT_ACCESS_LOG` | 静默访问日志（仅 4xx/5xx） | `false` |
 
 `DEBUG=true` 时在 `/debug/pprof` 挂载 pprof，需 Authorization 头填入启动日志中的十六进制令牌。详见[开发与调试](/zh-cn/development/debugging/)。
@@ -40,7 +40,7 @@ import { Aside } from '@astrojs/starlight/components';
 | `false`（默认） | 本机 `localhost` / `127.0.0.1` |
 | `true` | 通过 [app.bilirec.org](https://app.bilirec.org/) 连接远程 HTTPS 后端（[FRP](/zh-cn/guides/frp/)、自架域名、Nginx 反代等） |
 
-[app.bilirec.org](https://app.bilirec.org/) 和你的后端地址是两个不同网址——**不限于 FRP**，自架 API 也一样。远程管理时建议开启 `PRODUCTION_MODE=true`，浏览器才能正常记住登录状态；否则界面可能反复提示「会话已过期」。
+[app.bilirec.org](https://app.bilirec.org/) 和你的后端地址是两个不同网址——**不限于 FRP**，自架 API 也一样。远程管理时建议开启 `PRODUCTION_MODE=true`，浏览器才能正常记住登录状态；否则界面可能反复提示「会话已过期」。开启后，登录 Cookie 会按生产环境要求设置，且 CORS 仅允许 `FRONTEND_URL` 对应的前端来源。
 
 <Aside type="caution">
 通过 app.bilirec.org 管理远程后端时，建议 `PRODUCTION_MODE=true` 且 `FRONTEND_URL=https://app.bilirec.org`。与 `*.tunnel.bilirec.org` 同属 `bilirec.org` 根域名，**通常不必**为了登录去允许第三方 Cookie。

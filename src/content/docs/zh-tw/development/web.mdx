@@ -14,10 +14,10 @@ import { Aside } from '@astrojs/starlight/components';
 - **主要目標**：為 bilirec 後端提供移動優先的 PWA 管理介面。
 - **技術方案**：React SPA + Service Worker（PWA）+ Axios 調用後端 REST API。
 - **部署方式**：靜態資源託管（官方實例部署於 Cloudflare Workers）；後端須單獨運行。
-- **多後端支持**：登入頁可設定伺服器地址，地址保存在 `localStorage`（鍵名 `server-url`）。
+- **多後端支持**：登入頁可設定伺服器地址，地址保存在 `localStorage`，並同步到 IndexedDB 供 Service Worker 使用（鍵名均為 `server-url`）。
 
 <Aside type="note">
-線上 `app.bilirec.org` 為 **HTTPS**。瀏覽器混合內容策略下，從該頁面只能連接本機 HTTP 後端（`localhost` / `127.0.0.1`）；遠端 HTTP 局域網地址會被攔截，須使用 HTTPS 隧道（如 [FRP](/zh-tw/guides/frp/)）。詳見 [Web 介面](/zh-tw/guides/web-ui/#連接自架後端)。
+線上 `app.bilirec.org` 與自架 **HTTPS** 前端受同一套瀏覽器混合內容策略：只能連接本機 HTTP 後端（`localhost` / `127.0.0.1`）；遠端 HTTP 局域網地址會被攔截，須使用 HTTPS 隧道（如 [FRP](/zh-tw/guides/frp/)），或把前後端放在同一 HTTPS 反代後。詳見 [Web 介面](/zh-tw/guides/web-ui/#連接自架後端)。
 </Aside>
 
 ## 功能概覽
@@ -27,10 +27,10 @@ import { Aside } from '@astrojs/starlight/components';
 | 錄製管理 | 啟動/停止錄製，查看 `recording` / `recovering` / `idle` 狀態 |
 | 直播訂閱 | 訂閱房間、管理自動錄製與通知設定 |
 | 網頁推送 | 通過 Service Worker 接收開播等 Web Push 通知 |
-| 檔案瀏覽 | 瀏覽錄製檔案，支持流式下載（File System Access API → StreamSaver 回退） |
-| MP4 預覽 | 應用內預覽 MP4 錄製 |
+| 檔案瀏覽 | 瀏覽錄製檔案，支持下載 |
+| MP4 預覽 | 預覽 MP4 錄製 |
 | 檔案共享 | 生成帶過期時間的分享鏈接 |
-| 格式轉換 | 提交與管理 FLV/TS/FMP4 ↔ MP4 轉換任務 |
+| 格式轉換 | 提交與管理 FLV/TS/FMP4 → MP4 轉換任務 |
 | 磁碟監測 | 實時磁碟佔用與分項統計 |
 | 角色控制 | 管理員 / 查看者（查看者為只讀介面） |
 | 深色模式 | 淺色/深色主題，支持跟隨系統 |
@@ -44,7 +44,7 @@ import { Aside } from '@astrojs/starlight/components';
 | Vite 7 | 建置工具 |
 | shadcn/ui + Radix UI | 組件庫 |
 | Tailwind CSS 4 | 樣式 |
-| Axios | HTTP 客戶端（`withCredentials: true`，JWT 存於 HttpOnly Cookie） |
+| Axios | HTTP 客戶端（`withCredentials: true`，JWT 存於 Cookie；生產模式下為 HttpOnly + Secure） |
 | SWR + TanStack React Query | 數據獲取與緩存 |
 | vite-plugin-pwa（injectManifest） | PWA 與自定義 Service Worker |
 | Framer Motion | 動畫 |
@@ -126,8 +126,8 @@ pnpm preview  # 本地預覽生產建置
 |------|------|
 | 後端 `FRONTEND_URL` | 部署完成後，將 bilirec 後端的 `FRONTEND_URL` 設為你的前端 HTTPS 域名（CORS 與 Cookie 認證）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) |
 | 自架前端 + 不同根域名後端 | 若前端域名與後端（如 FRP 的 `*.tunnel.bilirec.org`）**根域名不同**，除 `PRODUCTION_MODE=true` 外，可能還需在瀏覽器允許第三方 Cookie。官方 `app.bilirec.org` 連 FRP 一般無此問題。見 [FRP — 根域名是否相同](/zh-tw/guides/frp/#根域名是否相同) |
-| 須使用 HTTPS | PWA 安裝與 Web Push 需要 HTTPS；自架 HTTPS 前端可連接局域網 HTTP 後端（官方 `app.bilirec.org` 僅允許連接本機 `localhost` / `127.0.0.1`） |
-| 與官方前端取捨 | `app.bilirec.org` 適合本機、Android 內嵌後端或 FRP HTTPS 隧道；自架前端適合自定義域名或需從 HTTPS 頁面連接局域網 HTTP 後端的場景 |
+| 須使用 HTTPS | PWA 安裝與 Web Push 需要 HTTPS。任何 HTTPS 前端（含自架）都受瀏覽器混合內容限制：只能直連本機 HTTP（`localhost` / `127.0.0.1`），不能直連局域網 HTTP 地址；遠端後端須為 HTTPS（如 [FRP](/zh-tw/guides/frp/)）或把前後端放在同一 HTTPS 反代後 |
+| 與官方前端取捨 | `app.bilirec.org` 適合本機、Android 內嵌後端或 FRP HTTPS 隧道；自架前端適合自定義域名，或前後端同站 HTTPS 反代等場景 |
 | Fork 行為 | 按鈕會在你的 GitHub 創建倉庫 fork 並綁定 Workers Builds，後續 push 自動部署 |
 | 後端須單獨運行 | 前端僅為靜態資源，bilirec 錄製後端須另行[安裝與啟動](/zh-tw/guides/installation/) |
 | 首次連接 | 打開自架前端 → 填入 bilirec 後端地址 → 必要時登入 → 完成 B 站掃碼。見 [快速開始](/zh-tw/guides/quick-start/) |
@@ -145,8 +145,8 @@ pnpm preview  # 本地預覽生產建置
 
 ## 認證與後端連接
 
-- 登入時 `apiClient.setBaseURL(url)` 設定後端地址，並寫入 `localStorage` 的 `server-url`。
-- 若提供 `USERNAME` / `PASSWORD`，調用 `POST /login`，JWT 通過 **HttpOnly Cookie** 返回，不在 JavaScript 中儲存令牌。
+- 登入時 `apiClient.setBaseURL(url)` 設定後端地址，並寫入 `localStorage` 的 `server-url`；同時寫入 IndexedDB（`shared-store`），供 Service Worker 讀取。
+- 若提供 `USERNAME` / `PASSWORD`，調用 `POST /login`，JWT 通過 Cookie 返回（不在 JavaScript 中儲存令牌）。僅當後端 `PRODUCTION_MODE=true` 時 Cookie 為 HttpOnly + Secure；本機開發預設可不設生產模式。
 - 未設定帳號密碼時，前端會嘗試無認證存取；後端返回 401 則提示需要登入。
 
 ## PWA 與 Service Worker
@@ -162,4 +162,4 @@ pnpm preview  # 本地預覽生產建置
 
 ## 實時刷新
 
-主介面每 **5 秒**自動輪詢後端狀態；頁面不可見（標籤頁隱藏）時暫停輪詢，以節省資源。
+錄製、訂閱與轉碼列表約每 **5 秒**自動刷新；頁面不可見（標籤頁隱藏）時暫停這些刷新以節省資源。磁碟佔用另有獨立刷新節奏；檔案列表按需刷新。

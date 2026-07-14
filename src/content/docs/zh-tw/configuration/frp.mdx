@@ -31,8 +31,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 <Aside type="caution">
 **協議約束：**
-- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 時，建議同時設定 `SERVER_CRT` + `SERVER_KEY`
-- 同時設定 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 時，`FRP_HTTPS` 宜為 `true`（設為 `false` 時協議不匹配）
+- `FRP_ENABLED=true` 且 `FRP_HTTPS=true` 時，**必須**同時設定 `SERVER_CRT` + `SERVER_KEY`（否則啟動直接報錯）
+- 同時設定 `SERVER_CRT` + `SERVER_KEY` 且 `FRP_ENABLED=true` 時，`FRP_HTTPS` 也須為 `true`（設為 `false` 時協議不匹配，同樣會報錯退出）
 
 違反約束會導致協議不匹配，程式在啟動階段直接報錯退出。
 </Aside>
@@ -52,6 +52,7 @@ export FRP_ENABLED=true
 ```bash
 export FRP_ENABLED=true
 export PRODUCTION_MODE=true
+export FRONTEND_URL=https://app.bilirec.org
 export USERNAME=admin
 export PASSWORD=你的強密碼
 export JWT_SECRET=一個固定的長隨機字符串

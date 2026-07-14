@@ -101,7 +101,7 @@ UI 侧（`lib/app/home_page.dart`）通过 `FlutterForegroundTask.addTaskDataCal
 
 1. 启动时生成 24 字节随机 token（`generateSseToken()`），通过 `NOTIFY_SSE_TOKEN` 传给核心。
 2. `BilirecSseHandler` 连接 `http://127.0.0.1:8080/notify/sse?token=...`，解析开播/录制事件并弹出本地通知。
-3. 断线后 5 秒自动重连。
+3. 断线后约 3 秒自动重连。
 
 详见 [通知配置](/zh-cn/configuration/notifications/)。
 

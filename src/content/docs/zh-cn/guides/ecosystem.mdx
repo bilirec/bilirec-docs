@@ -27,7 +27,7 @@ Bilirec 由三个独立但紧密协作的项目组成，共同提供完整的 B 
 ### 路径一：自架服务器 + Web 界面
 
 1. 在树莓派、NAS 或 PC 上[安装 bilirec 后端](/zh-cn/guides/installation/)
-2. 打开 [app.bilirec.org](https://app.bilirec.org/) 并连接你的后端地址（或[自行部署 bilirec-web](/zh-cn/development/web/) 以连接局域网 HTTP 后端）
+2. 打开 [app.bilirec.org](https://app.bilirec.org/) 并连接你的后端地址（本机可用 `localhost`；局域网 HTTP 需[自架前端于局域网](/zh-cn/development/web/)或以 [FRP](/zh-cn/guides/frp/) 等提供 HTTPS）
 3. 完成 B 站扫码[登录](/zh-cn/guides/quick-start/)
 4. [订阅或录制](/zh-cn/guides/recording/)直播间
 
@@ -35,8 +35,8 @@ Bilirec 由三个独立但紧密协作的项目组成，共同提供完整的 B 
 
 1. 从 [bilirec-mobile Releases](https://github.com/bilirec/bilirec-mobile/releases) 安装 APK
 2. 在 App 内[启动后端](/zh-cn/guides/android/)
-3. 点击「打开录制程序」进入 PWA 管理界面
-4. 默认连接 `http://127.0.0.1:8080`（等同 `localhost`），直接点击「登录」即可
+3. 点击「打开录制管理程序」打开管理界面（若已安装 PWA 则优先打开 PWA）
+4. 后端监听本机 `127.0.0.1:8080`；登录页可填 `http://localhost:8080` 或 `http://127.0.0.1:8080`（两者等价）
 
 ### 路径三：远程访问（FRP）
 

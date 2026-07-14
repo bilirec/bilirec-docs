@@ -23,6 +23,7 @@ import { Aside } from '@astrojs/starlight/components';
     "PORT": "8080",
     "HOST": "127.0.0.1",
     "FRONTEND_URL": "https://app.bilirec.org",
+    "PRODUCTION_MODE": "true",
     "USERNAME": "admin",
     "PASSWORD": "changeme",
     "MAX_CONCURRENT_RECORDINGS": "3",
@@ -33,6 +34,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 - `basePath` **必填** — 數據目錄根路徑
 - `env` **可選** — 覆蓋預設環境變數（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
+- 若設定了 `USERNAME` / `PASSWORD` 並通過 `https://app.bilirec.org` 管理，請同時設 `PRODUCTION_MODE=true`，否則登入狀態可能無法保持
 
 ## 移動端預設行為
 

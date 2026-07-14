@@ -26,6 +26,6 @@ GET /notify/sse?token=YOUR_NOTIFY_SSE_TOKEN
 Accept: text/event-stream
 ```
 
-推荐用于无法依赖 Google FCM 的场景（如中国大陆网络），Android 后端通过 SSE 获取通知后创建本地通知。建议通过 HTTPS 使用以避免 token 明文暴露。
+推荐用于无法依赖 Google FCM 的场景（如中国大陆网络）。bilirec-mobile 开启「本地通知模式」后，App 通过本机 SSE 接收事件并弹出本地通知（走 `127.0.0.1`，无需 HTTPS）。若把 SSE 暴露到远程网络，建议使用 HTTPS，避免 token 明文传输。
 
 订阅房间开启 **开播通知** 后，后台会定期检查直播状态并在开播时推送；检查频率与分组方式见 [录制配置](/zh-cn/configuration/recording/#订阅房间状态检查)。

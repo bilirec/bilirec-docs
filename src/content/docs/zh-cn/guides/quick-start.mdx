@@ -80,9 +80,9 @@ docker run -d \
 
 <TabItem label="Android（bilirec-mobile）">
 
-1. 在 bilirec-mobile 内点击「打开录制程序」进入 PWA。
+1. 在 bilirec-mobile 内点击「打开录制管理程序」打开管理界面（若已安装 PWA 则优先打开 PWA，否则为浏览器）。
 2. 如未自动跳转，也可手动打开 [app.bilirec.org](https://app.bilirec.org/)。
-3. 一般情况下后端地址已是 `http://127.0.0.1:8080`，可直接继续下一步。
+3. 一般情况下填 `http://localhost:8080` 或 `http://127.0.0.1:8080` 即可（两者等价），可直接继续下一步。
 
 </TabItem>
 </Tabs>
@@ -93,7 +93,7 @@ docker run -d \
 
 <TabItem label="controller（默认）">
 
-服务启动后，打开 [app.bilirec.org](https://app.bilirec.org/)（或你配置的 `FRONTEND_URL`），点击「登录」，再到右上角点击头像按钮完成 B 站扫码登录。
+服务启动后，打开 [app.bilirec.org](https://app.bilirec.org/)（或你配置的 `FRONTEND_URL`），进入主界面后点击右上角头像（移动端为设置），在菜单中完成 B 站扫码登录。
 
 ```bash
 export BILIBILI_LOGIN_MODE=controller # 默認已經是

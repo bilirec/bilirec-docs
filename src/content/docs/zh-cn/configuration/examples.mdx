@@ -44,7 +44,7 @@ export FFMPEG_MAX_CONCURRENT_TASKS=1
 export FFMPEG_ALLOW_DURING_RECORDING=false
 export FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS=1
 export PUBLIC_BASE_URL=http://localhost:8080
-export FRONTEND_URL=http://localhost:8080
+export FRONTEND_URL=https://app.bilirec.org
 export WEBPUSH_SUBSCRIBER=mailto:webpush@example.com
 export UPLOAD_BUFFER_SIZE=5242880
 export DOWNLOAD_BUFFER_SIZE=5242880
@@ -71,8 +71,8 @@ export JWT_SECRET=bilirec_secret
 export DEBUG=false
 export USERNAME=admin
 export PASSWORD=changeme
-# 通过 app.bilirec.org 连接远程 HTTPS 后端（FRP 或自架）时建议改为 true，否则可能反复提示会话过期
-export PRODUCTION_MODE=false
+# 本示例启用了官方 FRP，并通过 app.bilirec.org 远程管理，须开启生产模式
+export PRODUCTION_MODE=true
 ```
 
 各变量的详细说明见[环境变量参考](/zh-cn/configuration/env-reference/)。针对不同硬件的调优方案见 [树莓派默认](/zh-cn/configuration/pi5-defaults/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)、[SSD 调优](/zh-cn/configuration/ssd-tuning/) 与 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)。

@@ -27,7 +27,7 @@ export SERVER_KEY=/path/to/server.key
 ```
 
 <Aside type="caution">
-启用 FRP 且 `FRP_HTTPS=true` 时，建议同时设置 `SERVER_CRT` + `SERVER_KEY`，否则协议不匹配可能导致 FRP 无法工作。详见 [FRP 配置](/zh-cn/configuration/frp/)。
+启用 FRP 且 `FRP_HTTPS=true` 时，**必须**同时设置 `SERVER_CRT` + `SERVER_KEY`，否则程序启动会因协议不匹配而报错退出。详见 [FRP 配置](/zh-cn/configuration/frp/)。
 </Aside>
 
 ## 反向代理
