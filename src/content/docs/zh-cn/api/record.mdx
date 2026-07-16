@@ -19,14 +19,21 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 ### stream_profile
 
+允许的流格式清单（严格限制）。可传单个值，或多个值用英文逗号分隔（如 `hls-fmp4,hls-ts`）。房间配置请改用 JSON 数组字段 `stream_profiles`。
+
 | 值 | 说明 |
 | -- | ---- |
-| 不传 | 自动选择（依次尝试 HTTP-FLV → HLS-fMP4 → HLS-TS） |
-| `http-flv` | HTTP-FLV |
-| `hls-ts` | HLS-TS |
-| `hls-fmp4` | HLS-fMP4 |
+| 不传 / 空 | 允许全部格式；同画质下按 HTTP-FLV → HLS-fMP4 → HLS-TS 排序尝试 |
+| `http-flv` | 仅 HTTP-FLV |
+| `hls-ts` | 仅 HLS-TS |
+| `hls-fmp4` | 仅 HLS-fMP4 |
+| `hls-fmp4,hls-ts` | 仅允许所列格式（示例） |
+
+多选时只会在所选格式内尝试；同画质下仍按 FLV → fMP4 → TS 排序。
 
 ### qn（画质码）
+
+优先画质（请求偏好，不保证与所选完全一致）。
 
 | 值 | 画质 |
 | -- | ---- |

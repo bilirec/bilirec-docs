@@ -9,23 +9,23 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## 手動錄製
 
-在 Web 介面中輸入直播間房間號，在確認頁選擇優先畫質、是否僅錄製音頻與時長，點擊開始錄製。
+在 Web 介面中輸入直播間房間號，在確認頁選擇畫質、允許的流格式、是否僅錄製音頻與時長，點擊開始錄製。
 
 <Aside type="note">
-Web 介面中「優先畫質」為請求偏好，不保證與所選檔位完全一致；「僅錄製音頻」對應 API 參數 `only_audio=true`。不傳 `qn` 時後端預設使用原畫（`10000`）。
+Web 介面中「畫質」為請求偏好，不可用時會盡量選用該直播支持的較高檔位。「流格式」可多選，作為嚴格允許清單：未選表示允許全部格式；選中後只會在所選格式內嘗試。「僅錄製音頻」對應 API 參數 `only_audio=true`。不傳 `qn` 時後端預設使用原畫（`10000`）。
 </Aside>
 
 <Tabs>
 <TabItem label="桌面端">
 
 ![桌面端輸入房間號](/images/web-ui/desktop-add-record-1.png)
-![桌面端確認錄製（優先畫質與時長）](/images/web-ui/desktop-add-record-2.png)
+![桌面端確認錄製（畫質與時長）](/images/web-ui/desktop-add-record-2.png)
 
 </TabItem>
 <TabItem label="移動端">
 
 ![移動端輸入房間號](/images/web-ui/mobile-add-record-1.png)
-![移動端確認錄製（優先畫質與時長）](/images/web-ui/mobile-add-record-2.png)
+![移動端確認錄製（畫質與時長）](/images/web-ui/mobile-add-record-2.png)
 
 </TabItem>
 </Tabs>
@@ -55,14 +55,21 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 | 不傳 / `false` | 錄製音影片 |
 | `true` | 僅錄製音頻 |
 
-### 流格式（stream_profile）
+### 流格式（stream_profile / stream_profiles）
+
+嚴格允許清單。
+
+- **開始錄製 API**：query 參數 `stream_profile`，可傳單個值，或多個值用英文逗號分隔。
+- **房間設定 API**：JSON 字段 `stream_profiles`，為字符串數組。
 
 | 值 | 說明 |
 |----|------|
-| 不傳 | 自動選擇可用流（依次嘗試 HTTP-FLV → HLS-fMP4 → HLS-TS，同格式內優先較高畫質） |
-| `http-flv` | HTTP-FLV（PK/分辨率切換時自動分段） |
-| `hls-ts` | HLS-TS（不執行檔案輪轉） |
-| `hls-fmp4` | HLS-fMP4（預設將 init 與媒體分片寫入同一檔案；僅 init 內容變更時分段） |
+| 不傳 / 空 | 允許全部格式；同畫質下按 HTTP-FLV → HLS-fMP4 → HLS-TS 排序嘗試 |
+| `http-flv` | 僅 HTTP-FLV（PK/分辨率切換時自動分段） |
+| `hls-ts` | 僅 HLS-TS（不執行檔案輪轉） |
+| `hls-fmp4` | 僅 HLS-fMP4（預設將 init 與媒體分片寫入同一檔案；僅 init 內容變更時分段） |
+
+多選時只會在所選格式內嘗試；同畫質下仍按 FLV → fMP4 → TS 排序。想盡量錄到下播結尾時可選 HLS；要更貼近直播邊緣時可選 FLV。
 
 ### 錄製時長（duration_minutes）
 
@@ -98,19 +105,19 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 # 訂閱房間
 curl -X POST http://127.0.0.1:8080/room/12345
 
-# 設定自動錄製
+# 設定自動錄製（可同時設定畫質與允許的流格式）
 curl -X PUT http://127.0.0.1:8080/room/12345/config \
   -H "Content-Type: application/json" \
-  -d '{"auto_record":true,"notify":true,"record_duration_minutes":120}'
+  -d '{"auto_record":true,"notify":true,"record_duration_minutes":120,"qn":150,"stream_profiles":["hls-fmp4","hls-ts"]}'
 ```
 
-為房間開啟 **開播通知** 或 **自動錄製** 後，後台會定期檢查該房間的直播狀態。服務啟動時先檢查所有相關房間一次，之後將房間分成若干組、分組輪流檢查，避免訂閱較多時 CPU 瞬間飆高。檢測到新一場直播時：若開啟了通知則推送消息；若開啟了自動錄製則自動開始錄製。分組與檢查週期預設隨訂閱規模自動調整，詳見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
+為房間開啟 **開播通知** 或 **自動錄製** 後，後台會定期檢查該房間的直播狀態。服務啟動時先檢查所有相關房間一次，之後將房間分成若干組、分組輪流檢查，避免訂閱較多時 CPU 瞬間飆高。檢測到新一場直播時：若開啟了通知則推送消息；若開啟了自動錄製則自動開始錄製（沿用房間設定中的畫質、流格式允許清單等）。分組與檢查週期預設隨訂閱規模自動調整，詳見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
 
 ## 自動錄製
 
 啟用 `auto_record: true` 後，檢測到開播時會自動開始錄製。
 
-`record_duration_minutes` 控制自動錄製的時長上限（僅在 `auto_record: true` 時生效）。
+`record_duration_minutes` 控制自動錄製的時長上限（僅在 `auto_record: true` 時生效）。房間設定中的 `qn`、`stream_profiles`、`only_audio` 會作為自動錄製參數一併生效。
 
 <Aside type="note">
 手動觸發的錄製不受房間 `record_duration_minutes` 設定影響，需在調用 `/record/:roomID/start` 時自行傳入 `duration_minutes` 參數。

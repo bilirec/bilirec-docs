@@ -97,7 +97,10 @@ GET /room/:roomID/config
   "room_id": 123,
   "auto_record": true,
   "notify": true,
-  "record_duration_minutes": 120
+  "record_duration_minutes": 120,
+  "qn": 150,
+  "only_audio": false,
+  "stream_profiles": ["hls-fmp4", "hls-ts"]
 }
 ```
 
@@ -110,10 +113,15 @@ Content-Type: application/json
 {
   "auto_record": true,
   "notify": true,
-  "record_duration_minutes": 120
+  "record_duration_minutes": 120,
+  "qn": 150,
+  "only_audio": false,
+  "stream_profiles": ["hls-fmp4", "hls-ts"]
 }
 ```
 
 `record_duration_minutes`：`0`=系統預設，`-1`=無限，正整數=N 分鐘。僅在 `auto_record: true` 時生效。
+
+`qn`、`stream_profiles`、`only_audio`：自動錄製啟動時生效（與手動開錄相同）。`stream_profiles` 為空或省略表示允許全部格式；數組元素為 `http-flv` / `hls-ts` / `hls-fmp4`，作為嚴格允許清單。
 
 若希望手動錄製也使用該時長，可在 `POST /record/:roomID/start` 時顯式傳入 `duration_minutes`；否則手動錄製仍按系統預設或本次請求參數執行。

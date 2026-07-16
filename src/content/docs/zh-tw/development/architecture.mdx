@@ -21,7 +21,7 @@ description: bilirec 項目結構與核心實現
 
 ## 錄製流程
 
-1. 通過 `bilibili.Client` 獲取直播流地址（未指定 `stream_profile` 時依次嘗試 HTTP-FLV → HLS-fMP4 → HLS-TS）
+1. 通過 `bilibili.Client` 獲取直播流地址（未指定流格式時按畫質排序後，同畫質下偏好 HTTP-FLV → HLS-fMP4 → HLS-TS；指定時為嚴格允許清單，經 `WithProfiles` 過濾查詢與結果。開錄可用 query `stream_profile` 逗號多選；房間設定用 JSON `stream_profiles` 數組）
 2. `stream.Service` 讀取流數據
 3. `recorder.Service` 管理錄製任務（自動重連與恢復，恢復時沿用啟動時的畫質與流格式參數）
 4. 數據寫入錄製檔案（`.flv`、`.ts` 或 `.fmp4`）
