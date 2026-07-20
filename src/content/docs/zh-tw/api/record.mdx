@@ -114,10 +114,13 @@ Content-Type: application/json
     "status": "recording",
     "start_time": 1234567890,
     "elapsed_seconds": 120,
-    "output_path": "records/tester-123/live-title.flv"
+    "output_path": "records/tester-123/live-title.flv",
+    "room_title": "開錄時的直播標題"
   }
 }
 ```
+
+`room_title` 為**開始錄製時**固定的房間標題（用於輸出檔案名），與房間信息接口返回的當前標題可能不同。
 
 ## 列出所有任務
 
