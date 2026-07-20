@@ -19,6 +19,12 @@ import { Aside } from '@astrojs/starlight/components';
 
 斷流恢復後會**用新的時間戳開一個新檔案**（例如 `標題-20260711_160512.flv`），不會覆蓋斷流前的錄製，也不會和直播輪轉產生的 `-1`/`-2` 後綴檔案混用同一套命名。`preserve` 與 `reset` 只影響「還能錄多久」，不影響檔案名規則。
 
+<Aside type="tip">
+**檔案名與標題：**
+- 開錄時的房間標題會寫入檔案名；錄製中途改標題不會改寫已在寫的檔案名。
+- 斷流恢復後的新檔案會用恢復當時的房間標題。
+</Aside>
+
 `MAX_CONCURRENT_RECORDINGS` 直接影響記憶體峰值。樹莓派預設 `3`（1080p 預設緩衝下可驗證至 5 路），SSD 環境可放寬至 `10`。規劃容器上限可參考 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)，詳見 [樹莓派預設](/zh-tw/configuration/pi5-defaults/) 與 [SSD 調優](/zh-tw/configuration/ssd-tuning/)。
 
 調高同時錄製路數時，若保持 `SEQUENTIAL_WRITE=true`（microSD、機械盤、NAS 的預設建議），建議按路數比例同步增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，以免每路寫盤間隔被壓得過短、寫盤更勤或 CPU 尖峰更明顯。換算方式與示例見 [I/O 調優 · 多路錄製與 flush 週期](/zh-tw/configuration/io-tuning/#多路錄製與-flush-週期)。Android 開啟 microSD 卡磨損保護時會自動處理，見 [Android 預設設定](/zh-tw/configuration/android-defaults/)。
