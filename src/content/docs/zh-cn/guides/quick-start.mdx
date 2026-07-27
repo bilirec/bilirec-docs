@@ -62,6 +62,10 @@ docker run -d \
 
 详细说明见 [Android App](/zh-cn/guides/android/)。
 
+<Aside type="caution">
+**大陆国产手机用户请先完成后台保活设置，否则 Bilirec 可能被系统杀后台，导致程序连接中断。** [查看设置步骤](/zh-cn/guides/android-mainland/)
+</Aside>
+
 </TabItem>
 </Tabs>
 
@@ -185,6 +189,7 @@ curl -X POST "http://127.0.0.1:8080/record/12345/stop"
 - [API 使用](/zh-cn/api/overview/) — 用脚本或程序接入录制流程
 - [录制直播间](/zh-cn/guides/recording/) — 手动或自动录制
 - [配置与调优](/zh-cn/configuration/overview/) — 调整环境变量
+- [Android 后台保活](/zh-cn/guides/android-mainland/) — 手机用户必看：避免后台被杀导致录制中断
 
 <Aside type="caution">
 若计划将后端暴露到公网（如启用 FRP），建议设置 `USERNAME` 和 `PASSWORD` 保护 API 访问。详见[认证与安全](/zh-cn/configuration/auth-security/)。
