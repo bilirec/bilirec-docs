@@ -328,3 +328,48 @@ import { Aside } from '@astrojs/starlight/components';
 若日誌出現 `釋放檔案頁緩存失敗` 或 `冷緩存釋放失敗`，錄製通常仍可繼續，只是記憶體可能降不下來；見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
 詳見 [環境變數說明](/zh-tw/configuration/env-reference/) · [I/O 調優](/zh-tw/configuration/io-tuning/)。
+
+## 監控與指標
+
+### 啟用了監控指標，但 9090 端口連不上？
+
+**你會看到：** 設了 `METRICS_ENABLED=true`，重啟後 `curl http://localhost:9090/metrics` 沒有響應，或日誌裡沒有 `metrics 伺服器已啟動`。
+
+**為什麼：** 環境變數只在啟動時讀取；值不是字符串 `true`（其他值視為關閉）；或 9090 端口已被其他程式佔用。
+
+**你可以：**
+1. 確認 `.env` 裡寫的是 `METRICS_ENABLED=true`（其他值視為關閉）。
+2. 確認已重啟 bilirec。
+3. 查啟動日誌：若端口被佔用會報錯，可改 `METRICS_PORT` 換一個端口。
+
+### `/metrics` 裡看不到 `bilirec_room_*` 指標？
+
+**你會看到：** 資源指標（`go_goroutines` 等）有，但 `bilirec_room_*` 一條都沒有。
+
+**為什麼：** 房間級指標是懶創建的，只有發生過錄製或開播事件才會出現對應 series；且只有開啟開播通知或自動錄製的訂閱房間才會被追蹤。
+
+**你可以：**
+1. 確認目標房間已訂閱，且開啟了開播通知或自動錄製。
+2. 等房間開播或開始錄製後再抓取。
+3. 用 `curl http://<addr>:9090/metrics | grep bilirec_room` 確認。
+
+### Grafana 裡每日數據為空或斷斷續續？
+
+**你會看到：** 面板查詢 `increase(...[1d])` 沒數據，或曲線經常斷開。
+
+**為什麼：** 抓取間隔過長會放大邊界誤差；查詢時間窗口內可能還沒有抓取數據；counter 重啟歸零屬於正常現象。
+
+**你可以：**
+1. 把 VictoriaMetrics / vmagent 的 `scrape_interval` 設為 15–30s。
+2. 確認查詢時間窗口內有抓取數據。
+3. counter 重啟歸零不需要手動補償，`increase()` 會自動處理。
+
+### Grafana 圖例只顯示房間號，不顯示主播名？
+
+**你會看到：** 圖例是 `12345` 而不是主播名。
+
+**為什麼：** 房間級數據 series 只帶 `room_id` label，主播名在單獨的 `bilirec_room_info` 指標裡，需要 join。
+
+**你可以：** 在查詢後加 `* on(room_id) group_left(uname) bilirec_room_info`，圖例格式設為 `{{uname}} ({{room_id}})`。主播改名後歷史區間會顯示當時的名字，新區間顯示新名字。
+
+詳見 [監控指標](/zh-tw/configuration/metrics/)。

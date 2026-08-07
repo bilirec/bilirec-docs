@@ -45,6 +45,7 @@ const sidebar = [
 			{ slug: 'configuration/conversion' },
 			{ slug: 'configuration/auth-security' },
 			{ slug: 'configuration/notifications' },
+			{ slug: 'configuration/metrics' },
 			{ slug: 'configuration/io-tuning' },
 			{ slug: 'configuration/pi5-defaults' },
 			{ slug: 'configuration/high-bitrate-tuning' },

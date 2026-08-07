@@ -11,6 +11,10 @@ export BILIBILI_LOGIN_MODE=controller
 export PORT=8080
 # export SERVER_CRT=/path/to/server.crt
 # export SERVER_KEY=/path/to/server.key
+# 监控指标（默认关闭，启用后由 VictoriaMetrics / Grafana 抓取）
+# export METRICS_ENABLED=true
+# export METRICS_HOST=          # 留空监听所有网卡，便于跨机器抓取
+# export METRICS_PORT=9090
 export FRP_ENABLED=true
 export FRP_SERVER=tunnel.bilirec.org:7000
 export FRP_BASE_DOMAIN=tunnel.bilirec.org

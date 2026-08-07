@@ -14,6 +14,9 @@ tableOfContents: false
 | `SERVER_CRT` | 可选：HTTPS 证书文件路径；当与 `SERVER_KEY` 同时设置时，Fiber 默认启用 HTTPS | (未设置) |
 | `SERVER_KEY` | 可选：HTTPS 私钥文件路径；当与 `SERVER_CRT` 同时设置时，Fiber 默认启用 HTTPS | (未设置) |
 | `TRUSTED_PROXIES` | 受信任反向代理 IP/CIDR 列表（逗号分隔），可填写 Nginx/FRP 等代理 IP，用于安全信任 `X-Forwarded-For`；默认 `161.33.159.26` 为公共 FRP 服务 IP | `161.33.159.26` |
+| `METRICS_ENABLED` | 是否启用 Prometheus 指标暴露（独立端口，详见 [监控指标](/zh-cn/configuration/metrics/)） | `false` |
+| `METRICS_HOST` | metrics 服务器绑定地址，空值监听所有网卡 | (空字符串) |
+| `METRICS_PORT` | metrics 服务器端口（与主 API 端口独立） | `9090` |
 | `FRP_ENABLED` | 是否启用 FRP 内网穿透 | `false` |
 | `FRP_SERVER` | FRP 服务器地址（`host:port`） | `tunnel.bilirec.org:7000` |
 | `FRP_TOKEN` | FRP 认证 Token；如果你有自己的 FRP 服务就填写，没有就留空 | (空字符串) |

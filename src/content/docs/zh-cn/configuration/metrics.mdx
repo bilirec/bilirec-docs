@@ -1,0 +1,152 @@
+---
+title: 监控指标
+description: 通过独立端口暴露 Prometheus 指标，接入 VictoriaMetrics / Grafana
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 可以在**独立端口**暴露 Prometheus 格式的指标，供 VictoriaMetrics（或任何兼容 Prometheus 抓取协议的采集器）抓取，再由 Grafana 做可视化与每日聚合。**默认关闭**，开启不影响主 API 端口、路由与认证。
+
+适用场景：在 NAS / 树莓派上 24 小时录制时，想长期观察资源占用、每房间写入量、录制时长与开播情况，并在 Grafana 画趋势图。
+
+## 前置知识
+
+监控指标涉及 Prometheus 抓取协议、时序数据库与可视化面板，需要一定的运维基础。如果你不熟悉相关概念，可先阅读以下官方文档：
+
+- [Prometheus 入门](https://prometheus.io/docs/prometheus/latest/getting_started/) — 抓取协议、`/metrics` 端点与 PromQL 基础
+- [VictoriaMetrics 文档](https://docs.victoriametrics.com/) — bilirec 推荐的时序数据库；查询用 [MetricsQL 函数参考](https://docs.victoriametrics.com/metricsql/)（与 PromQL 兼容，含 `increase`、`rate`、`integrate` 等）
+- [Grafana 入门](https://grafana.com/docs/grafana/latest/fundamentals/getting-started/) — 数据源配置、面板与仪表盘搭建
+
+bilirec 只负责暴露指标，采集与可视化由上述工具完成。下面假设你已大致了解这些工具的基本用法。
+
+## 快速开始
+
+1. 在 `.env` 中设置 `METRICS_ENABLED=true`，按需调整 `METRICS_PORT`
+2. 重启 bilirec，日志会打印 `metrics 服务器已启动：http://<addr>:9090/metrics`
+3. 在 VictoriaMetrics（或 vmagent）的抓取配置中加入 bilirec 地址，`scrape_interval` 建议 `15–30s`
+4. 在 Grafana 用 `increase()` / `integrate()` 等函数计算每日数据（见下文）
+
+```bash
+export METRICS_ENABLED=true
+export METRICS_HOST=          # 留空监听所有网卡，便于跨机器抓取
+export METRICS_PORT=9090
+```
+
+<Aside type="caution">
+指标端口**没有认证**，任何能访问该端口的人都能读取指标。若暴露到公网，请用防火墙或反向代理限制访问，不要直接将 `METRICS_PORT` 对公网开放。
+</Aside>
+
+## 配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `METRICS_ENABLED` | 是否启用指标暴露；`true` 时启动独立 metrics 服务器 | `false` |
+| `METRICS_HOST` | metrics 服务器绑定地址，空值监听所有网卡 | (空) |
+| `METRICS_PORT` | metrics 服务器端口 | `9090` |
+
+### `METRICS_ENABLED`
+
+**作用：** 开关整个指标功能。关闭时 bilirec 不会监听 metrics 端口，也不会注册任何指标 series，不会增加可察觉的运行开销。
+
+**默认值：** `false`（关闭）。
+
+**何时开启：** 当你部署了 VictoriaMetrics / Prometheus 等监控系统并希望采集 bilirec 数据时。
+
+**注意：** 切换此开关需要重启 bilirec（环境变量配置）。关闭期间累积的计数器值不可观测，重新开启后从 0 重新开始计数。
+
+### `METRICS_HOST`
+
+**作用：** metrics 服务器绑定的网卡地址。空字符串表示监听所有网卡，便于从另一台机器（如树莓派上的 VictoriaMetrics）跨机抓取。
+
+**默认值：** (空字符串，监听所有网卡)。
+
+**何时修改：** 仅本机抓取时可设为 `127.0.0.1` 以减少暴露面；跨机抓取保持空值即可。
+
+### `METRICS_PORT`
+
+**作用：** metrics 服务器监听端口，与主 API 端口（`PORT`）相互独立。
+
+**默认值：** `9090`。
+
+**何时修改：** 当 9090 已被其他服务占用时。
+
+## 指标清单
+
+指标分两类：**资源用量**（进程级，无 label）与**房间级**（带 `room_id` label）。
+
+### 资源用量
+
+| 指标 | 类型 | 说明 |
+|------|------|------|
+| `go_goroutines` | gauge | Goroutine 数量 |
+| `go_memstats_heap_inuse_bytes` | gauge | 堆内存使用量 |
+| `go_memstats_stack_inuse_bytes` | gauge | 栈内存使用量 |
+| `go_memstats_sys_bytes` | gauge | Go runtime 已向 OS 申请的内存 |
+| `go_gc_pause_total_seconds` | gauge | GC 暂停总时长（秒） |
+| `go_gc_num_total` | gauge | GC 次数 |
+| `process_resident_memory_bytes` | gauge | 进程驻留内存（RSS） |
+| `process_cpu_seconds_total` | gauge | 进程 CPU 累计秒数（用 `rate()` 得 CPU 核数） |
+| `process_threads` | gauge | 进程线程数 |
+| `process_open_fds` | gauge | 打开的文件描述符数（仅 Linux/Android） |
+| `bilirec_build_info` | gauge=1 | 构建信息，label `version`；仅 release 构建有值 |
+| `bilirec_active_recordings` | gauge | 当前正在录制的房间数 |
+
+<Aside type="note">
+资源指标在每次抓取时即时求值，**没有后台 goroutine** 持续采样，额外开销有限。`process_open_fds` 仅在平台支持时才注册（Linux/Android 有，Windows 无）。
+</Aside>
+
+### 房间级指标
+
+所有房间级指标都带 `room_id` label（房间号永不变更，不会因主播改名产生 series 抖动）。
+
+| 指标 | 类型 | 说明 |
+|------|------|------|
+| `bilirec_room_stream_bytes_total` | counter | 串流写入字节数（≈ 落盘量） |
+| `bilirec_room_recording_sessions_total` | counter | 录制场次数 |
+| `bilirec_room_recording_active` | gauge 1/0 | 是否正在录制（积分得每日录制时长） |
+| `bilirec_room_live_status` | gauge 1/0 | 是否正在开播（积分得每日开播时长） |
+| `bilirec_room_live_sessions_total` | counter | 开播场次数 |
+| `bilirec_room_stream_recovery_total` | counter | 断线恢复尝试次数（不含正常下播重试） |
+| `bilirec_room_info` | gauge=1 | 房间元信息，label `room_id`、`uname`，用于 Grafana join 显示主播名 |
+
+<Aside type="note">
+`bilirec_room_info` 是「info metric」：值恒为 1，作用是把 `room_id` 映射到 `uname`（主播名）。Grafana 查询时用 `* on(room_id) group_left(uname)` join 回数据 series，即可在图例显示主播名。主播改名时只重建这一条小 series，数据 series 不受影响；历史区间会 join 出当时的名字，符合当时的状态。
+</Aside>
+
+## Grafana / MetricsQL 查询示例
+
+bilirec 只暴露**累积 counter** 与**即时 gauge**，每日 / 总量统计全部在查询端完成，bilirec 不做任何聚合。
+
+| 需求 | 查询（MetricsQL） |
+|------|------------------|
+| 每房间每日写入量 | `sum by (room_id) (increase(bilirec_room_stream_bytes_total[1d]))` |
+| 所有房间总量 | `sum(increase(bilirec_room_stream_bytes_total[$__range]))` |
+| 每房间每日录制时长 | `integrate(bilirec_room_recording_active[1d])` |
+| 每房间每日开播时长 | `integrate(bilirec_room_live_status[1d])` |
+| 每房间每日开播场次 | `increase(bilirec_room_live_sessions_total[1d])` |
+| 每房间录制场次 | `increase(bilirec_room_recording_sessions_total[$__range])` |
+| 每房间断线恢复次数 | `increase(bilirec_room_stream_recovery_total[$__range])` |
+| 当前 CPU 核数占用 | `rate(process_cpu_seconds_total[5m])` |
+| 显示主播名（join） | `... * on(room_id) group_left(uname) bilirec_room_info`，图例用 `{{uname}} ({{room_id}})` |
+
+<Aside type="tip">
+**开/下播时刻：** 用 Grafana **state timeline** 面板直接画 `bilirec_room_live_status` 的 0↔1 转换，即可看到每次开播 / 下播的时间点，历史全部保存在 VictoriaMetrics，重启 bilirec 也不丢失。
+</Aside>
+
+## 重启与持久化
+
+bilirec **不在本地保存任何指标数据**，所有历史由 VictoriaMetrics 负责：
+
+- counter 只在单次进程生命周期内单调递增；**重启会归零**，这是设计使然。
+- VictoriaMetrics 每次抓取的样本全部入库，`increase()` / `rate()` 会自动识别 counter 重置（值变小视为重启），跨重启的每日统计由重启前增量与重启后增量相加得出。
+- 唯一损失窗口：最后一次抓取到重启之间尚未被抓走的增量。以 `scrape_interval=15–30s`、6 Mbps 串流估算，约为 25 MB 量级的误差。
+- gauge（`live_status`、`recording_active`）每轮 / 每事件无条件 Set，重启后自动恢复当前值，不依赖历史。
+
+## 已知限制
+
+- **开播检测精度：** bilirec 通过订阅检查**轮询**判断开播（每房间间隔 `SUBCHECK_MIN/MAX_INTERVAL_SECS`，默认 60–300s），`live_status` 的 0↔1 转换时刻精度约为一个轮询周期。
+- **追踪范围：** 只有开启**开播通知**或**自动录制**的订阅房间才会被追踪房间级指标；未订阅或两者都关闭的房间不产生 series。
+- **积分边界误差：** `integrate()` 积分法在每场录制 / 开播的首尾有 ≤ 约 2 倍 `scrape_interval` 的边界误差，15–30s 抓取下对小时级录制通常影响不大。
+- **`process_open_fds` 平台差异：** 仅 Linux/Android 注册；Windows 平台无此指标。
+
+遇到指标端口连不上、看不到房间指标、Grafana 数据断续等问题，见 [常见问题 · 监控与指标](/zh-cn/guides/faq/#监控与指标)。
