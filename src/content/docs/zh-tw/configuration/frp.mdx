@@ -45,7 +45,7 @@ import { Aside } from '@astrojs/starlight/components';
 export FRP_ENABLED=true
 ```
 
-通過 [app.bilirec.org](https://app.bilirec.org/) 遠端登入時（**不限於 FRP**，自架 HTTPS API 也一樣），還需 `PRODUCTION_MODE=true` 及帳號密碼，否則可能反覆提示會話過期。見 [認證與安全 — 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
+通過 [app.bilirec.org](https://app.bilirec.org/) 遠端登入時（**不限於 FRP**，自架 HTTPS API 也一樣），建議開啟 `PRODUCTION_MODE=true` 並設定帳號密碼；未設定時可能出現會話過期提示。見 [認證與安全 — 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
 
 **app.bilirec.org + 官方 FRP（完整示例）：**
 

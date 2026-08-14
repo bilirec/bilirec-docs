@@ -5,10 +5,10 @@ description: 根据缓冲配置与录制路数估算容器内存上限
 
 import { Aside } from '@astrojs/starlight/components';
 
-录制时，直播数据会在内存里「排队」：先从网络读进来，再排队等待写入磁盘。用下面公式估算**给容器留多少内存**即可（偏保守的上限；实际监控往往略低，见 [性能实测](/zh-cn/guides/performance-benchmark/)）。
+录制时，直播数据会在内存里「排队」：先从网络读进来，再排队等待写入磁盘。可以用下面公式估算**给容器留多少内存**（偏保守的上限；实际监控往往略低，见 [性能实测](/zh-cn/guides/performance-benchmark/)）。
 
 <Aside type="tip">
-**仅 Docker 官方镜像**需要关注 `GOMEMLIMIT`（镜像内默认 `768MiB`）。估好容器 memory limit 后，若比默认大很多，请用 `-e` 同步调高，否则 Go 仍会频繁 GC。二进制直跑、Android 等无此预设。见 [Docker 指南 · GOMEMLIMIT](/zh-cn/guides/docker/#go-内存上限gomemlimit)。
+**仅 Docker 官方镜像**需要关注 `GOMEMLIMIT`（镜像内默认 `768MiB`）。估好容器 memory limit 后，若比默认大很多，可用 `-e` 同步调高；否则 Go 可能更频繁 GC。二进制直跑、Android 等无此预设。见 [Docker 指南 · GOMEMLIMIT](/zh-cn/guides/docker/#go-内存上限gomemlimit)。
 </Aside>
 
 ## 会影响内存占用的环境变量

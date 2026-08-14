@@ -17,7 +17,7 @@ import { Aside } from '@astrojs/starlight/components';
 - **多後端支持**：登入頁可設定伺服器地址，地址保存在 `localStorage`，並同步到 IndexedDB 供 Service Worker 使用（鍵名均為 `server-url`）。
 
 <Aside type="note">
-線上 `app.bilirec.org` 與自架 **HTTPS** 前端受同一套瀏覽器混合內容策略：只能連接本機 HTTP 後端（`localhost` / `127.0.0.1`）；遠端 HTTP 局域網地址會被攔截，須使用 HTTPS 隧道（如 [FRP](/zh-tw/guides/frp/)），或把前後端放在同一 HTTPS 反代後。詳見 [Web 介面](/zh-tw/guides/web-ui/#連接自架後端)。
+線上 `app.bilirec.org` 與自架 **HTTPS** 前端受同一套瀏覽器混合內容策略：多數瀏覽器會阻止 HTTPS 頁面直接請求 HTTP 局域網地址；`localhost` / `127.0.0.1` 通常是例外。遠端 HTTP 局域網地址通常需要使用 HTTPS 隧道（如 [FRP](/zh-tw/guides/frp/)），或把前後端放在同一 HTTPS 反代後。詳見 [Web 介面](/zh-tw/guides/web-ui/#連接自架後端)。
 </Aside>
 
 ## 功能概覽
@@ -126,7 +126,7 @@ pnpm preview  # 本地預覽生產建置
 |------|------|
 | 後端 `FRONTEND_URL` | 部署完成後，將 bilirec 後端的 `FRONTEND_URL` 設為你的前端 HTTPS 域名（CORS 與 Cookie 認證）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) |
 | 自架前端 + 不同根域名後端 | 若前端域名與後端（如 FRP 的 `*.tunnel.bilirec.org`）**根域名不同**，除 `PRODUCTION_MODE=true` 外，可能還需在瀏覽器允許第三方 Cookie。官方 `app.bilirec.org` 連 FRP 一般無此問題。見 [FRP — 根域名是否相同](/zh-tw/guides/frp/#根域名是否相同) |
-| 須使用 HTTPS | PWA 安裝與 Web Push 需要 HTTPS。任何 HTTPS 前端（含自架）都受瀏覽器混合內容限制：只能直連本機 HTTP（`localhost` / `127.0.0.1`），不能直連局域網 HTTP 地址；遠端後端須為 HTTPS（如 [FRP](/zh-tw/guides/frp/)）或把前後端放在同一 HTTPS 反代後 |
+| PWA / Web Push 的 HTTPS 要求 | 如果需要安裝 PWA 或使用 Web Push，前端部署需要 HTTPS。對於 HTTPS 前端，多數瀏覽器會阻止直接請求 HTTP 局域網地址；`localhost` / `127.0.0.1` 通常是例外。遠端後端通常需要使用 HTTPS（如 [FRP](/zh-tw/guides/frp/)），或把前後端放在同一 HTTPS 反代後 |
 | 與官方前端取捨 | `app.bilirec.org` 適合本機、Android 內嵌後端或 FRP HTTPS 隧道；自架前端適合自定義域名，或前後端同站 HTTPS 反代等場景 |
 | Fork 行為 | 按鈕會在你的 GitHub 創建倉庫 fork 並綁定 Workers Builds，後續 push 自動部署 |
 | 後端須單獨運行 | 前端僅為靜態資源，bilirec 錄製後端須另行[安裝與啟動](/zh-tw/guides/installation/) |
@@ -140,8 +140,8 @@ pnpm preview  # 本地預覽生產建置
 
 1. 執行 `pnpm build` 生成 `dist/`。
 2. 將 `dist/` 部署到任意靜態託管（Cloudflare Pages、Nginx、對象儲存 + CDN 等），或使用 `pnpm deploy`（`wrangler deploy`）。
-3. **須使用 HTTPS**，否則 PWA 安裝與 Web Push 等功能受限。
-4. 確保後端 `FRONTEND_URL` 包含你的前端域名（CORS）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/)。
+3. 如果需要安裝 PWA 或使用 Web Push，前端部署需要 HTTPS。
+4. 部署完成後，將後端 `FRONTEND_URL` 設定為前端域名，以允許 CORS 請求。見 [伺服器與網路設定](/zh-tw/configuration/server-network/)。
 
 ## 認證與後端連接
 
@@ -157,7 +157,7 @@ pnpm preview  # 本地預覽生產建置
 - 用戶安裝說明見 [Web 介面 — 安裝 PWA](/zh-tw/guides/web-ui/#安裝-pwa)。
 
 <Aside type="tip">
-修改 Service Worker 後須重新 `pnpm build` 並確保用戶刷新或更新 PWA，新 SW 才會生效。
+修改 Service Worker 後，需要重新 `pnpm build`，並在用戶刷新或更新 PWA 後新 SW 才會生效。
 </Aside>
 
 ## 實時刷新
