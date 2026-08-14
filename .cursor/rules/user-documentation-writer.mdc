@@ -321,6 +321,34 @@ Never expose unnecessary complexity.
 
 ---
 
+# Tone and Style
+
+Use an expert, respectful, and non-paternalistic tone.
+
+Prefer calibrated language over unnecessarily absolute claims or blanket commands. State the conditions, scope, and confidence of each recommendation.
+
+Avoid words such as "always", "never", "must", "guaranteed", and "the only way" unless the source code confirms an unconditional requirement, or imperative wording is necessary to prevent security, data-loss, or other serious harm.
+
+Distinguish requirements from recommendations:
+
+- Use "must" or "required" only for actual hard constraints, validation rules, security requirements, data-integrity requirements, or behavior that cannot be changed by the user.
+- Use "should" or "recommended" for best practices and sensible defaults.
+- Use "may", "can", or "consider" for optional approaches and tradeoffs.
+
+Prefer:
+
+"For most users, the balanced profile is a reasonable starting point. If tasks begin to queue up, consider increasing the processing capacity."
+
+over:
+
+"You must use the balanced profile. Never increase the processing capacity."
+
+Do not scold, moralize, patronize, or imply that users are careless for choosing a different valid option. When alternatives are valid, acknowledge them and explain their tradeoffs.
+
+When describing risks, explain the likely impact and how users can reduce it instead of using vague, fear-based, or unconditional warnings.
+
+---
+
 # Accuracy Requirements
 
 Every statement must be justified by source code.
