@@ -17,6 +17,14 @@ tableOfContents: false
 | `METRICS_ENABLED` | 是否启用 Prometheus 指标暴露（独立端口，详见 [监控指标](/zh-cn/configuration/metrics/)） | `false` |
 | `METRICS_HOST` | metrics 服务器绑定地址，空值监听所有网卡 | (空字符串) |
 | `METRICS_PORT` | metrics 服务器端口（与主 API 端口独立） | `9090` |
+| `DANMAKU_OUTPUT_FORMAT` | 弹幕文件格式：`jsonl` 或 `xml`；`jsonl` 可用于 Web 回放弹幕与互动特效，详见 [弹幕录制](/zh-cn/configuration/danmaku/) | `jsonl` |
+| `DANMAKU_OVERFLOW_POLICY` | 弹幕写入队列已满时的处理方式：`drop`（丢弃新消息）或 `block`（等待空位） | `drop` |
+| `DANMAKU_WRITER_BUFFER_SIZE` | 弹幕写入前的合并缓冲区大小（字节） | `262144` (256 KB) |
+| `DANMAKU_WRITER_MIN_PERIODIC_FLUSH_BYTES` | 定期写入时跳过的小数据量阈值（字节） | `16384` (16 KB) |
+| `DANMAKU_WRITER_FLUSH_PERIOD_SECS` | 弹幕数据定期推进储存设备的间隔（秒） | `15` |
+| `DANMAKU_WRITER_SYNC_PERIOD_SECS` | 弹幕文件定期强制落盘的间隔（秒）；`0`=录制中关闭 | `0` |
+| `DANMAKU_CHAN_BUFFER_SIZE` | 弹幕接收与写入过程可暂存的消息槽位数量 | `256` |
+| `DANMAKU_BYTES_POOL_SIZE` | 弹幕片段缓冲的基础大小（字节） | `4096` (4 KB) |
 | `FRP_ENABLED` | 是否启用 FRP 内网穿透 | `false` |
 | `FRP_SERVER` | FRP 服务器地址（`host:port`） | `tunnel.bilirec.org:7000` |
 | `FRP_TOKEN` | FRP 认证 Token；如果你有自己的 FRP 服务就填写，没有就留空 | (空字符串) |

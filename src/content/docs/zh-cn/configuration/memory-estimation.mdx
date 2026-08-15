@@ -25,6 +25,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 路数由 `MAX_CONCURRENT_RECORDINGS` 决定，直接代入下方公式里的 N。
 
+弹幕录制使用独立的消息队列与写入缓冲，默认占用通常远小于每路视频的读写排队内存，因此一般不需要把 `DANMAKU_*` 额外加入下方的 1080p/4K 视频估算。只有在弹幕非常密集、同时录制路数较多，或把弹幕队列与写入缓冲明显调大时，才需要为它预留更多余量；相关设置见[弹幕录制](/zh-cn/configuration/danmaku/)。
+
 <Aside type="note">
 读入和写盘各有一份数据在排队，下面公式已把两侧都算上。
 </Aside>

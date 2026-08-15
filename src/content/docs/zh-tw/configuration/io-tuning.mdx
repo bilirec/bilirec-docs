@@ -57,6 +57,14 @@ import { Aside } from '@astrojs/starlight/components';
 - **`LIVE_STREAM_WRITER_BUFFER_SIZE=8MB`** — 緩衝越大，寫盤次數越少。以 1080p 30fps、約 4.5Mbps 估算，大約每 14 秒攢滿寫一次
 - **`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS=15`** — 每 15 秒推進一次磁碟，在「省電/省卡」和「異常斷電少丟數據」之間折中
 
+### 彈幕寫入
+
+彈幕檔案預設也按 `15` 秒週期推進寫入，與影片寫入週期保持一致。若你調整了 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 來適應儲存設備，可以同時檢查 `DANMAKU_WRITER_FLUSH_PERIOD_SECS`：
+
+- microSD、機械盤或多路錄製時，適當增大彈幕週期可以減少小塊寫入和設備競爭，但記憶體中等待寫入的時間會變長。
+- 更重視異常中斷時少丟最近的彈幕時，可以適當減小週期；寫入次數和儲存設備壓力也會增加。
+- `DANMAKU_WRITER_SYNC_PERIOD_SECS=0` 預設不在錄製過程中反覆強制整份彈幕檔案落盤，通常更適合 microSD。完整說明見[彈幕錄製](/zh-tw/configuration/danmaku/)。
+
 ### 多路錄製與 flush 週期
 
 `SEQUENTIAL_WRITE=true` 時（預設），`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 表示**所有在錄路徑走完一輪寫盤**的時長；每路實際間隔約為 `週期 ÷ 當前在錄路數`。預設 3 路、15 秒週期時，每路大約每 5 秒輪到一次寫盤。

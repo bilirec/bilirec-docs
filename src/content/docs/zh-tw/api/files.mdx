@@ -83,3 +83,17 @@ GET /files/playback/{path}
   <source src="/files/playback/username-roomID/20250101.mp4" type="video/mp4">
 </video>
 ```
+
+## 獲取影片對應的彈幕檔案
+
+```http
+GET /files/danmaku/{path}
+```
+
+`path` 傳入影片檔案路徑，服務會查找與影片同名的彈幕檔案，並優先返回 `.jsonl`，找不到時再嘗試 `.xml`：
+
+```bash
+curl "http://127.0.0.1:8080/files/danmaku/username-roomID/20250101.mp4"
+```
+
+返回內容類型為 `application/x-ndjson` 或 `application/xml`。當前影片分段仍在錄製時返回 `400`；沒有對應彈幕檔案時返回 `404`。

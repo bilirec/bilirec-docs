@@ -14,7 +14,7 @@ description: bilirec 项目结构与核心实现
 │   ├── controllers/      # HTTP 控制器（auth, convert, file, notify, record, room）
 │   ├── modules/          # 核心模块（bilibili, config, rest）
 │   ├── processors/       # 流处理器
-│   └── services/         # 业务逻辑（recorder, convert, expose, notify, room, stream...）
+│   └── services/         # 业务逻辑（recorder, danmaku, convert, expose, notify, room, stream...）
 ├── pkg/                  # 可复用库（ffmpeg, flv, hls, cloudconvert, pool, swr...）
 └── utils/                # 工具函数库
 ```
@@ -25,6 +25,7 @@ description: bilirec 项目结构与核心实现
 2. `stream.Service` 读取流数据
 3. `recorder.Service` 管理录制任务（自动重连与恢复，恢复时沿用启动时的画质与流格式参数）
 4. 数据写入录制文件（`.flv`、`.ts` 或 `.fmp4`）
+5. 若本次录制开启了弹幕，`danmaku.Service` 独立接收弹幕、醒目留言、礼物和舰长事件，并写入与视频同名的 `.jsonl` 或 `.xml` 文件；视频分段时同步切换对应文件
 
 - **HTTP-FLV**：检测到 PK 等 FLV 文件头变更（分辨率切换）时自动分段轮转
 - **HLS-fMP4**：默认将 init segment 与媒体分片顺序追加到同一文件；播放列表重发**内容相同**的 init（如 CDN 序列回退）会跳过并继续写入；仅当 init **内容变更**（PK、换源、编解码参数变化）时才轮转到新分段，且新文件以完整 init 开头，可正常转 MP4
@@ -38,6 +39,7 @@ description: bilirec 项目结构与核心实现
 - **自动分段轮转（HTTP-FLV / HLS-fMP4）** — FLV 在 PK/分辨率切换时轮转；HLS-fMP4 在 init 内容变更时轮转（相同 init 重发不切分），新分段带完整 init
 - **2K/4K 双池** — 根据 `qn` 自动选用 1080p 或高画质内存池，高画质池懒加载
 - **自动录制** — 订阅房间开启 `auto_record` 后，检测到开播自动启动录制
+- **弹幕录制** — 弹幕接收与视频管道分开处理，支持 `jsonl` / `xml` 两种输出格式；视频分段或恢复时同步切换弹幕文件
 - **开播检测** — `subcheck` 分组轮询已开启通知或自动录制的房间，检测新场次并触发推送或录制；每组触发前带随机抖动（`SUBCHECK_JITTER_SECS`），避免固定间隔被识别为机器轮询
 - **直播间信息风控切换** — 查询是否在播时默认匿名请求；B 站返回风控类 API 码时自动改用已登录 Cookie 重试，并在日志中记录切换与恢复
 - **实时通知** — Web Push + SSE

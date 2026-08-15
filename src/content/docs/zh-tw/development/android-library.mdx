@@ -34,6 +34,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 - `basePath` **必填** — 數據目錄根路徑
 - `env` **可選** — 覆蓋預設環境變數（含 `SEQUENTIAL_WRITE`、`OUTPUT_DIR`、`CONVERT_TO_MP4` 等）
+- `env` 也可以覆蓋 `DANMAKU_*` 彈幕寫入參數；是否為某次錄製保存彈幕，仍由開始錄製請求或房間設定中的 `record_danmaku` 決定，不是 `Start` JSON 的全局開關
 - 若設定了 `USERNAME` / `PASSWORD` 並通過 `https://app.bilirec.org` 管理，建議同時設定 `PRODUCTION_MODE=true`；未設定時登入狀態可能無法保持
 
 ## 移動端預設行為

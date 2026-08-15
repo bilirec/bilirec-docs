@@ -29,6 +29,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 调高同时录制路数时，若保持 `SEQUENTIAL_WRITE=true`（microSD、机械盘、NAS 的默认建议），建议按路数比例同步增大 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`，以免每路写盘间隔被压得过短、写盘更勤或 CPU 尖峰更明显。换算方式与示例见 [I/O 调优 · 多路录制与 flush 周期](/zh-cn/configuration/io-tuning/#多路录制与-flush-周期)。Android 开启 microSD 卡磨损保护时会自动处理，见 [Android 默认配置](/zh-cn/configuration/android-defaults/)。
 
+## 弹幕录制
+
+是否保存弹幕、礼物等直播互动记录，由每次开始录制的 `record_danmaku` 参数或房间配置中的同名字段控制，不是全局开关。输出格式、消息高峰处理方式和写入频率见[弹幕录制](/zh-cn/configuration/danmaku/)。
+
 ## 存储路径
 
 | 变量 | 说明 | 默认值 |

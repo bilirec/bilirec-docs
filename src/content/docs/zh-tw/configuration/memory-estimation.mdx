@@ -25,6 +25,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 路數由 `MAX_CONCURRENT_RECORDINGS` 決定，直接代入下方公式裡的 N。
 
+彈幕錄製使用獨立的消息隊列與寫入緩衝，預設佔用通常遠小於每路影片的讀寫排隊記憶體，因此一般不需要把 `DANMAKU_*` 額外加入下方的 1080p/4K 影片估算。只有在彈幕非常密集、同時錄製路數較多，或把彈幕隊列與寫入緩衝明顯調大時，才需要為它預留更多餘量；相關設定見[彈幕錄製](/zh-tw/configuration/danmaku/)。
+
 <Aside type="note">
 讀入和寫盤各有一份數據在排隊，下面公式已把兩側都算上。
 </Aside>

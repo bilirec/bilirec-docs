@@ -6,7 +6,7 @@ description: 開始/停止錄製、查詢狀態與統計
 ## 開始錄製
 
 ```http
-POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<quality>&only_audio=<bool>
+POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<quality>&only_audio=<bool>&record_danmaku=<bool>
 ```
 
 ### duration_minutes
@@ -53,6 +53,17 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 | 不傳 / `false` | 錄製音影片 |
 | `true` | 僅錄製音頻 |
 
+### record_danmaku
+
+是否同時保存彈幕、醒目留言、禮物和艦長等互動記錄。
+
+| 值 | 說明 |
+| -- | ---- |
+| 不傳 / `false` | 不錄製互動記錄 |
+| `true` | 錄製互動記錄，並在影片旁保存同名彈幕檔案 |
+
+彈幕檔案格式與寫入行為由 [彈幕錄製設定](/zh-tw/configuration/danmaku/)控制。使用 Web 播放器顯示彈幕滾動和禮物特效時，建議使用預設的 `jsonl` 格式。
+
 **注意：**
 
 - 錄 4K / 杜比建議顯式傳 `qn`（如 `qn=20000`、`qn=30000`）
@@ -60,7 +71,7 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 - 若遇卡頓或記憶體不足，參見 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/) 與 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)
 
 ```bash
-curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true"
+curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true&record_danmaku=true"
 ```
 
 ### 錯誤響應
@@ -68,6 +79,7 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 | HTTP | 說明 |
 | ---- | ---- |
 | `400` | 無效參數、房間未開播、已在錄製、正在恢復流等 |
+| `404` | 房間不存在 |
 | `409` | 該房間錄製正在啟動中（並發請求衝突） |
 | `410` | 無法連接到任何可用流 URL |
 | `429` | 已達到 `MAX_CONCURRENT_RECORDINGS` 上限 |
@@ -111,10 +123,15 @@ Content-Type: application/json
 {
   "123": {
     "bytes_written": 1048576,
+    "danmaku_bytes_written": 4096,
+    "record_danmaku": true,
     "status": "recording",
     "start_time": 1234567890,
     "elapsed_seconds": 120,
     "output_path": "records/tester-123/live-title.flv",
+    "actual_qn": 150,
+    "actual_stream_format": "http-flv",
+    "is_audio_only": false,
     "room_title": "開錄時的直播標題"
   }
 }

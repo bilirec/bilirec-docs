@@ -26,6 +26,26 @@ GET /room/:roomID/info
 - `404`：房间不存在
 - `500`：服务器内部错误
 
+## 解析房间 ID
+
+短房间号和真实房间号都可以传入此接口。返回值会同时给出本次查询使用的 ID、真实 `room_id` 与 `short_id`：
+
+```http
+GET /room/:roomID/resolve
+```
+
+```json
+{
+  "query_id": 456,
+  "room_id": 123,
+  "short_id": 456
+}
+```
+
+- `200`：解析成功
+- `400`：无效房间 ID
+- `404`：房间不存在
+
 ## 批量获取房间信息
 
 ```http
@@ -100,6 +120,7 @@ GET /room/:roomID/config
   "record_duration_minutes": 120,
   "qn": 150,
   "only_audio": false,
+  "record_danmaku": true,
   "stream_profiles": ["hls-fmp4", "hls-ts"]
 }
 ```
@@ -116,12 +137,13 @@ Content-Type: application/json
   "record_duration_minutes": 120,
   "qn": 150,
   "only_audio": false,
+  "record_danmaku": true,
   "stream_profiles": ["hls-fmp4", "hls-ts"]
 }
 ```
 
 `record_duration_minutes`：`0`=系统预设，`-1`=无限，正整数=N 分钟。仅在 `auto_record: true` 时生效。
 
-`qn`、`stream_profiles`、`only_audio`：自动录制启动时生效（与手动开录相同）。`stream_profiles` 为空或省略表示允许全部格式；数组元素为 `http-flv` / `hls-ts` / `hls-fmp4`，作为严格允许清单。
+`qn`、`stream_profiles`、`only_audio`、`record_danmaku`：自动录制启动时生效（与手动开录相同）。`stream_profiles` 为空或省略表示允许全部格式；数组元素为 `http-flv` / `hls-ts` / `hls-fmp4`，作为严格允许清单。
 
 若希望手动录制也使用该时长，可在 `POST /record/:roomID/start` 时显式传入 `duration_minutes`；否则手动录制仍按系统预设或本次请求参数执行。

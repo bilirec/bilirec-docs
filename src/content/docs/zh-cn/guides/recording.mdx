@@ -9,23 +9,24 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## 手动录制
 
-在 Web 界面中输入直播间房间号，在确认页选择画质、允许的流格式、是否仅录制音频与时长，点击开始录制。
+在 Web 界面中输入直播间房间号，在确认页选择画质、允许的流格式、是否仅录制音频、是否录制弹幕与时长，点击开始录制。
 
 <Aside type="note">
-Web 界面中「画质」为请求偏好，不可用时会尽量选用该直播支持的较高档位。「流格式」可多选，作为严格允许清单：未选表示允许全部格式；选中后只会在所选格式内尝试。「仅录制音频」对应 API 参数 `only_audio=true`。不传 `qn` 时后端默认使用原画（`10000`）。
+Web 界面中「画质」为请求偏好，不可用时会尽量选用该直播支持的较高档位。「流格式」可多选，作为严格允许清单：未选表示允许全部格式；选中后只会在所选格式内尝试。「仅录制音频」对应 API 参数 `only_audio=true`，「录制弹幕」对应 `record_danmaku=true`。不传 `qn` 时后端默认使用原画（`10000`）。
 </Aside>
 
 <Tabs>
 <TabItem label="桌面端">
 
 ![桌面端输入房间号](/images/web-ui/desktop-add-record-1.png)
-![桌面端确认录制（画质与时长）](/images/web-ui/desktop-add-record-2.png)
+![桌面端确认录制（画质、时长与弹幕）](/images/web-ui/desktop-record-danmaku.png)
 
 </TabItem>
 <TabItem label="移动端">
 
 ![移动端输入房间号](/images/web-ui/mobile-add-record-1.png)
 ![移动端确认录制（画质与时长）](/images/web-ui/mobile-add-record-2.png)
+![移动端确认录制（流格式与弹幕）](/images/web-ui/mobile-record-danmaku-2.png)
 
 </TabItem>
 </Tabs>
@@ -33,7 +34,7 @@ Web 界面中「画质」为请求偏好，不可用时会尽量选用该直播�
 也可通过 API 启动：
 
 ```bash
-curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150"
+curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&record_danmaku=true"
 ```
 
 ### 画质码（qn）
@@ -54,6 +55,12 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&strea
 |----|------|
 | 不传 / `false` | 录制音视频 |
 | `true` | 仅录制音频 |
+
+### 录制弹幕（record_danmaku）
+
+开启后，bilirec 会同时保存普通弹幕、醒目留言、礼物和舰长等互动记录。记录会保存为与视频同名的弹幕文件；视频分段或断流恢复后，新的视频文件会对应新的弹幕文件。
+
+Web 回放要显示弹幕滚动和礼物特效，建议使用默认的 `jsonl` 格式。输出格式、消息高峰处理和写入设备调节见[弹幕录制配置](/zh-cn/configuration/danmaku/)。
 
 ### 流格式（stream_profile / stream_profiles）
 
@@ -108,16 +115,16 @@ curl -X POST http://127.0.0.1:8080/room/12345
 # 配置自动录制（可同时设置画质与允许的流格式）
 curl -X PUT http://127.0.0.1:8080/room/12345/config \
   -H "Content-Type: application/json" \
-  -d '{"auto_record":true,"notify":true,"record_duration_minutes":120,"qn":150,"stream_profiles":["hls-fmp4","hls-ts"]}'
+  -d '{"auto_record":true,"notify":true,"record_duration_minutes":120,"qn":150,"record_danmaku":true,"stream_profiles":["hls-fmp4","hls-ts"]}'
 ```
 
-为房间开启 **开播通知** 或 **自动录制** 后，后台会定期检查该房间的直播状态。服务启动时先检查所有相关房间一次，之后将房间分成若干组、分组轮流检查，避免订阅较多时 CPU 瞬间飙高。检测到新一场直播时：若开启了通知则推送消息；若开启了自动录制则自动开始录制（沿用房间配置中的画质、流格式允许清单等）。分组与检查周期默认随订阅规模自动调整，详见 [录制配置](/zh-cn/configuration/recording/#订阅房间状态检查)。
+为房间开启 **开播通知** 或 **自动录制** 后，后台会定期检查该房间的直播状态。服务启动时先检查所有相关房间一次，之后将房间分成若干组、分组轮流检查，避免订阅较多时 CPU 瞬间飙高。检测到新一场直播时：若开启了通知则推送消息；若开启了自动录制则自动开始录制（沿用房间配置中的画质、流格式允许清单、是否录制弹幕等）。分组与检查周期默认随订阅规模自动调整，详见 [录制配置](/zh-cn/configuration/recording/#订阅房间状态检查)。
 
 ## 自动录制
 
 启用 `auto_record: true` 后，检测到开播时会自动开始录制。
 
-`record_duration_minutes` 控制自动录制的时长上限（仅在 `auto_record: true` 时生效）。房间配置中的 `qn`、`stream_profiles`、`only_audio` 会作为自动录制参数一并生效。
+`record_duration_minutes` 控制自动录制的时长上限（仅在 `auto_record: true` 时生效）。房间配置中的 `qn`、`stream_profiles`、`only_audio`、`record_danmaku` 会作为自动录制参数一并生效。
 
 <Aside type="note">
 手动触发的录制不受房间 `record_duration_minutes` 配置影响，需在调用 `/record/:roomID/start` 时自行传入 `duration_minutes` 参数。

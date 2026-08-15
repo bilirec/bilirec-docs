@@ -42,6 +42,7 @@ const sidebar = [
 			{ slug: 'configuration/server-network' },
 			{ slug: 'configuration/frp' },
 			{ slug: 'configuration/recording' },
+			{ slug: 'configuration/danmaku' },
 			{ slug: 'configuration/conversion' },
 			{ slug: 'configuration/auth-security' },
 			{ slug: 'configuration/notifications' },

@@ -14,7 +14,8 @@ bilirec 的 Web 管理介面由 [bilirec-web](https://github.com/bilirec/bilirec
 | 錄製管理 | 手動開始/停止錄製，查看 `recording` / `recovering` / `idle` 狀態與統計 |
 | 直播訂閱 | 訂閱房間、設定自動錄製與開播通知 |
 | 網頁推送 | 通過 Service Worker 接收開播等 Web Push 通知 |
-| 檔案瀏覽 | 瀏覽錄製檔案，支持下載與 MP4 預覽 |
+| 檔案瀏覽 | 瀏覽錄製檔案，支持下載與 MP4 內置回放；可顯示彈幕滾動與禮物特效 |
+| 錄製信息 | 顯示實際畫質、實際流格式、彈幕檔案大小與標題變更提示 |
 | 檔案共享 | 生成帶過期時間的分享鏈接 |
 | 格式轉換 | 提交與管理 FLV/TS/FMP4 → MP4 轉換任務 |
 | 磁碟監測 | 實時磁碟佔用與分項統計 |
@@ -65,6 +66,37 @@ bilirec-web 需配合正在運行的 [bilirec](https://github.com/bilirec/bilire
 
 </TabItem>
 </Tabs>
+
+## 錄製與回放
+
+開始錄製時可以開啟「錄製彈幕」。房間自動錄製會沿用房間設定中的這項設定；具體設定見[錄製直播間](/zh-tw/guides/recording/)和[彈幕錄製](/zh-tw/configuration/danmaku/)。
+
+在「錄製檔案」中選擇 MP4 的回放按鈕，會在當前介面打開內置播放器。播放器支持：
+
+- 彈幕滾動、彈幕顯隱與透明度調整
+- 禮物、醒目留言和艦長等互動特效
+- 倍速、快進/快退與逐幀查看
+- 畫面適應、裁切、拉伸，以及桌面和移動端全屏
+
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端彈幕與互動回放](/images/web-ui/desktop-replay-danmaku.png)
+![桌面端艦長入列特效](/images/web-ui/desktop-replay-captain.png)
+![桌面端回放進階設定](/images/web-ui/desktop-replay-settings.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端彈幕與互動回放](/images/web-ui/mobile-replay-danmaku.png)
+![移動端艦長入列特效](/images/web-ui/mobile-replay-captain.png)
+![移動端回放進階設定](/images/web-ui/mobile-replay-settings.png)
+
+</TabItem>
+</Tabs>
+
+播放器會讀取與影片同名的 `.jsonl` 彈幕檔案；若只有 `.xml`，影片仍可播放，但不會顯示彈幕滾動和禮物特效。正在錄製的檔案暫時不能回放。
+
 ## 連接自架後端
 
 [app.bilirec.org](https://app.bilirec.org/) 通過 **HTTPS** 提供，而多數自架 bilirec 後端預設只提供 **HTTP**。多數瀏覽器會阻止 HTTPS 頁面直接請求 HTTP 的局域網地址（如 `http://192.168.x.x:8080`）；`http://localhost:8080` 和 `http://127.0.0.1:8080` 通常是例外：
@@ -142,12 +174,14 @@ bilirec-web 支持 PWA（Progressive Web App），可安裝到桌面或手機主
 <Tabs>
 <TabItem label="桌面端">
 
-![桌面端錄製檔案](/images/web-ui/desktop-files.png)
+![桌面端錄製檔案目錄](/images/web-ui/desktop-files.png)
+![桌面端目錄中的影片與彈幕檔案](/images/web-ui/desktop-files-danmaku.png)
 
 </TabItem>
 <TabItem label="移動端">
 
-![移動端錄製檔案](/images/web-ui/mobile-files.png)
+![移動端錄製檔案目錄](/images/web-ui/mobile-files.png)
+![移動端目錄中的影片與彈幕檔案](/images/web-ui/mobile-files-danmaku.png)
 
 </TabItem>
 </Tabs>

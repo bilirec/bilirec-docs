@@ -3,15 +3,28 @@ title: 檔案管理
 description: 瀏覽、下載、播放錄製檔案與 MP4 轉換
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 bilirec 將錄製檔案保存在 `OUTPUT_DIR`（預設 `records`）目錄下，可通過 Web 介面或 REST API 管理。
 
 ## 瀏覽檔案
 
-在 Web 介面的檔案管理頁面瀏覽錄製目錄，支持按檔案名搜索與分頁。
+在 Web 介面的檔案管理頁面瀏覽錄製目錄，支持按檔案名搜索與分頁。錄製彈幕後，與影片同名的彈幕檔案也會顯示在檔案列表中。
 
-{/* TODO: 請提供檔案瀏覽介面截圖 */}
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端錄製檔案目錄](/images/web-ui/desktop-files.png)
+![桌面端目錄中的影片與彈幕檔案](/images/web-ui/desktop-files-danmaku.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端錄製檔案目錄](/images/web-ui/mobile-files.png)
+![移動端目錄中的影片與彈幕檔案](/images/web-ui/mobile-files-danmaku.png)
+
+</TabItem>
+</Tabs>
 
 API：
 
@@ -19,24 +32,45 @@ API：
 curl "http://127.0.0.1:8080/files/browse/?offset=0&limit=50&search=title"
 ```
 
+## 彈幕檔案
+
+開啟彈幕錄製後，每個影片檔案旁邊可能會有同名的 `.jsonl` 或 `.xml` 檔案。它們保存普通彈幕、醒目留言、禮物和艦長等互動記錄，不是影片檔案，不能直接用影片播放器打開。
+
+使用 bilirec-web 回放時，建議使用 `.jsonl` 檔案，這樣播放器可以顯示彈幕滾動和禮物特效。`.xml` 仍可供其他工具讀取，但 Web 播放器不會為它顯示這些回放效果。
+
 ## 下載檔案
 
 ```bash
 curl -O "http://127.0.0.1:8080/files/download/room123/title.flv"
 ```
 
-## 在線播放
+## 在線回放
 
-已轉換為 MP4 的檔案可在瀏覽器中直接播放：
+已轉換為 MP4 的檔案可以在 Web 介面的內置播放器中回放，也可以通過 API 直接獲取影片流：
 
 ```bash
 curl "http://127.0.0.1:8080/files/playback/username-roomID/20250101.mp4"
 ```
 
-{/* TODO: 請提供播放預覽截圖 */}
+<Tabs>
+<TabItem label="桌面端">
+
+![桌面端彈幕與互動回放](/images/web-ui/desktop-replay-danmaku.png)
+![桌面端艦長入列特效](/images/web-ui/desktop-replay-captain.png)
+![桌面端回放進階設定](/images/web-ui/desktop-replay-settings.png)
+
+</TabItem>
+<TabItem label="移動端">
+
+![移動端彈幕與互動回放](/images/web-ui/mobile-replay-danmaku.png)
+![移動端艦長入列特效](/images/web-ui/mobile-replay-captain.png)
+![移動端回放進階設定](/images/web-ui/mobile-replay-settings.png)
+
+</TabItem>
+</Tabs>
 
 <Aside type="note">
-在線播放僅支持 MP4 格式。啟用 `CONVERT_TO_MP4` 後，錄製完成會自動加入轉換隊列。無法播放正在進行中的錄製檔案。
+在線回放僅支持 MP4 格式。啟用 `CONVERT_TO_MP4` 後，錄製完成會自動加入轉換隊列。無法回放正在進行中的錄製檔案。存在同名 `.jsonl` 彈幕檔案時，播放器還可以顯示彈幕滾動和禮物特效。
 </Aside>
 
 ## 預簽名下載

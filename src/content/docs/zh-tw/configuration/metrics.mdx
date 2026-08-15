@@ -113,6 +113,28 @@ export METRICS_PORT=9090
 `bilirec_room_info` 是「info metric」：值恆為 1，作用是把 `room_id` 映射到 `uname`（主播名）。Grafana 查詢時用 `* on(room_id) group_left(uname)` join 回數據 series，即可在圖例顯示主播名。主播改名時只重建這一條小 series，數據 series 不受影響；歷史區間會 join 出當時的名字，符合當時的狀態。
 </Aside>
 
+### 彈幕指標
+
+開啟房間的彈幕錄製後，還會產生帶 `room_id` 標籤的彈幕相關指標。消息數量指標另外帶有 `event_type` 標籤，值為 `danmaku`、`super_chat`、`gift` 或 `guard`。
+
+| 指標 | 類型 | 說明 |
+|------|------|------|
+| `bilirec_danmaku_recording_active` | gauge 1/0 | 當前房間是否正在錄製彈幕 |
+| `bilirec_danmaku_sessions_total` | counter | 彈幕錄製會話次數 |
+| `bilirec_danmaku_connection_active` | gauge 1/0 | 彈幕連接是否在線 |
+| `bilirec_danmaku_connection_attempts_total` | counter | 彈幕連接嘗試次數 |
+| `bilirec_danmaku_reconnects_total` | counter | 彈幕連接重連次數 |
+| `bilirec_danmaku_messages_total` | counter | 收到的彈幕、醒目留言、禮物和艦長事件數量 |
+| `bilirec_danmaku_messages_dropped_total` | counter | 因寫入隊列已滿而丟棄的事件數量 |
+| `bilirec_danmaku_parse_errors_total` | counter | 普通彈幕解析失敗次數 |
+| `bilirec_danmaku_bytes_total` | counter | 已交給彈幕檔案寫入器的字節數 |
+| `bilirec_danmaku_rotations_total` | counter | 成功切換彈幕檔案的次數 |
+| `bilirec_danmaku_rotation_dropped_total` | counter | 因切換隊列已滿而丟棄切換通知的次數 |
+
+<Aside type="note">
+彈幕指標只在對應房間存在彈幕錄製會話時產生。`messages_dropped_total` 大於 0 通常表示消息高峰超過了寫入速度，可以結合 [彈幕錄製](/zh-tw/configuration/danmaku/) 檢查 `DANMAKU_OVERFLOW_POLICY`、儲存設備和並發錄製數。
+</Aside>
+
 ## Grafana / MetricsQL 查詢示例
 
 bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計全部在查詢端完成，bilirec 不做任何聚合。
@@ -126,6 +148,8 @@ bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計�
 | 每房間每日開播場次 | `increase(bilirec_room_live_sessions_total[1d])` |
 | 每房間錄製場次 | `increase(bilirec_room_recording_sessions_total[$__range])` |
 | 每房間斷線恢復次數 | `increase(bilirec_room_stream_recovery_total[$__range])` |
+| 每房間丟棄的彈幕事件 | `sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total[$__range]))` |
+| 每房間彈幕重連次數 | `increase(bilirec_danmaku_reconnects_total[$__range])` |
 | 當前 CPU 核數佔用 | `rate(process_cpu_seconds_total[5m])` |
 | 顯示主播名（join） | `... * on(room_id) group_left(uname) bilirec_room_info`，圖例用 `{{uname}} ({{room_id}})` |
 
