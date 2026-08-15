@@ -134,6 +134,42 @@ pnpm preview  # 本地预览生产构建
 
 </Aside>
 
+### 可选：启用匿名使用统计
+
+自架前端默认不启用匿名使用统计。启用后，bilirec-web 只有在用户已登录、后端返回有效版本号，并且用户明确同意后才会发送统计。前端主动发送的内容是在线使用状态和后端版本，不会发送录制文件、房间内容或账号名称；用户也可以在「版本信息」中随时关闭。
+
+在线状态约每 60 秒最多发送一次，后端版本每天最多报告一次。Umami 服务端是否记录 IP、浏览器等信息，取决于你自己的 Umami 配置与保留策略。
+
+#### 使用内置 Worker 代理
+
+如果部署包含仓库中的 Cloudflare Worker，可以使用同源代理，让前端通过 `/m/s.js` 和 `/m/api/` 请求统计服务：
+
+1. 在自己的 Umami 实例中创建一个网站，记下 Website ID。
+2. 构建前端时设置以下构建环境变量：
+
+   ```powershell
+   $env:UMAMI_URL = "/m/s.js"
+   $env:UMAMI_WEBSITE_ID = "你的 Website ID"
+   pnpm build
+   ```
+
+3. 在 Cloudflare Worker 的运行时变量中设置：
+
+   ```text
+   UMAMI_ORIGIN=https://stats.example.com
+   ```
+
+   `UMAMI_ORIGIN` 只填写 Umami 的 origin，不要包含 `/script.js` 或 `/api`。本地使用 Wrangler 测试时，也可以把它写入 `.dev.vars`。
+4. 部署构建产物和 Worker。修改 `UMAMI_URL` 或 `UMAMI_WEBSITE_ID` 后需要重新构建；只修改 `UMAMI_ORIGIN` 时重新部署 Worker 即可。
+
+内置 Worker 只代理 `/m/s.js` 和 `/m/api/`，其他请求仍由静态资源处理。若未设置 `UMAMI_ORIGIN`，这些代理路径会返回 404，匿名统计不会工作。
+
+#### 仅托管静态文件
+
+如果只部署 `dist/`，不运行仓库中的 Worker，将 `UMAMI_URL` 设置为 Umami 的实际脚本地址（例如 `https://stats.example.com/script.js`），并设置 `UMAMI_WEBSITE_ID`；此时不要使用 `/m/s.js`，也不需要设置 `UMAMI_ORIGIN`。还需要根据你的站点安全策略允许该 Umami 域名加载脚本和发送请求。
+
+不想启用匿名统计时，不要在构建环境中设置 `UMAMI_URL` 和 `UMAMI_WEBSITE_ID`；两者任意一个为空，前端就不会显示同意提示或加载统计脚本。
+
 ### 手动部署
 
 自行部署时也可不使用 Cloudflare 按钮：
