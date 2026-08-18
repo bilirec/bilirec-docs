@@ -1,0 +1,445 @@
+{
+    "title": "bilirec / 單房間詳情",
+    "uid": "bilirec-room",
+    "schemaVersion": 39,
+    "version": 2,
+    "refresh": "30s",
+    "tags": ["bilirec"],
+    "timezone": "browser",
+    "graphTooltip": 1,
+    "editable": true,
+    "id": null,
+    "description": "單一房間的開播/錄製時間線、讀取速率，以及 Grafana 時間範圍內的彈幕、寫入量、錄製時長與次數。房間下拉顯示主播名，實際值仍是 room_id。",
+    "time": { "from": "now-24h", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "label": "資料源",
+          "hide": 0,
+          "refresh": 1,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "label": "job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings, job)",
+          "definition": "label_values(bilirec_active_recordings, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "label": "instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "room_id",
+          "type": "query",
+          "label": "房間",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "definition": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "regex": "/room_id=\"(?<value>[^\"]+)\".*uname=\"(?<text>[^\"]+)\"/",
+          "includeAll": false,
+          "multi": false,
+          "refresh": 2,
+          "sort": 1,
+          "current": {}
+        }
+      ]
+    },
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "dashboard",
+        "includeVars": true,
+        "keepTime": true,
+        "tags": ["bilirec"],
+        "targetBlank": false,
+        "title": "bilirec",
+        "tooltip": "",
+        "type": "dashboards"
+      }
+    ],
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "本區間累計",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "主播",
+        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"})",
+            "legendFormat": "{{uname}}",
+            "instant": false,
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "${__field.labels.uname}",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "textMode": "name",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "彈幕條數",
+        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "彈幕",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "串流寫入量",
+        "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "寫入",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "錄製時長",
+        "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(integrate(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "錄製",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "dtdurations",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "錄製次數",
+        "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_recording_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "次數",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 7,
+        "type": "stat",
+        "title": "斷線恢復",
+        "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "恢復",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 10 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 8,
+        "type": "row",
+        "title": "狀態時間線",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 9,
+        "type": "state-timeline",
+        "title": "開播 / 錄製 / 連線 / 彈幕",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max(bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"})",
+            "legendFormat": "開播"
+          },
+          {
+            "refId": "B",
+            "expr": "max(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"})",
+            "legendFormat": "錄製"
+          },
+          {
+            "refId": "C",
+            "expr": "max(bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"})",
+            "legendFormat": "流連線"
+          },
+          {
+            "refId": "D",
+            "expr": "max(bilirec_danmaku_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"})",
+            "legendFormat": "彈幕錄製"
+          },
+          {
+            "refId": "E",
+            "expr": "max(bilirec_danmaku_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"})",
+            "legendFormat": "彈幕連線"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": { "fillOpacity": 70, "lineWidth": 0, "spanNulls": false },
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "0": { "color": "transparent", "index": 0, "text": "否" },
+                  "1": { "color": "green", "index": 1, "text": "是" }
+                }
+              }
+            ]
+          }
+        },
+        "options": {
+          "alignValue": "center",
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "mergeValues": true,
+          "rowHeight": 0.9,
+          "showValue": "never",
+          "tooltip": { "mode": "multi" }
+        }
+      },
+      {
+        "id": 10,
+        "type": "row",
+        "title": "讀取與彈幕",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 11,
+        "type": "timeseries",
+        "title": "直播流讀取速率",
+        "gridPos": { "h": 8, "w": 16, "x": 0, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "讀取"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": { "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 12,
+        "type": "timeseries",
+        "title": "彈幕事件速率",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (event_type) (rate(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "{{event_type}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "cps",
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 13,
+        "type": "row",
+        "title": "場次與恢復",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 14,
+        "type": "timeseries",
+        "title": "開播場次 / 錄製次數 / 斷線恢復",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_live_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "開播場次"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(increase(bilirec_room_recording_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "錄製次數"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(increase(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "斷線恢復"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": { "drawStyle": "bars", "fillOpacity": 50, "lineInterpolation": "linear", "spanNulls": false, "showPoints": "never", "stacking": { "group": "A", "mode": "none" } }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum", "max"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      }
+    ]
+  }

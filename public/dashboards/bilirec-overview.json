@@ -1,0 +1,597 @@
+{
+    "title": "bilirec / 錄製總覽",
+    "uid": "bilirec-overview",
+    "schemaVersion": 39,
+    "version": 8,
+    "refresh": "30s",
+    "tags": ["bilirec"],
+    "timezone": "browser",
+    "graphTooltip": 1,
+    "editable": true,
+    "id": null,
+    "description": "bilirec 錄製總覽。資料源選 VictoriaMetrics（Prometheus 類型）。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
+    "time": { "from": "now-6h", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "label": "資料源",
+          "hide": 0,
+          "refresh": 1,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "label": "job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings, job)",
+          "definition": "label_values(bilirec_active_recordings, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "label": "instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        }
+      ]
+    },
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "dashboard",
+        "includeVars": true,
+        "keepTime": true,
+        "tags": ["bilirec"],
+        "targetBlank": false,
+        "title": "bilirec",
+        "tooltip": "",
+        "type": "dashboards"
+      }
+    ],
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "現況",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "進行中錄製",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "錄製中",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "blue", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "開播房間",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\"} == 1) or vector(0)",
+            "legendFormat": "開播",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "全站讀取速率",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "讀取",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "Bps",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "近 1 小時斷線恢復",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\"}[1h]))",
+            "legendFormat": "恢復",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 10 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 17,
+        "type": "row",
+        "title": "CPU",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 6,
+        "type": "timeseries",
+        "title": "User + System",
+        "description": "兩條堆疊：User 是程式本身，System 是系統呼叫。單位是「一顆核的百分比」；錄製行程通常遠低於 1%，兩位小數的核數會全部顯示成 0.00。",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(process_cpu_seconds_system_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "System"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(process_cpu_seconds_user_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "User"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "decimals": 2,
+            "unit": "percentunit",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 50,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "stacking": { "mode": "normal", "group": "A" },
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "System" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "User" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] },
+          "tooltip": { "mode": "multi", "sort": "none" }
+        }
+      },
+      {
+        "id": 16,
+        "type": "row",
+        "title": "記憶體",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 7,
+        "type": "timeseries",
+        "title": "Anon + File",
+        "description": "Linux：File（檔案頁緩存，含錄製檔）與 Anon（程式本身）堆疊。「合計」是兩者相加，約等於 RSS。沒有 Anon/File 時只顯示 RSS。",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(process_resident_memory_file_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "File"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Anon"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"}) + sum(process_resident_memory_file_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "合計"
+          },
+          {
+            "refId": "D",
+            "expr": "sum(process_resident_memory_bytes{job=~\"$job\", instance=~\"$instance\"}) unless sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "RSS"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "decimals": 1,
+            "unit": "bytes",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 50,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "stacking": { "mode": "normal", "group": "A" },
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "File" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Anon" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "合計" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "RSS" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "color", "value": { "fixedColor": "super-light-yellow", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] },
+          "tooltip": { "mode": "multi", "sort": "none" }
+        }
+      },
+      {
+        "id": 8,
+        "type": "row",
+        "title": "趨勢",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 9,
+        "type": "timeseries",
+        "title": "開播房間 vs 進行中錄製",
+        "gridPos": { "h": 8, "w": 16, "x": 0, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\"} == 1) or vector(0)",
+            "legendFormat": "開播"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "錄製中"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": { "drawStyle": "line", "fillOpacity": 15, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 10,
+        "type": "table",
+        "title": "開播但目前沒在錄",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\"} == 1 unless on(room_id) (bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\"} == 1)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "Time": true, "Value": true, "__name__": true, "instance": true, "job": true },
+              "renameByName": { "uname": "主播", "room_id": "房間" }
+            }
+          }
+        ],
+        "options": { "showHeader": true, "cellHeight": "sm" }
+      },
+      {
+        "id": 11,
+        "type": "timeseries",
+        "title": "全站直播流讀取速率",
+        "gridPos": { "h": 7, "w": 24, "x": 0, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "全站"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": { "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 12,
+        "type": "row",
+        "title": "各房間",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 13,
+        "type": "timeseries",
+        "title": "各房間讀取速率（top 10）",
+        "gridPos": { "h": 10, "w": 16, "x": 0, "y": 40 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, sum by (room_id) (rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 14,
+        "type": "timeseries",
+        "title": "各房間斷線恢復",
+        "gridPos": { "h": 10, "w": 8, "x": 16, "y": 40 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (room_id) (increase(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 15,
+        "type": "table",
+        "title": "目前追蹤中的房間",
+        "gridPos": { "h": 10, "w": 24, "x": 0, "y": 50 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\"} * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          },
+          {
+            "refId": "B",
+            "expr": "(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\"} or on(room_id) (bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\"} * 0)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          },
+          {
+            "refId": "C",
+            "expr": "(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) or on(room_id) (bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\"} * 0)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "開播" },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "0": { "text": "否", "color": "text" },
+                        "1": { "text": "是", "color": "green" }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "錄製中" },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "0": { "text": "否", "color": "text" },
+                        "1": { "text": "是", "color": "green" }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "讀取速率" },
+              "properties": [
+                { "id": "unit", "value": "Bps" },
+                { "id": "decimals", "value": 1 }
+              ]
+            }
+          ]
+        },
+        "transformations": [
+          { "id": "merge", "options": {} },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "Time": true, "__name__": true, "instance": true, "job": true },
+              "renameByName": {
+                "uname": "主播",
+                "room_id": "房間",
+                "Value #A": "開播",
+                "Value #B": "錄製中",
+                "Value #C": "讀取速率"
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": { "sort": [{ "field": "讀取速率", "desc": true }] }
+          }
+        ],
+        "options": { "showHeader": true, "cellHeight": "sm" }
+      }
+    ]
+  }
+  

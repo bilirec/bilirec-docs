@@ -1,0 +1,615 @@
+{
+    "title": "bilirec / 錄製健康",
+    "uid": "bilirec-recording",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s",
+    "tags": ["bilirec"],
+    "timezone": "browser",
+    "graphTooltip": 1,
+    "editable": true,
+    "id": null,
+    "description": "錄製場次是否真的連上流、開錄失敗、恢復成敗與管線中斷。碼率與開播未錄請看「錄製總覽」；寫入量請看「用量趨勢」或「累計用量」。沒人在恢復時「錄製中但流沒連上」會是空表，這是預期行為。",
+    "time": { "from": "now-6h", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "label": "資料源",
+          "hide": 0,
+          "refresh": 1,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "label": "job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings, job)",
+          "definition": "label_values(bilirec_active_recordings, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "label": "instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "room_id",
+          "type": "query",
+          "label": "房間",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "definition": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "regex": "/room_id=\"(?<value>[^\"]+)\".*uname=\"(?<text>[^\"]+)\"/",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        }
+      ]
+    },
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "dashboard",
+        "includeVars": true,
+        "keepTime": true,
+        "tags": ["bilirec"],
+        "targetBlank": false,
+        "title": "bilirec",
+        "tooltip": "",
+        "type": "dashboards"
+      }
+    ],
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "現況",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "流連線",
+        "description": "正在從直播流讀資料的房間數。場次還在、流卻斷了時不算。",
+        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "連線",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "blue", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "進行中錄製",
+        "description": "場次還在就算，包含正在恢復、流暫時沒連上。",
+        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "錄製中",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "blue", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "近 1 小時開錄失敗",
+        "description": "手動或自動開錄真正失敗。已經在錄、正在恢復、正在啟動中、使用者取消都不算。",
+        "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_recording_start_failures_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "開錄失敗",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 10 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "近 1 小時恢復成功",
+        "description": "斷線後再次連上流成功。",
+        "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_recovery_success_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "恢復成功",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "blue", "value": 1 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "近 1 小時恢復失敗",
+        "description": "恢復迴圈連流失敗。正常下播後的重試不算。",
+        "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "恢復失敗",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 10 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 7,
+        "type": "stat",
+        "title": "近 1 小時放棄",
+        "description": "恢復失敗後放棄這場錄製。錄到設定時長結束、使用者手動停止都不算。",
+        "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_recording_gave_up_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "放棄",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 8,
+        "type": "row",
+        "title": "連線",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 9,
+        "type": "table",
+        "title": "錄製中但流沒連上",
+        "description": "場次還在、卻沒有在讀直播流。恢復空檔會出現在這裡。停錄後 series 會卸載，不會用 == 0 去配。",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1 unless on(room_id) (bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "Time": true, "Value": true, "__name__": true, "instance": true, "job": true },
+              "renameByName": { "uname": "主播", "room_id": "房間" }
+            }
+          }
+        ],
+        "options": { "showHeader": true, "cellHeight": "sm" }
+      },
+      {
+        "id": 10,
+        "type": "timeseries",
+        "title": "錄製中 vs 已連上流",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "錄製中"
+          },
+          {
+            "refId": "B",
+            "expr": "count(bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "已連上流"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "decimals": 0,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 15,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 11,
+        "type": "table",
+        "title": "連著但讀取速率為 0",
+        "description": "場次在錄、流顯示已連上，但幾乎沒有讀到資料。剛開錄的短空檔也可能出現。沒有卡住的房間時這張表是空的。",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(((bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) and on(room_id) (bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1)) unless on(room_id) (rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]) > 0)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "Time": true, "Value": true, "__name__": true, "instance": true, "job": true },
+              "renameByName": { "uname": "主播", "room_id": "房間" }
+            }
+          }
+        ],
+        "options": { "showHeader": true, "cellHeight": "sm" }
+      },
+      {
+        "id": 12,
+        "type": "row",
+        "title": "失敗",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 13,
+        "type": "timeseries",
+        "title": "開錄失敗",
+        "description": "依 reason：not_live、empty_urls、unreachable、disk、concurrent、banned、encrypted、api、other。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (reason) (rate(bilirec_room_recording_start_failures_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 14,
+        "type": "timeseries",
+        "title": "恢復放棄",
+        "description": "依 reason：max_attempts、not_live_timeout、concurrent、banned、encrypted。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (reason) (rate(bilirec_room_recording_gave_up_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 15,
+        "type": "timeseries",
+        "title": "管線中斷",
+        "description": "依 reason：not_flv（收到的不是 FLV）、open（輸出檔打不開）、other（含寫入失敗）。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (reason) (rate(bilirec_room_recording_pipeline_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 16,
+        "type": "timeseries",
+        "title": "過短分段",
+        "description": "這一檔沒留下可看的檔。tiny 小於 1KB 已刪；skipped_small 過小而未落盤；stat_error 收尾時讀不到檔案狀態。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (reason) (rate(bilirec_room_recording_segments_discarded_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 17,
+        "type": "row",
+        "title": "切檔與嘗試",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 18,
+        "type": "timeseries",
+        "title": "切檔",
+        "description": "畫質變化切檔、恢復後開的新檔。使用者開錄的第一檔不算。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_recording_rotations_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "切檔"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 15,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 19,
+        "type": "timeseries",
+        "title": "各房間連線嘗試",
+        "description": "每次真正去連流算 1 次（含恢復），不是每條備用網址各算 1 次。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (room_id) (increase(bilirec_room_stream_connect_attempts_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      }
+    ]
+  }
