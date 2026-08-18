@@ -82,17 +82,17 @@ export METRICS_PORT=9090
 | `go_memstats_heap_inuse_bytes` | gauge | 堆記憶體使用量 |
 | `go_memstats_stack_inuse_bytes` | gauge | 棧記憶體使用量 |
 | `go_memstats_sys_bytes` | gauge | Go runtime 已向 OS 申請的記憶體 |
-| `go_gc_pause_total_seconds` | gauge | GC 暫停總時長（秒） |
-| `go_gc_num_total` | gauge | GC 次數 |
-| `process_resident_memory_bytes` | gauge | 進程駐留記憶體（RSS） |
-| `process_cpu_seconds_total` | gauge | 進程 CPU 累計秒數（用 `rate()` 得 CPU 核數） |
-| `process_threads` | gauge | 進程線程數 |
-| `process_open_fds` | gauge | 打開的檔案描述符數（僅 Linux/Android） |
+| `process_resident_memory_bytes` | gauge | 進程駐留記憶體（RSS）。Linux 上包含檔案頁緩存，錄製時會虛高 |
+| `process_resident_memory_anon_bytes` | gauge | 匿名頁（堆、棧等），不含檔案頁緩存；更接近程式本身佔用（僅 Linux） |
+| `process_resident_memory_file_bytes` | gauge | 映射到檔案的頁（含錄製檔案頁緩存）；這一部分會把 RSS 抬高（僅 Linux） |
+| `process_cpu_seconds_total` | counter | 進程 CPU 累計秒數（用 `rate()` 得 CPU 核數） |
+| `process_num_threads` | gauge | 進程線程數 |
+| `process_open_fds` | gauge | 打開的檔案描述符數（僅 Linux） |
 | `bilirec_build_info` | gauge=1 | 建置信息，label `version`；僅 release 建置有值 |
 | `bilirec_active_recordings` | gauge | 當前正在錄製的房間數 |
 
 <Aside type="note">
-資源指標在每次抓取時即時求值，**沒有後台 goroutine** 持續採樣，額外開銷有限。`process_open_fds` 僅在平台支持時才註冊（Linux/Android 有，Windows 無）。
+Go 運行時與進程資源指標由 [VictoriaMetrics/metrics](https://github.com/VictoriaMetrics/metrics) 在抓取時寫出（掛在同一套 `/metrics` 上，與房間級指標一起返回）。**沒有後台 goroutine** 持續採樣。Anon / File 只在 Linux 出現。房間級指標仍由 bilirec 自己註冊。
 </Aside>
 
 ### 房間級指標
@@ -103,15 +103,45 @@ export METRICS_PORT=9090
 |------|------|------|
 | `bilirec_room_stream_bytes_total` | counter | 串流寫入字節數（≈ 落盤量） |
 | `bilirec_room_recording_sessions_total` | counter | 錄製場次數 |
-| `bilirec_room_recording_active` | gauge 1/0 | 是否正在錄製（積分得每日錄製時長） |
+| `bilirec_room_recording_active` | gauge 1/0 | 是否正在錄製（積分得每日錄製時長）。恢復中仍為 1。停錄後會從 `/metrics` 消失，歷史仍在時序數據庫 |
+| `bilirec_room_stream_connection_active` | gauge 1/0 | 是否正在從直播流讀數據。場次還在、流卻斷了時為 0 |
+| `bilirec_room_stream_connect_attempts_total` | counter | 每次真正去連流算 1 次（含恢復），不是每條備用網址各算 1 次 |
+| `bilirec_room_recording_rotations_total` | counter | 切檔次數（畫質變化切檔、恢復後開的新檔）。使用者開錄的第一檔不算 |
+| `bilirec_room_recording_start_failures_total` | counter | 開錄失敗次數（手動與自動開錄共用）。label `reason` 見下表。已經在錄、正在恢復、正在啟動中、使用者取消，都不會加 |
+| `bilirec_room_stream_recovery_total` | counter | 斷線恢復失敗次數（不含正常下播後的重試） |
+| `bilirec_room_stream_recovery_success_total` | counter | 斷線後再次連上流成功的次數 |
+| `bilirec_room_recording_gave_up_total` | counter | 恢復失敗後放棄這場錄製的次數。label `reason` 見下表。錄到設定時長結束、使用者手動停止，都不會加 |
+| `bilirec_room_recording_segments_discarded_total` | counter | 這一段沒有留下可看的檔案。label `reason`：`tiny`（小於 1KB 已刪除）、`skipped_small`（過小而未落盤）、`stat_error`（收尾時讀不到檔案狀態） |
+| `bilirec_room_recording_pipeline_errors_total` | counter | 寫入管線中斷。label `reason`：`not_flv`（收到的不是 FLV）、`open`（輸出檔案打不開）、`other`（含寫入失敗等） |
 | `bilirec_room_live_status` | gauge 1/0 | 是否正在開播（積分得每日開播時長） |
 | `bilirec_room_live_sessions_total` | counter | 開播場次數 |
-| `bilirec_room_stream_recovery_total` | counter | 斷線恢復嘗試次數（不含正常下播重試） |
 | `bilirec_room_info` | gauge=1 | 房間元信息，label `room_id`、`uname`，用於 Grafana join 顯示主播名 |
 
 <Aside type="note">
 `bilirec_room_info` 是「info metric」：值恆為 1，作用是把 `room_id` 映射到 `uname`（主播名）。Grafana 查詢時用 `* on(room_id) group_left(uname)` join 回數據 series，即可在圖例顯示主播名。主播改名時只重建這一條小 series，數據 series 不受影響；歷史區間會 join 出當時的名字，符合當時的狀態。
 </Aside>
+
+開錄失敗 `reason` 只會是下面這些固定值，不會把錯誤全文寫進標籤：
+
+| `reason` | 常見含義 |
+|----------|----------|
+| `not_live` | 房間當前未在直播 |
+| `empty_urls` | 接口沒有返回可用的流地址 |
+| `unreachable` | 有流地址，但全部連不上 |
+| `disk` | 磁碟剩餘空間低於設定下限 |
+| `concurrent` | 已達到最大同時錄製數 |
+| `banned` | 房間被封禁 |
+| `encrypted` | 房間已加密 / 付費 |
+| `api` | 查詢房間或流地址的接口失敗（超時、限流等） |
+| `other` | 其他開錄失敗 |
+
+放棄錄製 `reason`：`max_attempts`（恢復次數用盡）、`not_live_timeout`（下播後重試超過最長分鐘數）、`concurrent`、`banned`、`encrypted`。
+
+場次還在、流卻沒連上，可以用：
+
+```text
+bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_connection_active == 1)
+```
 
 ### 彈幕指標
 
@@ -119,7 +149,7 @@ export METRICS_PORT=9090
 
 | 指標 | 類型 | 說明 |
 |------|------|------|
-| `bilirec_danmaku_recording_active` | gauge 1/0 | 當前房間是否正在錄製彈幕 |
+| `bilirec_danmaku_recording_active` | gauge 1/0 | 當前房間是否正在錄製彈幕。停錄後同樣會從 `/metrics` 消失 |
 | `bilirec_danmaku_sessions_total` | counter | 彈幕錄製會話次數 |
 | `bilirec_danmaku_connection_active` | gauge 1/0 | 彈幕連接是否在線 |
 | `bilirec_danmaku_connection_attempts_total` | counter | 彈幕連接嘗試次數 |
@@ -143,15 +173,34 @@ bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計�
 |------|------------------|
 | 每房間每日寫入量 | `sum by (room_id) (increase(bilirec_room_stream_bytes_total[1d]))` |
 | 所有房間總量 | `sum(increase(bilirec_room_stream_bytes_total[$__range]))` |
+| 當前同時錄製 | `sum(bilirec_active_recordings) or vector(0)` |
+| 整段平均同時錄製 | `avg_over_time((sum(bilirec_room_recording_active) or vector(0))[$__range:5m])` |
+| 每天平均同時錄製 | `avg_over_time((sum(bilirec_room_recording_active) or vector(0))[1d:5m])` |
+| 每天最高同時錄製 | `max_over_time((sum(bilirec_room_recording_active) or vector(0))[1d:5m])` |
 | 每房間每日錄製時長 | `integrate(bilirec_room_recording_active[1d])` |
 | 每房間每日開播時長 | `integrate(bilirec_room_live_status[1d])` |
 | 每房間每日開播場次 | `increase(bilirec_room_live_sessions_total[1d])` |
 | 每房間錄製場次 | `increase(bilirec_room_recording_sessions_total[$__range])` |
-| 每房間斷線恢復次數 | `increase(bilirec_room_stream_recovery_total[$__range])` |
+| 每房間斷線恢復失敗次數 | `increase(bilirec_room_stream_recovery_total[$__range])` |
+| 每房間斷線後恢復成功 | `increase(bilirec_room_stream_recovery_success_total[$__range])` |
+| 每房間開錄失敗 | `sum by (reason) (increase(bilirec_room_recording_start_failures_total[$__range]))` |
+| 錄製中但流沒連上 | `bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_connection_active == 1)` |
 | 每房間丟棄的彈幕事件 | `sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total[$__range]))` |
 | 每房間彈幕重連次數 | `increase(bilirec_danmaku_reconnects_total[$__range])` |
 | 當前 CPU 核數佔用 | `rate(process_cpu_seconds_total[5m])` |
 | 顯示主播名（join） | `... * on(room_id) group_left(uname) bilirec_room_info`，圖例用 `{{uname}} ({{room_id}})` |
+
+<Aside type="caution">
+**同時錄製不要按房間先平均再相加。** 停錄後該房間的 `bilirec_room_recording_active` 會從 `/metrics` 拿掉（歷史仍在時序數據庫）。`avg_over_time` 只會平均「這條序列還在」的時段，而那些時段幾乎都是 1；再 `sum` 就會變成「這段時間錄過幾個房間」，而不是平均同時幾路。你可能會看到 7 天平均是 12，但實際同時從未超過 5。
+
+不要寫成：
+
+```text
+sum(avg_over_time(bilirec_room_recording_active[$__range]))
+```
+
+建議算法：先在每個時間點把正在錄的房間數加總（沒人在錄當作 0），再對這些點數取平均或最高。上表「整段 / 每天平均同時錄製」「每天最高同時錄製」就是這種寫法；`[$__range:5m]` / `[1d:5m]` 表示每隔 5 分鐘數一次當時在錄幾路。彈幕的 `bilirec_danmaku_recording_active` 同樣。
+</Aside>
 
 <Aside type="tip">
 **開/下播時刻：** 用 Grafana **state timeline** 面板直接畫 `bilirec_room_live_status` 的 0↔1 轉換，即可看到每次開播 / 下播的時間點，歷史全部保存在 VictoriaMetrics，重啟 bilirec 也不丟失。
@@ -164,13 +213,14 @@ bilirec **不在本地保存任何指標數據**，所有歷史由 VictoriaMetri
 - counter 只在單次進程生命週期內單調遞增；**重啟會歸零**，這是設計使然。
 - VictoriaMetrics 每次抓取的樣本全部入庫，`increase()` / `rate()` 會自動識別 counter 重置（值變小視為重啟），跨重啟的每日統計由重啟前增量與重啟後增量相加得出。
 - 唯一損失窗口：最後一次抓取到重啟之間尚未被抓走的增量。以 `scrape_interval=15–30s`、6 Mbps 串流估算，約為 25 MB 量級的誤差。
-- gauge（`live_status`、`recording_active`）每輪 / 每事件無條件 Set，重啟後自動恢復當前值，不依賴歷史。
+- gauge（`live_status`、`recording_active`、`stream_connection_active`）每輪 / 每事件無條件 Set，重啟後自動恢復當前值，不依賴歷史。
 
 ## 已知限制
 
 - **開播檢測精度：** bilirec 通過訂閱檢查**輪詢**判斷開播（每房間間隔 `SUBCHECK_MIN/MAX_INTERVAL_SECS`，預設 60–300s），`live_status` 的 0↔1 轉換時刻精度約為一個輪詢週期。
 - **追蹤範圍：** 只有開啟**開播通知**或**自動錄製**的訂閱房間才會被追蹤房間級指標；未訂閱或兩者都關閉的房間不產生 series。
 - **積分邊界誤差：** `integrate()` 積分法在每場錄製 / 開播的首尾有 ≤ 約 2 倍 `scrape_interval` 的邊界誤差，15–30s 抓取下對小時級錄製通常影響不大。
-- **`process_open_fds` 平台差異：** 僅 Linux/Android 註冊；Windows 平台無此指標。
+- **`process_open_fds` 平台差異：** 通常僅 Linux 有；Windows 會暴露句柄數，但沒有 Anon / File。
+- **RSS 含檔案頁緩存：** `process_resident_memory_bytes` 在 Linux 上包含檔案頁（`process_resident_memory_file_bytes`，含 Inactive File），監控數字會高於程式本身。看實際佔用請對照 `process_resident_memory_anon_bytes`。這兩項同樣僅 Linux 有。
 
 遇到指標端口連不上、看不到房間指標、Grafana 數據斷續等問題，見 [常見問題 · 監控與指標](/zh-tw/guides/faq/#監控與指標)。
