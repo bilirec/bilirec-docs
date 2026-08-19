@@ -217,8 +217,8 @@ bilirec **不在本地保存任何指標數據**，所有歷史由 VictoriaMetri
 
 ## 已知限制
 
-- **開播檢測精度：** bilirec 通過訂閱檢查**輪詢**判斷開播（每房間間隔 `SUBCHECK_MIN/MAX_INTERVAL_SECS`，預設 60–300s），`live_status` 的 0↔1 轉換時刻精度約為一個輪詢週期。
-- **追蹤範圍：** 只有開啟**開播通知**或**自動錄製**的訂閱房間才會被追蹤房間級指標；未訂閱或兩者都關閉的房間不產生 series。
+- **開播檢測精度：** 開啟了**開播通知**或**自動錄製**的訂閱房間，開播狀態的更新間隔約為一個訂閱檢查週期（預設 60–300 秒）。只訂閱、未開啟這兩項的房間，開播狀態更新會慢一些，短暫的直播可能不會出現在指標裡。
+- **追蹤範圍：** 所有**已訂閱**房間都會產生開播狀態相關指標（`live_status`、`live_sessions_total`、`room_info`）。未訂閱的房間沒有這些指標；錄製相關指標仍只在實際開錄後出現。
 - **積分邊界誤差：** `integrate()` 積分法在每場錄製 / 開播的首尾有 ≤ 約 2 倍 `scrape_interval` 的邊界誤差，15–30s 抓取下對小時級錄製通常影響不大。
 - **`process_open_fds` 平台差異：** 通常僅 Linux 有；Windows 會暴露句柄數，但沒有 Anon / File。
 - **RSS 含檔案頁緩存：** `process_resident_memory_bytes` 在 Linux 上包含檔案頁（`process_resident_memory_file_bytes`，含 Inactive File），監控數字會高於程式本身。看實際佔用請對照 `process_resident_memory_anon_bytes`。這兩項同樣僅 Linux 有。
