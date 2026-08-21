@@ -4,8 +4,10 @@ import { fileURLToPath } from 'node:url';
 import * as OpenCC from 'opencc-js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const srcDir = path.join(__dirname, '../src/content/docs/zh-cn');
-const destDir = path.join(__dirname, '../src/content/docs/zh-tw');
+const docsSrcDir = path.join(__dirname, '../src/content/docs/zh-cn');
+const docsDestDir = path.join(__dirname, '../src/content/docs/zh-tw');
+const dashSrcDir = path.join(__dirname, '../public/dashboards/zh-cn');
+const dashDestDir = path.join(__dirname, '../public/dashboards/zh-tw');
 
 const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
 
@@ -60,6 +62,50 @@ const termFixes = [
 	[/后台/g, '後台'],
 	[/存储/g, '儲存'],
 	[/平台/g, '平台'],
+	// Grafana / monitoring terminology (align with dashboard zh-tw)
+	[/数据源/g, '資料源'],
+	[/进程资源/g, '行程資源'],
+	[/连线/g, '連線'],
+];
+
+// Dashboard UI terms — must run before OpenCC; order matters for multi-char phrases.
+const dashboardTermFixes = [
+	[/直播流写入/g, '串流寫入'],
+	[/数据源/g, '資料源'],
+	[/进程/g, '行程'],
+	[/连接/g, '連線'],
+	[/字节/g, '位元組'],
+	[/消息/g, '訊息'],
+	[/打开的/g, '開啟的'],
+	[/回归/g, '迴歸'],
+	[/丢弃/g, '丟棄'],
+	[/丢掉/g, '丟掉'],
+	[/切档/g, '切檔'],
+	[/时长/g, '時長'],
+	[/条数/g, '條數'],
+	[/场次/g, '場次'],
+	[/累计/g, '累計'],
+	[/趋势/g, '趨勢'],
+	[/总览/g, '總覽'],
+	[/挂载点/g, '掛載點'],
+	[/读取/g, '讀取'],
+	[/房间/g, '房間'],
+	[/弹幕文件/g, '彈幕檔'],
+	[/开播/g, '開播'],
+	[/断线/g, '斷線'],
+	[/现状/g, '現況'],
+	[/区间/g, '區間'],
+	[/队列/g, '佇列'],
+	[/缓存/g, '緩存'],
+	[/堆叠/g, '堆疊'],
+	[/泄漏/g, '洩漏'],
+	[/句柄/g, '句柄'],
+	[/使用者/g, '使用者'],
+	[/网址/g, '網址'],
+	[/日历日/g, '日曆日'],
+	[/预测/g, '預測'],
+	[/预估/g, '預估'],
+	[/斜率/g, '斜率'],
 ];
 
 // Safety net after OpenCC for terms that may still slip through
@@ -79,12 +125,32 @@ const postTermFixes = [
 	[/平臺/g, '平台'],
 	[/一臺/g, '一台'],
 	[/瞭解/g, '了解'],
+	[/數據源/g, '資料源'],
+];
+
+// Dashboard-only OpenCC leftovers (do not apply to docs)
+const dashboardPostTermFixes = [
+	[/數據源/g, '資料源'],
+	[/進程/g, '行程'],
+	[/連接/g, '連線'],
+	[/字節/g, '位元組'],
+	[/打開的/g, '開啟的'],
+	[/回歸/g, '迴歸'],
+	[/佔用/g, '占用'],
+	[/牆鍾/g, '牆鐘'],
 ];
 
 const pathFixes = [[/zh-cn/g, 'zh-tw']];
 
-function convertText(text) {
+function convertText(text, { dashboards = false } = {}) {
 	let result = text;
+	// Dashboard phrases that contain characters also covered by termFixes
+	// (写入、文件) must run first, otherwise 直播流写入 / 弹幕文件 break apart.
+	if (dashboards) {
+		for (const [pattern, replacement] of dashboardTermFixes) {
+			result = result.replace(pattern, replacement);
+		}
+	}
 	for (const [pattern, replacement] of termFixes) {
 		result = result.replace(pattern, replacement);
 	}
@@ -92,42 +158,51 @@ function convertText(text) {
 	for (const [pattern, replacement] of postTermFixes) {
 		result = result.replace(pattern, replacement);
 	}
+	if (dashboards) {
+		for (const [pattern, replacement] of dashboardPostTermFixes) {
+			result = result.replace(pattern, replacement);
+		}
+	}
 	for (const [pattern, replacement] of pathFixes) {
 		result = result.replace(pattern, replacement);
 	}
 	return result;
 }
 
-function walk(dir) {
+function walkDocs(dir) {
 	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
 		const srcPath = path.join(dir, entry.name);
-		const rel = path.relative(srcDir, srcPath);
-		const destPath = path.join(destDir, rel);
+		const rel = path.relative(docsSrcDir, srcPath);
+		const destPath = path.join(docsDestDir, rel);
 		if (entry.isDirectory()) {
 			fs.mkdirSync(destPath, { recursive: true });
-			walk(srcPath);
+			walkDocs(srcPath);
 		} else if (entry.name.endsWith('.mdx') || entry.name.endsWith('.md')) {
 			const content = fs.readFileSync(srcPath, 'utf8');
 			fs.mkdirSync(path.dirname(destPath), { recursive: true });
 			fs.writeFileSync(destPath, convertText(content), 'utf8');
-			console.log(`Converted: ${rel}`);
+			console.log(`Converted docs: ${rel}`);
 		}
 	}
 }
 
 /** Remove zh-tw pages with no matching zh-cn source (e.g. after moves/deletes). */
-function pruneOrphans(dir) {
+function pruneOrphans(dir, srcRoot, destRoot) {
 	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
 		const destPath = path.join(dir, entry.name);
-		const rel = path.relative(destDir, destPath);
-		const srcPath = path.join(srcDir, rel);
+		const rel = path.relative(destRoot, destPath);
+		const srcPath = path.join(srcRoot, rel);
 		if (entry.isDirectory()) {
-			pruneOrphans(destPath);
+			pruneOrphans(destPath, srcRoot, destRoot);
 			if (fs.readdirSync(destPath).length === 0) {
 				fs.rmdirSync(destPath);
 				console.log(`Removed empty dir: ${rel}`);
 			}
-		} else if (entry.name.endsWith('.mdx') || entry.name.endsWith('.md')) {
+		} else if (
+			entry.name.endsWith('.mdx') ||
+			entry.name.endsWith('.md') ||
+			entry.name.endsWith('.json')
+		) {
 			if (!fs.existsSync(srcPath)) {
 				fs.unlinkSync(destPath);
 				console.log(`Removed orphan: ${rel}`);
@@ -136,7 +211,28 @@ function pruneOrphans(dir) {
 	}
 }
 
-fs.mkdirSync(destDir, { recursive: true });
-walk(srcDir);
-pruneOrphans(destDir);
+function convertDashboards() {
+	if (!fs.existsSync(dashSrcDir)) {
+		console.log('No public/dashboards/zh-cn — skip dashboard conversion.');
+		return;
+	}
+	fs.mkdirSync(dashDestDir, { recursive: true });
+	for (const entry of fs.readdirSync(dashSrcDir, { withFileTypes: true })) {
+		if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+		const srcPath = path.join(dashSrcDir, entry.name);
+		const destPath = path.join(dashDestDir, entry.name);
+		const content = fs.readFileSync(srcPath, 'utf8');
+		const converted = convertText(content, { dashboards: true });
+		// Validate JSON still parses
+		JSON.parse(converted);
+		fs.writeFileSync(destPath, converted, 'utf8');
+		console.log(`Converted dashboard: ${entry.name}`);
+	}
+	pruneOrphans(dashDestDir, dashSrcDir, dashDestDir);
+}
+
+fs.mkdirSync(docsDestDir, { recursive: true });
+walkDocs(docsSrcDir);
+pruneOrphans(docsDestDir, docsSrcDir, docsDestDir);
+convertDashboards();
 console.log('Done.');

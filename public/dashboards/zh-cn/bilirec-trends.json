@@ -1,0 +1,898 @@
+{
+    "title": "bilirec / 用量趋势",
+    "uid": "bilirec-trends",
+    "schemaVersion": 39,
+    "version": 13,
+    "refresh": "1m",
+    "tags": ["bilirec"],
+    "timezone": "browser",
+    "graphTooltip": 1,
+    "editable": true,
+    "id": null,
+    "description": "上方 KPI 是这段总增量再换成「平均每」。中间走势图每个点是该时刻往回 24 小时的增量（不是日历日 0:00–24:00），请选至少 7 天。磁盘虚线用时间选单这段历史做回归，并画进右侧「预测未来」。可用空间优先 ZFS，没有再退回 node_exporter。",
+    "time": { "from": "now-7d", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "label": "数据源",
+          "hide": 0,
+          "refresh": 1,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "label": "job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings, job)",
+          "definition": "label_values(bilirec_active_recordings, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "label": "instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "room_id",
+          "type": "query",
+          "label": "房间",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "definition": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "regex": "/room_id=\"(?<value>[^\"]+)\".*uname=\"(?<text>[^\"]+)\"/",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "per",
+          "type": "custom",
+          "label": "平均每",
+          "query": "小时 : 3600,6小时 : 21600,12小时 : 43200,天 : 86400,7天 : 604800",
+          "includeAll": false,
+          "multi": false,
+          "current": { "selected": true, "text": "天", "value": "86400" },
+          "options": [
+            { "selected": false, "text": "小时", "value": "3600" },
+            { "selected": false, "text": "6小时", "value": "21600" },
+            { "selected": false, "text": "12小时", "value": "43200" },
+            { "selected": true, "text": "天", "value": "86400" },
+            { "selected": false, "text": "7天", "value": "604800" }
+          ]
+        },
+        {
+          "name": "topk",
+          "type": "custom",
+          "label": "Top N",
+          "query": "5,10,20,50",
+          "includeAll": false,
+          "multi": false,
+          "current": { "selected": true, "text": "10", "value": "10" },
+          "options": [
+            { "selected": false, "text": "5", "value": "5" },
+            { "selected": true, "text": "10", "value": "10" },
+            { "selected": false, "text": "20", "value": "20" },
+            { "selected": false, "text": "50", "value": "50" }
+          ]
+        },
+        {
+          "name": "node_job",
+          "type": "query",
+          "label": "node job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(node_filesystem_avail_bytes, job)",
+          "definition": "label_values(node_filesystem_avail_bytes, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "node_instance",
+          "type": "query",
+          "label": "node instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(node_filesystem_avail_bytes{job=~\"$node_job\"}, instance)",
+          "definition": "label_values(node_filesystem_avail_bytes{job=~\"$node_job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "mountpoint",
+          "type": "query",
+          "label": "挂载点（无 ZFS 时）",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"}, mountpoint)",
+          "definition": "label_values(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"}, mountpoint)",
+          "includeAll": false,
+          "multi": false,
+          "refresh": 2,
+          "sort": 1
+        },
+        {
+          "name": "disk_ahead",
+          "type": "custom",
+          "label": "预测未来",
+          "query": "7 天 : 7,14 天 : 14,30 天 : 30,半年 : 180,1 年 : 365,3 年 : 1095",
+          "includeAll": false,
+          "multi": false,
+          "hide": 0,
+          "current": { "selected": true, "text": "30 天", "value": "30" },
+          "options": [
+            { "selected": false, "text": "7 天", "value": "7" },
+            { "selected": false, "text": "14 天", "value": "14" },
+            { "selected": true, "text": "30 天", "value": "30" },
+            { "selected": false, "text": "半年", "value": "180" },
+            { "selected": false, "text": "1 年", "value": "365" },
+            { "selected": false, "text": "3 年", "value": "1095" }
+          ]
+        },
+        {
+          "name": "disk_range",
+          "type": "query",
+          "label": "",
+          "hide": 2,
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "query_result(clamp_min(ceil($__range_s / 86400), 1))",
+          "definition": "query_result(clamp_min(ceil($__range_s / 86400), 1))",
+          "regex": "/(?<value>\\d{1,5})/",
+          "includeAll": false,
+          "multi": false,
+          "refresh": 2,
+          "sort": 0,
+          "current": { "selected": true, "text": "7", "value": "7" }
+        }
+      ]
+    },
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "dashboard",
+        "includeVars": true,
+        "keepTime": true,
+        "tags": ["bilirec"],
+        "targetBlank": false,
+        "title": "bilirec",
+        "tooltip": "",
+        "type": "dashboards"
+      }
+    ],
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "平均每${per:text}",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "有录制的房间",
+        "description": "平均每${per:text}里，有几个直播间实际写入过录制资料。长时间连续录的房间也会算到。",
+        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "avg_over_time((count(sum by (room_id) (increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[${per}s])) > 0) or vector(0))[$__range:${per}s])",
+            "legendFormat": "房间",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "平均同时录制",
+        "description": "选取时间内，平均同时在录几个直播间（含没在录的时段，所以会低于当天高峰）。与下方「每日录制房间 / 场次」的同时录制同一套算法，只是改成整段平均。",
+        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "avg_over_time((sum(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}) or vector(0))[$__range:5m])",
+            "legendFormat": "同时",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 2,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "录制写入",
+        "description": "这段总写入再换成平均每${per:text}，约等于落盘。",
+        "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
+            "legendFormat": "录制",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "弹幕写入",
+        "description": "这段总写入再换成平均每${per:text}的弹幕文件大小。没开弹幕录制会是 0。",
+        "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
+            "legendFormat": "弹幕文件",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "弹幕条数",
+        "description": "这段总条数再换成平均每${per:text}收到的弹幕事件数（含后来被丢的）。",
+        "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum(increase(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
+            "legendFormat": "弹幕",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 7,
+        "type": "stat",
+        "title": "开录场次",
+        "description": "这段总场次再换成平均每${per:text}开始录制几次。同一房间连录中断再开会算多次。",
+        "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum(increase(bilirec_room_recording_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
+            "legendFormat": "场次",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 8,
+        "type": "row",
+        "title": "每日走势",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 9,
+        "type": "timeseries",
+        "title": "每日写入",
+        "description": "每个点是该时刻往回 24 小时的增量，不是日历日 0:00–24:00。左缘第一个点可能含时间范围开始之前。和上方 KPI 比时请用「这段总量 ÷ 天数」，不要把几个点当几个自然日再平均。时间范围请至少 7 天。",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+        "interval": "1d",
+        "maxDataPoints": 400,
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
+            "legendFormat": "录制",
+            "interval": "1d"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
+            "legendFormat": "弹幕文件",
+            "interval": "1d"
+          },
+          {
+            "refId": "C",
+            "expr": "(sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0))) or vector(0)",
+            "legendFormat": "合计",
+            "interval": "1d"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "custom": { "drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "linear", "spanNulls": true, "showPoints": "always", "pointSize": 7 }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 10,
+        "type": "timeseries",
+        "title": "每日录制房间 / 场次",
+        "description": "同时录制 = 当天平均并发数。开录场次 = 当天开始录制的次数。一天一个点。",
+        "gridPos": { "h": 8, "w": 16, "x": 0, "y": 14 },
+        "interval": "1d",
+        "maxDataPoints": 400,
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "avg_over_time((sum(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}) or vector(0))[1d:5m])",
+            "legendFormat": "同时录制",
+            "interval": "1d"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(increase(bilirec_room_recording_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
+            "legendFormat": "开录场次",
+            "interval": "1d"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "none",
+            "custom": { "drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "linear", "spanNulls": true, "showPoints": "always", "pointSize": 7 }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi" }
+        }
+      },
+      {
+        "id": 11,
+        "type": "timeseries",
+        "title": "每日弹幕条数",
+        "description": "每一天收到的弹幕事件数。没开弹幕录制时为 0。",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
+        "interval": "1d",
+        "maxDataPoints": 400,
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
+            "legendFormat": "弹幕",
+            "interval": "1d"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "short",
+            "custom": { "drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "linear", "spanNulls": true, "showPoints": "always", "pointSize": 7 }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "single" }
+        }
+      },
+      {
+        "id": 13,
+        "type": "row",
+        "title": "速率",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 14,
+        "type": "stat",
+        "title": "平均录制读取速率",
+        "description": "含没在录的空档。录制中平均码率通常更高。",
+        "gridPos": { "h": 4, "w": 8, "x": 0, "y": 23 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) / $__range_s) or vector(0)",
+            "legendFormat": "读取",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "Bps",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 15,
+        "type": "stat",
+        "title": "录制中平均码率",
+        "description": "区间录制写入 ÷ 录制秒数。没人在录时接近 0。",
+        "gridPos": { "h": 4, "w": 8, "x": 8, "y": 23 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) / clamp_min(sum(integrate(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])), 1)) or vector(0)",
+            "legendFormat": "码率",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "Bps",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 16,
+        "type": "stat",
+        "title": "平均弹幕速率",
+        "gridPos": { "h": 4, "w": 8, "x": 16, "y": 23 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "弹幕",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 2,
+            "unit": "cps",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 17,
+        "type": "timeseries",
+        "title": "录制读取速率",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "全站"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": { "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "single" }
+        }
+      },
+      {
+        "id": 18,
+        "type": "timeseries",
+        "title": "弹幕速率",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "弹幕"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "cps",
+            "custom": { "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "single" }
+        }
+      },
+      {
+        "id": 19,
+        "type": "timeseries",
+        "title": "同时录制数",
+        "description": "每天最多同时在录几个直播间。一天一个点。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 35 },
+        "interval": "1d",
+        "maxDataPoints": 400,
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max_over_time((sum(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}) or vector(0))[1d:5m])",
+            "legendFormat": "当天最高",
+            "interval": "1d"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "custom": { "drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "linear", "spanNulls": true, "showPoints": "always", "pointSize": 7 }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "single" }
+        }
+      },
+      {
+        "id": 20,
+        "type": "timeseries",
+        "title": "各房录制读取速率（Top N）",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 35 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk($topk, sum by (room_id) (rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 21,
+        "type": "row",
+        "title": "磁盘预估",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 22,
+        "type": "stat",
+        "title": "可用空间",
+        "description": "优先用 ZFS（node_exporter 的 zfs/fuse.zfs，或 zfs_exporter）。没有 ZFS 才用下方挂载点的 node_exporter。都没有则无资料。同一 pool 多个资料集只取最大值，不相加。",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 44 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})",
+            "legendFormat": "可用",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 10737418240 },
+                { "color": "green", "value": 107374182400 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 23,
+        "type": "stat",
+        "title": "每日平均写入",
+        "description": "这段总写入（录制 + 弹幕）÷ 天数。不是「每日写入」图各点的平均；那些点是往回 24 小时，不是日历日。时间范围太短会晃，建议至少 7 天。不含系统或其他程序。",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 44 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "((sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0))) * 86400 / $__range_s) or vector(0)",
+            "legendFormat": "每天",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 24,
+        "type": "stat",
+        "title": "按录制写入预估",
+        "description": "可用空间 ÷（这段总写入 ÷ 时间）。只算录制与弹幕，没算系统、快照或其他程序，实际通常会更快用完。没在录时会是 Inf。",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 44 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})) / clamp_min((sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0))) / $__range_s, 1e-9)",
+            "legendFormat": "剩余",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "dtdhms",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 604800 },
+                { "color": "green", "value": 2592000 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 26,
+        "type": "stat",
+        "title": "按磁盘斜率预估",
+        "description": "对可用空间做线性回归（deriv）。会算进其他程序、ZFS 快照与删档，通常比左边「只算录制」更接近真实用完时间。空间在增加（斜率 ≥ 0）时无资料。时间范围太短会晃，建议维持 7 天。",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 44 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "((max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})) / clamp_min(-deriv((max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"}))[$__range]), 1e-9)) and (deriv((max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"}))[$__range]) < 0)",
+            "legendFormat": "线性",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "dtdhms",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 604800 },
+                { "color": "green", "value": 2592000 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 25,
+        "type": "timeseries",
+        "title": "可用空间",
+        "description": "实线是实际可用空间，跟时间选单这段历史。虚线用同一段历史做回归，并画进右侧「预测未来」；降到 0 就停止，不会画成负的。选很长未来、很短历史时，实线会只占左边一小段。预估剩余时间看上方 KPI。",
+        "gridPos": { "h": 7, "w": 24, "x": 0, "y": 48 },
+        "timeFrom": "+${disk_range}d+${disk_ahead}d",
+        "timeShift": "${disk_range}d",
+        "hideTimeOverride": true,
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})",
+            "legendFormat": "可用"
+          },
+          {
+            "refId": "B",
+            "expr": "range_linear_regression(max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})) >= 0",
+            "legendFormat": "线性趋势"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 3,
+            "unit": "bytes",
+            "custom": { "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "linear", "spanNulls": false, "showPoints": "never" }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "线性趋势" },
+              "properties": [
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineStyle", "value": { "dash": [8, 8], "fill": "dash" } },
+                { "id": "custom.spanNulls", "value": false },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["min", "lastNotNull"] },
+          "tooltip": { "mode": "multi" }
+        }
+      }
+    ]
+  }

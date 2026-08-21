@@ -378,7 +378,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **為什麼：** 停錄後該房間的錄製狀態指標會從抓取端點消失。如果對每個房間先做時間平均再相加，每個錄過的房間都會接近 1，加起來等於「這段時間錄過幾個房間」，不是平均同時幾路。
 
-**你可以：** 先在每個時間點加總正在錄的房間數（沒人在錄當作 0），再對時間取平均或最高。查詢寫法見 [監控指標](/zh-tw/configuration/metrics/)。
+**你可以：** 先在每個時間點加總正在錄的房間數（沒人在錄當作 0），再對時間取平均或最高。查詢寫法見 [監控指標](/zh-tw/configuration/metrics/)。「用量趨勢」盤已按這個寫法，見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。
 
 ### Grafana 裡每日數據為空或斷斷續續？
 
@@ -397,6 +397,14 @@ import { Aside } from '@astrojs/starlight/components';
 
 **為什麼：** 房間級數據 series 只帶 `room_id` label，主播名在單獨的 `bilirec_room_info` 指標裡，需要 join。
 
-**你可以：** 在查詢後加 `* on(room_id) group_left(uname) bilirec_room_info`，圖例格式設為 `{{uname}} ({{room_id}})`。主播改名後歷史區間會顯示當時的名字，新區間顯示新名字。
+**你可以：** 在查詢後加 `* on(room_id) group_left(uname) bilirec_room_info`，圖例格式設為 `{{uname}} ({{room_id}})`。主播改名後歷史區間會顯示當時的名字，新區間顯示新名字。[Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/) 裡的房間下拉已帶上主播名。
 
 詳見 [監控指標](/zh-tw/configuration/metrics/)。
+
+### 導入了示例儀表盤，有些面板是空的？
+
+**你會看到：** 某一整張盤或某幾塊表沒有數據，但 `/metrics` 或其它面板正常。
+
+**為什麼：** 空表不一定是壞了。例如沒人在恢復時「錄製中但流沒連上」為空；沒開彈幕錄製時「彈幕健康」整張會空；沒有 node_exporter 時「用量趨勢」的磁碟預估為空。選錯盤也會覺得「沒數」——想看當下狀態請用總覽，想看合計請用累計用量。
+
+**你可以：** 對照 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/) 裡每張盤的「注意」與「該選哪一張」；仍異常時再查 [監控指標](/zh-tw/configuration/metrics/) 的查詢注意與抓取設定。

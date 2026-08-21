@@ -1,0 +1,166 @@
+---
+title: Grafana 儀表盤
+description: 現成的 Grafana JSON，導入後可查看錄製、資源與用量
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+如果你已經用 Grafana 接上 VictoriaMetrics（在 Grafana 裡添加資料源時選 Prometheus 這一類），可以把下面的 JSON 導入進去，省去從零寫查詢。各張盤對應不同問題，按需要下載即可。指標如何開啟、如何被抓取，見 [監控指標](/zh-tw/configuration/metrics/)。時序庫和 Grafana 的安裝見各項目官方文檔。
+
+請下載**與當前文檔語言相同**的 JSON。簡繁兩套盤共用同一 `uid`，後導入的會覆蓋先導入的。
+
+## 快速開始
+
+1. Grafana、以及 VictoriaMetrics 或 Prometheus 已經裝好；bilirec 已開啟指標並被抓取（見 [監控指標](/zh-tw/configuration/metrics/)）。
+2. 在 Grafana 添加資料源：類型選 Prometheus，地址填 VictoriaMetrics 或 Prometheus。
+3. Grafana → **Dashboards → Import** → 上傳本頁對應語言的 JSON（或粘貼內容）。
+4. 導入後在頂欄選 **資料源**；`job` / `instance` 一般保持 All。
+
+可以從 **錄製總覽** 開始看。其餘 6 張帶相同 `bilirec` 標籤，頂欄下拉可互相跳轉，並保留時間範圍與變數。
+
+## 該選哪一張
+
+按你想看的問題選盤：
+
+| 你想知道什麼 | 儀表盤 |
+|--------------|--------|
+| 現在有幾路在錄？誰開播卻沒在錄？今天已經寫了多少？ | [錄製總覽](#錄製總覽) |
+| 開錄失敗、斷線恢復、錄著但流沒連上？ | [錄製健康](#錄製健康) |
+| 彈幕是不是丟了、重連很勤、切檔卡住？ | [彈幕健康](#彈幕健康) |
+| 記憶體 / CPU 是不是被錄製抬高？高的是程式還是檔案緩存？ | [行程資源](#行程資源) |
+| 這段時間一共錄了多少、誰最吃磁碟？ | [累計用量](#累計用量) |
+| 每天趨勢怎樣、磁碟大概還能撐多久？ | [用量趨勢](#用量趨勢) |
+| 某一個房間今晚錄沒錄上、斷過幾次？ | [單房間詳情](#單房間詳情) |
+
+日常先看總覽往往就夠；排查錄製或彈幕異常時再打開對應的健康盤，關心磁碟佔用時再看趨勢或累計。某個主播的細節用單房間。沒開彈幕錄製時，「彈幕健康」會是空的。
+
+## 錄製總覽
+
+![錄製總覽](/images/dashboards/bilirec-overview.png)
+
+**用途：** 適合當作第一張打開的盤。看現在在錄幾路、多少房間開播、今天已經寫了多少、近期斷線恢復，以及「開播但目前沒在錄」。
+
+**能回答：**
+
+- 現在有沒有在錄？
+- 誰在播卻沒錄（只開了開播通知、不自動錄製的房間也會出現）？
+- 今天從 0 點到現在已經寫入多少（用來判斷還要不要繼續錄）？
+- 剛才是不是集中斷過流？
+
+**下載：** [bilirec-overview.json](/dashboards/zh-tw/bilirec-overview.json)
+
+**注意：** 預設時間範圍約 6 小時；「寫入量」按當天 0 點起算（面板上會標「今天迄今」），不受這個範圍影響。碼率見盤裡的「全站直播流讀取速率」。
+
+## 錄製健康
+
+![錄製健康](/images/dashboards/bilirec-recording.png)
+
+**用途：** 排查「以為在錄、其實沒連上流」或開錄失敗。
+
+**能回答：**
+
+- 失敗是磁碟滿、達到同時路數、房間加密/封禁，還是流地址連不上？
+- 恢復是成功多還是放棄多？
+- 有沒有過短分段被丟掉？
+
+**下載：** [bilirec-recording.json](/dashboards/zh-tw/bilirec-recording.json)
+
+**注意：** 沒人在恢復時，「錄製中但流沒連上」為空是正常的。碼率見 [錄製總覽](#錄製總覽)。
+
+## 彈幕健康
+
+![彈幕健康](/images/dashboards/bilirec-danmaku.png)
+
+**用途：** 只在開啟彈幕錄製時有意義。
+
+**能回答：**
+
+- 消息是不是因為寫入來不及被丟掉？
+- 重連是否異常頻繁？
+- 切檔通知是不是也被丟掉（彈幕會繼續寫進舊檔）？
+
+**下載：** [bilirec-danmaku.json](/dashboards/zh-tw/bilirec-danmaku.json)
+
+**注意：** 沒有正在錄彈幕時整張會空。丟棄只在溢出策略為丟棄、且寫入來不及（隊列已滿）時增加；可結合 [彈幕錄製](/zh-tw/configuration/danmaku/) 檢查策略、儲存與並發路數。
+
+## 行程資源
+
+![行程資源](/images/dashboards/bilirec-runtime.png)
+
+**用途：** 對照「同時在錄幾路」看 CPU / 記憶體。Linux 上會把程式自己佔用的記憶體和用來加速讀檔案的緩存分開顯示，避免把緩存當成程式在漲記憶體。
+
+**能回答：**
+
+- 記憶體高是不是錄製檔案緩存？（見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)）
+- CPU 是否隨路數一起抬高？
+- 打開的檔案數是否異常？
+
+**下載：** [bilirec-runtime.json](/dashboards/zh-tw/bilirec-runtime.json)
+
+**注意：** Windows 上可能只有一項總記憶體，沒有把檔案緩存拆開。
+
+## 累計用量
+
+![累計用量](/images/dashboards/bilirec-totals.png)
+
+**用途：** 看選定時間範圍內的合計與 Top N 房間，不是「此刻」狀態。
+
+**能回答：**
+
+- 這 7 天大概寫了多少？
+- 哪個房間最吃空間？
+- 錄製時長和開播時長差多少？
+
+**下載：** [bilirec-totals.json](/dashboards/zh-tw/bilirec-totals.json)
+
+**注意：** 寫入量約等於錄製檔案寫到磁碟的量，不是整臺機器還剩多少空間。錄製 / 開播時長依賴 VictoriaMetrics；純 Prometheus 這些面板會空。預設約 7 天。
+
+## 用量趨勢
+
+![用量趨勢](/images/dashboards/bilirec-trends.png)
+
+**用途：** 看走勢和磁碟還能撐多久。上方 KPI 是這段總增量再換成「平均每小時 / 天」。
+
+**能回答：**
+
+- 每天寫入是否在漲？
+- 平均同時錄幾路？
+- 按當前寫入速度，磁碟大概何時用完？
+
+**下載：** [bilirec-trends.json](/dashboards/zh-tw/bilirec-trends.json)
+
+**注意：**
+
+- 中間「每日」點是該時刻往回 24 小時，不是日曆日 0:00–24:00；時間範圍建議至少 7 天。
+- 磁碟還能撐多久，需要主機也提供磁碟空間指標（常見做法是裝 node_exporter，ZFS 盤優先用它的數據）。沒有這些指標時，錄製相關圖仍有數，磁碟預估為空。
+- 磁碟預估虛線同樣依賴 VictoriaMetrics。
+
+## 單房間詳情
+
+![單房間詳情](/images/dashboards/bilirec-room.png)
+
+**用途：** 頂欄選一個房間（下拉顯示主播名，實際值仍是房間號），看開播 / 錄製 / 連線 / 彈幕時間線。
+
+**能回答：**
+
+- 這場直播有沒有完整錄上？
+- 中途流斷過幾次？
+- 這段時間寫了多少、彈幕多少條？
+
+**下載：** [bilirec-room.json](/dashboards/zh-tw/bilirec-room.json)
+
+**注意：** 頂欄先選一個房間；未選時面板是空的。
+
+## 導入後常見現象
+
+- 這些 JSON 的資料源類型是 Prometheus，地址指向 VictoriaMetrics。部分時長和磁碟預估用了 VictoriaMetrics 的查詢函數，純 Prometheus 裡對應面板會空。
+- **`job` / `instance` 對不上**時整張沒數：抓取設定裡的標籤要能在下拉里出現。
+- **圖例沒有主播名：** 房間下拉已用 `bilirec_room_info` 拼上主播名；若仍只有房間號，見 [監控指標](/zh-tw/configuration/metrics/) 中「顯示主播名」的說明。
+- **平均同時錄製偏大：** 見 [常見問題 · 平均同時錄製](/zh-tw/guides/faq/#grafana-裡平均同時錄製比實際同時路數大很多) 與指標頁「先加總再對時間平均」；用量趨勢盤已按這個寫法。
+- **空表不一定壞了：** 沒人在恢復、沒開彈幕、沒有主機磁碟指標時，對應區塊本來就是空的。
+
+指標清單與查詢寫法見 [監控指標](/zh-tw/configuration/metrics/)。
+
+<Aside type="note">
+預覽圖以繁體中文面板為例，版面和指標與簡中盤相同。請下載與當前文檔語言相同的 JSON；導入後標題會是該語言的文案。時間範圍、房間數也可能和預覽不完全一樣。
+</Aside>

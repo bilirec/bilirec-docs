@@ -5,9 +5,13 @@ description: 通過獨立端口暴露 Prometheus 指標，接入 VictoriaMetrics
 
 import { Aside } from '@astrojs/starlight/components';
 
-bilirec 可以在**獨立端口**暴露 Prometheus 格式的指標，供 VictoriaMetrics（或任何兼容 Prometheus 抓取協議的採集器）抓取，再由 Grafana 做可視化與每日聚合。**預設關閉**，開啟不影響主 API 端口、路由與認證。
+bilirec 可以在**獨立端口**暴露 Prometheus 格式的指標，供 VictoriaMetrics（或任何兼容 Prometheus 抓取協議的採集器）抓取。之後可以在 Grafana 裡畫圖、做每日合計。**預設關閉**，開啟不影響主 API 端口、路由與認證。
 
-適用場景：在 NAS / 樹莓派上 24 小時錄製時，想長期觀察資源佔用、每房間寫入量、錄製時長與開播情況，並在 Grafana 畫趨勢圖。
+適用場景：在 NAS / 樹莓派上長時間錄製時，想看資源佔用、每房間寫入量、錄製時長和開播情況。
+
+bilirec 只負責把當前指標公開出來，不會自己保存歷史，也不會畫圖。要把數字留下來，需要另外安裝 [VictoriaMetrics](https://docs.victoriametrics.com/quick-start/) 或 [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)，讓它們定期來抓 `/metrics`。要用圖形介面時，再裝 [Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/installation/)；也可以先用 VictoriaMetrics / Prometheus 自帶的查詢頁。安裝步驟以各項目文檔為準，本頁說明如何讓它們抓到 bilirec。
+
+已經接好 Grafana 時，也可以導入一組現成面板，見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。自己按下文查詢做圖同樣可行。
 
 ## 前置知識
 
@@ -15,16 +19,17 @@ bilirec 可以在**獨立端口**暴露 Prometheus 格式的指標，供 Victori
 
 - [Prometheus 入門](https://prometheus.io/docs/prometheus/latest/getting_started/) — 抓取協議、`/metrics` 端點與 PromQL 基礎
 - [VictoriaMetrics 文檔](https://docs.victoriametrics.com/) — bilirec 推薦的時序數據庫；查詢用 [MetricsQL 函數參考](https://docs.victoriametrics.com/metricsql/)（與 PromQL 兼容，含 `increase`、`rate`、`integrate` 等）
-- [Grafana 入門](https://grafana.com/docs/grafana/latest/fundamentals/getting-started/) — 數據源設定、面板與儀表盤搭建
+- [Grafana 入門](https://grafana.com/docs/grafana/latest/fundamentals/getting-started/) — 資料源設定、面板與儀表盤搭建
 
-bilirec 只負責暴露指標，採集與可視化由上述工具完成。下面假設你已大致了解這些工具的基本用法。
+bilirec 只負責暴露指標，採集與可視化由上述工具完成。下面假設時序數據庫已經裝好，並且你大致了解這些工具的基本用法。
 
 ## 快速開始
 
-1. 在 `.env` 中設定 `METRICS_ENABLED=true`，按需調整 `METRICS_PORT`
-2. 重啟 bilirec，日誌會打印 `metrics 伺服器已啟動：http://<addr>:9090/metrics`
-3. 在 VictoriaMetrics（或 vmagent）的抓取設定中加入 bilirec 地址，`scrape_interval` 建議 `15–30s`
-4. 在 Grafana 用 `increase()` / `integrate()` 等函數計算每日數據（見下文）
+1. 安裝 VictoriaMetrics 或 Prometheus；要用圖形介面時再裝 Grafana（見上文鏈接）
+2. 在 `.env` 中設定 `METRICS_ENABLED=true`，按需調整 `METRICS_PORT`
+3. 重啟 bilirec，日誌會打印 `metrics 伺服器已啟動：http://<addr>:9090/metrics`
+4. 在 VictoriaMetrics（或 vmagent / Prometheus）的抓取設定中加入 bilirec 地址，`scrape_interval` 建議 `15–30s`
+5. 在 Grafana 添加 Prometheus 類型資料源後，可用下文查詢做圖，也可以導入 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)
 
 ```bash
 export METRICS_ENABLED=true
@@ -92,7 +97,7 @@ export METRICS_PORT=9090
 | `bilirec_active_recordings` | gauge | 當前正在錄製的房間數 |
 
 <Aside type="note">
-Go 運行時與進程資源指標由 [VictoriaMetrics/metrics](https://github.com/VictoriaMetrics/metrics) 在抓取時寫出（掛在同一套 `/metrics` 上，與房間級指標一起返回）。**沒有後台 goroutine** 持續採樣。Anon / File 只在 Linux 出現。房間級指標仍由 bilirec 自己註冊。
+Go 運行時與行程資源指標由 [VictoriaMetrics/metrics](https://github.com/VictoriaMetrics/metrics) 在抓取時寫出（掛在同一套 `/metrics` 上，與房間級指標一起返回）。**沒有後台 goroutine** 持續採樣。Anon / File 只在 Linux 出現。房間級指標仍由 bilirec 自己註冊。
 </Aside>
 
 ### 房間級指標
@@ -168,6 +173,8 @@ bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_conne
 ## Grafana / MetricsQL 查詢示例
 
 bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計全部在查詢端完成，bilirec 不做任何聚合。
+
+下面表格方便你自己做圖或核對算法。已經接好 Grafana 時，也可以把 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/) 當作現成起點。
 
 | 需求 | 查詢（MetricsQL） |
 |------|------------------|

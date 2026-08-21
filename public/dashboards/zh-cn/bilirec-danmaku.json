@@ -1,0 +1,610 @@
+{
+    "title": "bilirec / 弹幕健康",
+    "uid": "bilirec-danmaku",
+    "schemaVersion": 39,
+    "version": 2,
+    "refresh": "30s",
+    "tags": ["bilirec"],
+    "timezone": "browser",
+    "graphTooltip": 1,
+    "editable": true,
+    "id": null,
+    "description": "弹幕连接、丢消息、重连与切档是否正常。没有弹幕录制 session 时面板会空，这是预期行为。丢弃只在 DANMAKU_OVERFLOW_POLICY=drop 且写入通道满时增加；切档丢弃表示上一档还没切完，弹幕会继续写进旧档。条数与写入量请看「用量趋势」或「累计用量」。",
+    "time": { "from": "now-6h", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "label": "数据源",
+          "hide": 0,
+          "refresh": 1,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "label": "job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings, job)",
+          "definition": "label_values(bilirec_active_recordings, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "label": "instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "room_id",
+          "type": "query",
+          "label": "房间",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "definition": "query_result(max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+          "regex": "/room_id=\"(?<value>[^\"]+)\".*uname=\"(?<text>[^\"]+)\"/",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "event_type",
+          "type": "custom",
+          "label": "事件",
+          "query": "danmaku,super_chat,gift,guard",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "current": { "selected": true, "text": "All", "value": "$__all" },
+          "options": [
+            { "selected": true, "text": "All", "value": "$__all" },
+            { "selected": false, "text": "danmaku", "value": "danmaku" },
+            { "selected": false, "text": "super_chat", "value": "super_chat" },
+            { "selected": false, "text": "gift", "value": "gift" },
+            { "selected": false, "text": "guard", "value": "guard" }
+          ]
+        }
+      ]
+    },
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "dashboard",
+        "includeVars": true,
+        "keepTime": true,
+        "tags": ["bilirec"],
+        "targetBlank": false,
+        "title": "bilirec",
+        "tooltip": "",
+        "type": "dashboards"
+      }
+    ],
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "现状",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "弹幕连接",
+        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_danmaku_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "连接",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "blue", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "近 1 小时丢弃",
+        "description": "写入通道满而被丢掉的事件。messages_total 在入队前就已计数，丢弃的也算在收到里。",
+        "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_danmaku_messages_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[1h])) or vector(0)",
+            "legendFormat": "丢弃",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 100 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "近 1 小时重连",
+        "description": "第一次连接不算。断线后监督回圈再连才会加 1。",
+        "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_danmaku_reconnects_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "重连",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 20 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "近 1 小时解析失败",
+        "description": "普通弹幕 DANMU_MSG 解不开。不算进 messages_total。",
+        "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "解析失败",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 50 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "近 1 小时切档丢弃",
+        "description": "上一次切档还没处理完，新的切档信号被丢掉。弹幕会继续写进旧档。",
+        "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_danmaku_rotation_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "切档丢弃",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 7,
+        "type": "row",
+        "title": "消息",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 8,
+        "type": "timeseries",
+        "title": "收到 vs 丢弃",
+        "description": "左侧是入队前的收到速率（依事件，不堆叠；丢掉的仍算在收到里）。右侧是丢弃速率，通常小很多，分开轴才看得到。",
+        "gridPos": { "h": 8, "w": 16, "x": 0, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (event_type) (rate(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__rate_interval]))",
+            "legendFormat": "{{event_type}}"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_danmaku_messages_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__rate_interval]))",
+            "legendFormat": "丢弃/秒"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "stacking": { "mode": "none", "group": "A" },
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "丢弃/秒" },
+              "properties": [
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 9,
+        "type": "table",
+        "title": "各房丢弃（本区间）",
+        "description": "Grafana 时间范围内丢弃大于 0 的房间。收到是入队前计数，丢弃的也算在收到里。没人丢时这张表是空的。",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range])) > 0) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          },
+          {
+            "refId": "B",
+            "expr": "(sum by (room_id) (increase(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range])) and on(room_id) (sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range])) > 0)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          },
+          {
+            "refId": "C",
+            "expr": "((sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range])) / sum by (room_id) (increase(bilirec_danmaku_messages_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range]))) and on(room_id) (sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range])) > 0)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "丢弃" },
+              "properties": [
+                { "id": "decimals", "value": 0 },
+                { "id": "unit", "value": "short" }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "收到" },
+              "properties": [
+                { "id": "decimals", "value": 0 },
+                { "id": "unit", "value": "short" }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "丢弃比例" },
+              "properties": [
+                { "id": "unit", "value": "percentunit" },
+                { "id": "decimals", "value": 3 }
+              ]
+            }
+          ]
+        },
+        "transformations": [
+          { "id": "merge", "options": {} },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "Time": true, "__name__": true, "instance": true, "job": true },
+              "renameByName": {
+                "uname": "主播",
+                "room_id": "房间",
+                "Value #A": "丢弃",
+                "Value #B": "收到",
+                "Value #C": "丢弃比例"
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": { "sort": [{ "field": "丢弃", "desc": true }] }
+          }
+        ],
+        "options": { "showHeader": true, "cellHeight": "sm" }
+      },
+      {
+        "id": 10,
+        "type": "row",
+        "title": "连接",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 11,
+        "type": "table",
+        "title": "弹幕录制中但没连上",
+        "description": "正在录弹幕、WebSocket 却不是连接中。重连空档会出现在这里。session 结束后 series 会卸载，不会用 == 0 去配。",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(bilirec_danmaku_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1 unless on(room_id) (bilirec_danmaku_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "Time": true, "Value": true, "__name__": true, "instance": true, "job": true },
+              "renameByName": { "uname": "主播", "room_id": "房间" }
+            }
+          }
+        ],
+        "options": { "showHeader": true, "cellHeight": "sm" }
+      },
+      {
+        "id": 12,
+        "type": "timeseries",
+        "title": "弹幕录制中 vs 已连接",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(bilirec_danmaku_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "录制中"
+          },
+          {
+            "refId": "B",
+            "expr": "count(bilirec_danmaku_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "已连接"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "decimals": 0,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 15,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 13,
+        "type": "timeseries",
+        "title": "各房间重连",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (room_id) (increase(bilirec_danmaku_reconnects_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 14,
+        "type": "row",
+        "title": "切档与解析",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 15,
+        "type": "timeseries",
+        "title": "切档 vs 切档丢弃",
+        "description": "成功切档是轮换信号有进队列。丢弃代表上一档还没切完，弹幕继续写旧档。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_danmaku_rotations_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "成功切档"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_danmaku_rotation_dropped_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "切档丢弃"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 15,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "切档丢弃" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 16,
+        "type": "timeseries",
+        "title": "各房间解析失败",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (room_id) (increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      }
+    ]
+  }

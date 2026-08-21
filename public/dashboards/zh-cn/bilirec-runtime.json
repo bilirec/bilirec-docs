@@ -1,0 +1,651 @@
+{
+    "title": "bilirec / 进程资源",
+    "uid": "bilirec-runtime",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s",
+    "tags": ["bilirec"],
+    "timezone": "browser",
+    "graphTooltip": 1,
+    "editable": true,
+    "id": null,
+    "description": "bilirec 进程的 CPU、内存、goroutine、文件描述符与 GC。右侧「录制中」用来对照并发录制有没有把资源一起擡高。Linux 才有 Anon / File；没有时内存图只显示 RSS。Y 轴从 0 开始，避免堆叠图把基底裁掉。",
+    "time": { "from": "now-12h", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "label": "数据源",
+          "hide": 0,
+          "refresh": 1,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "label": "job",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings, job)",
+          "definition": "label_values(bilirec_active_recordings, job)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "label": "instance",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "query": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "refresh": 2,
+          "sort": 1,
+          "current": { "selected": true, "text": "All", "value": "$__all" }
+        }
+      ]
+    },
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "dashboard",
+        "includeVars": true,
+        "keepTime": true,
+        "tags": ["bilirec"],
+        "targetBlank": false,
+        "title": "bilirec",
+        "tooltip": "",
+        "type": "dashboards"
+      }
+    ],
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "现状",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "CPU",
+        "description": "User + System，单位是「一颗核的百分比」。录制进程通常远低于 1%。",
+        "gridPos": { "h": 4, "w": 5, "x": 0, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(process_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "CPU",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 2,
+            "unit": "percentunit",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "Anon / RSS",
+        "description": "有 Anon 时显示程序本身占用；没有（例如 Windows）则退回 RSS。",
+        "gridPos": { "h": 4, "w": 5, "x": 5, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"}) or sum(process_resident_memory_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "内存",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "Heap",
+        "gridPos": { "h": 4, "w": 4, "x": 10, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(go_memstats_heap_inuse_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Heap",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 1,
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "Goroutines",
+        "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(go_goroutines{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Goroutines",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "打开的 FD",
+        "description": "Linux 是文件描述符。Windows 是进程句柄数。",
+        "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(process_open_fds{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "FD",
+            "range": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [{ "color": "blue", "value": null }]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 7,
+        "type": "row",
+        "title": "CPU",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 8,
+        "type": "timeseries",
+        "title": "User + System",
+        "description": "两条堆叠：User 是程序本身，System 是系统呼叫。录制中画在右侧轴，用来对照并发。",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(process_cpu_seconds_system_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "System"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(process_cpu_seconds_user_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "User"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "录制中"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "decimals": 2,
+            "unit": "percentunit",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 50,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "stacking": { "mode": "normal", "group": "A" },
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "System" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "User" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "录制中" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "unit", "value": "short" },
+                { "id": "decimals", "value": 0 },
+                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] },
+          "tooltip": { "mode": "multi", "sort": "none" }
+        }
+      },
+      {
+        "id": 9,
+        "type": "row",
+        "title": "内存",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 10,
+        "type": "timeseries",
+        "title": "Anon + File",
+        "description": "Linux：File（文件页缓存，含录制档）与 Anon（程序本身）堆叠。「合计」是两者相加，约等于 RSS。没有 Anon/File 时只显示 RSS。Y 轴从 0 开始。",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(process_resident_memory_file_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "File"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Anon"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"}) + sum(process_resident_memory_file_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "合计"
+          },
+          {
+            "refId": "D",
+            "expr": "sum(process_resident_memory_bytes{job=~\"$job\", instance=~\"$instance\"}) unless sum(process_resident_memory_anon_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "RSS"
+          },
+          {
+            "refId": "E",
+            "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "录制中"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "decimals": 1,
+            "unit": "bytes",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 50,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "stacking": { "mode": "normal", "group": "A" },
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "File" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Anon" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "合计" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "RSS" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "color", "value": { "fixedColor": "super-light-yellow", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "录制中" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "unit", "value": "short" },
+                { "id": "decimals", "value": 0 },
+                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] },
+          "tooltip": { "mode": "multi", "sort": "none" }
+        }
+      },
+      {
+        "id": 11,
+        "type": "row",
+        "title": "Go runtime",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 12,
+        "type": "timeseries",
+        "title": "Heap / Stack / Sys",
+        "description": "Heap inuse 是程序正在用的堆。Sys 是 Go runtime 已向 OS 申请的内存，通常高于实际使用。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(go_memstats_heap_inuse_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Heap inuse"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(go_memstats_stack_inuse_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Stack inuse"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(go_memstats_sys_bytes{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Sys"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "decimals": 1,
+            "unit": "bytes",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 15,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 13,
+        "type": "timeseries",
+        "title": "Goroutines / Threads",
+        "description": "Goroutines 随并发录制上升是正常的。下播后若只涨不跌，才比较像泄漏。process_num_threads 仅 Linux。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(go_goroutines{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Goroutines"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(go_threads{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "Go threads"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(process_num_threads{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "OS threads"
+          },
+          {
+            "refId": "D",
+            "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "录制中"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "decimals": 0,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "录制中" },
+              "properties": [
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 14,
+        "type": "row",
+        "title": "FD / GC",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 15,
+        "type": "timeseries",
+        "title": "打开的 FD",
+        "description": "不要跟 max_fds 画在同一轴，上限通常极大，会把实际开启数压成一条线。下播后若 FD 不回落，才比较像没关档。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(process_open_fds{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "open"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "录制中"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "short",
+            "decimals": 0,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 15,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "录制中" },
+              "properties": [
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 16,
+        "type": "timeseries",
+        "title": "GC",
+        "description": "次数是 go_gc_duration_seconds_count 的速率。暂停占比是 pause 总秒数 / 墙钟时间。GC CPU 是花在 GC 上的核数比例。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(go_gc_duration_seconds_count{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "次数/秒"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(go_gc_duration_seconds_sum{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "暂停占比"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(rate(go_gc_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "GC CPU"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "次数/秒" },
+              "properties": [
+                { "id": "unit", "value": "ops" },
+                { "id": "custom.axisPlacement", "value": "right" }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "暂停占比" },
+              "properties": [
+                { "id": "unit", "value": "percentunit" },
+                { "id": "decimals", "value": 3 }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "GC CPU" },
+              "properties": [
+                { "id": "unit", "value": "percentunit" },
+                { "id": "decimals", "value": 3 }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      }
+    ]
+  }

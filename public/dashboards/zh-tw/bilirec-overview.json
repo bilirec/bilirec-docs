@@ -2,7 +2,7 @@
     "title": "bilirec / 錄製總覽",
     "uid": "bilirec-overview",
     "schemaVersion": 39,
-    "version": 8,
+    "version": 10,
     "refresh": "30s",
     "tags": ["bilirec"],
     "timezone": "browser",
@@ -141,21 +141,24 @@
       {
         "id": 4,
         "type": "stat",
-        "title": "全站讀取速率",
+        "title": "寫入量",
+        "description": "從當天 0 點到現在的錄製寫入量，按時區（瀏覽器）。不受盤頂時間範圍影響。可用來判斷今天還要不要繼續錄。不含彈幕檔和其他程式。",
         "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "timeFrom": "now/d",
         "targets": [
           {
             "refId": "A",
-            "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-            "legendFormat": "讀取",
-            "range": true
+            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__range])) or vector(0)",
+            "legendFormat": "寫入",
+            "instant": true,
+            "range": false
           }
         ],
         "fieldConfig": {
           "defaults": {
             "decimals": 1,
-            "unit": "Bps",
+            "unit": "bytes",
             "thresholds": {
               "mode": "absolute",
               "steps": [{ "color": "blue", "value": null }]
@@ -164,7 +167,7 @@
         },
         "options": {
           "colorMode": "value",
-          "graphMode": "area",
+          "graphMode": "none",
           "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
         }
       },

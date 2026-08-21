@@ -107,7 +107,7 @@ UI 側（`lib/app/home_page.dart`）通過 `FlutterForegroundTask.addTaskDataCal
 
 ## 資源監控
 
-`lib/foreground/resource_monitor.dart` 讀取本進程資源佔用：
+`lib/foreground/resource_monitor.dart` 讀取本行程資源佔用：
 
 - **RAM**：優先讀取 `/proc/self/status` 的 `RssAnon`；失敗時回退 `ProcessInfo.currentRss`。
 - **CPU**：通過 `/proc/self/stat` 計算進程 CPU 近似佔用，按系統核心數歸一化。
