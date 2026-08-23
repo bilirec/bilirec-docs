@@ -33,6 +33,32 @@ chmod +x bilirec-linux-amd64
 
 </TabItem>
 
+<TabItem label="macOS">
+
+從 [GitHub Releases](https://github.com/bilirec/bilirec/releases) 下載預編譯二進制：
+
+| 檔案 | 適用平台 |
+|------|---------|
+| `bilirec-darwin-arm64` | Apple Silicon（M 系列） |
+| `bilirec-darwin-amd64` | Intel Mac |
+
+```bash
+chmod +x bilirec-darwin-arm64
+./bilirec-darwin-arm64
+# 或 Intel 版本
+./bilirec-darwin-amd64
+```
+
+本機轉 MP4 需要自行安裝 `ffmpeg` 與 `ffprobe`（例如用 Homebrew：`brew install ffmpeg`）。
+
+從瀏覽器下載的未公證二進制可能被 Gatekeeper 攔截。可到「系統設定 → 隱私與安全性」允許這次打開，或執行：
+
+```bash
+xattr -d com.apple.quarantine ./bilirec-darwin-arm64
+```
+
+</TabItem>
+
 <TabItem label="Docker">
 
 **從源碼建置：**

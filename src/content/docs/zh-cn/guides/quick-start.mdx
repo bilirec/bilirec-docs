@@ -32,6 +32,18 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
 </TabItem>
 
+<TabItem label="macOS">
+
+```bash
+./bilirec-darwin-arm64
+# 或 Intel 版本
+./bilirec-darwin-amd64
+```
+
+首次运行二进制时，程序会在可执行文件同目录生成 `.env` 模板文件，你可以直接编辑它修改配置。
+
+</TabItem>
+
 <TabItem label="Docker">
 
 ```bash
@@ -74,7 +86,7 @@ docker run -d \
 ## 进入 Web 界面
 
 <Tabs>
-<TabItem label="Linux / Windows">
+<TabItem label="Linux / Windows / macOS">
 
 1. 打开 [app.bilirec.org](https://app.bilirec.org/)。
 2. 在登录页填入后端地址。多数浏览器会阻止 HTTPS 页面直接请求 HTTP 局域网地址；`http://localhost:8080` 和 `http://127.0.0.1:8080` 通常是例外。远程后端须为 HTTPS（如 [FRP](/zh-cn/guides/frp/) 隧道）。

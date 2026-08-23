@@ -50,11 +50,12 @@ Android 模式下会先注入一组移动端默认值，再套用 `env` 覆盖�
 ## 构建 libbilirec.so
 
 ```bash
-# Linux 主机
-make android os=linux
+make build os=android
 
-# Windows 主机
+# 或显式指定 NDK 主机
+make android os=linux
 make android os=windows
+make android os=darwin
 ```
 
 需要 Android NDK 24+ 及 `./lib/<abi>/libffmpegkit.so`。输出目录：`dist/android/<abi>/libbilirec.so`。

@@ -11,15 +11,34 @@ make dev    # go run ./cmd/backend
 
 ## 构建二进制
 
+`os` 为空时默认 Windows。桌面后端交叉编译不使用 CGO。
+
 ```bash
-make build  # 输出 ./dist/bilirec-windows.exe（Windows）
+make build                 # 输出 ./dist/bilirec-windows.exe（默认）
+make build os=windows      # 同上
+make build os=linux        # ./dist/bilirec-linux-amd64 与 ./dist/bilirec-linux-arm64
+make build os=darwin       # ./dist/bilirec-darwin-arm64 与 ./dist/bilirec-darwin-amd64
+make build os=android      # Android .so，按本机自动选择 NDK prebuilt
 ```
 
-支持平台：Linux amd64/arm64、Windows、Android (.so)。
+也可直接交叉编译单个架构：
+
+```bash
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o ./dist/bilirec-darwin-arm64 ./cmd/backend
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o ./dist/bilirec-darwin-amd64 ./cmd/backend
+```
+
+支持平台：Linux amd64/arm64、macOS amd64/arm64、Windows、Android (.so)。
 
 ## Android 库
 
-需要 Android NDK 24+ 及 `./lib/<abi>/libffmpegkit.so`：
+需要 Android NDK 24+ 及 `./lib/<abi>/libffmpegkit.so`。推荐：
+
+```bash
+make build os=android
+```
+
+也可显式指定 NDK 主机（本机操作系统），而不是编译目标：
 
 ```bash
 # Linux 主机
@@ -27,6 +46,9 @@ make android os=linux
 
 # Windows 主机
 make android os=windows
+
+# macOS 主机
+make android os=darwin
 ```
 
 `NDK_HOME` 从 `ANDROID_NDK_LATEST_HOME`、`ANDROID_NDK_ROOT` 或 `ANDROID_NDK_HOME` 中选取。
