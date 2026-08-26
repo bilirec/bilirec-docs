@@ -109,7 +109,9 @@ docker run -d \
 
 <TabItem label="controller（默认）">
 
-服务启动后，打开 [app.bilirec.org](https://app.bilirec.org/)（或你配置的 `FRONTEND_URL`），进入主界面后点击右上角头像（移动端为设置），在菜单中完成 B 站扫码登录。
+服务启动后，打开 [app.bilirec.org](https://app.bilirec.org/)（或你配置的 `FRONTEND_URL`），进入主界面后点击右上角头像（移动端为设置），在菜单中完成 B 站登录。
+
+桌面端使用 Bilibili App 扫描二维码。手机请点击「使用 Bilibili App 登录」，确认后**手动切回本页**；切回后页面会自动完成登录。
 
 ```bash
 export BILIBILI_LOGIN_MODE=controller # 默認已經是
@@ -122,6 +124,8 @@ export BILIBILI_LOGIN_MODE=controller # 默認已經是
 
 </TabItem>
 <TabItem label="移动端">
+
+手机登录界面以按钮和步骤说明为主，不再显示二维码。若下图仍显示二维码，以页面实际界面为准。
 
 ![移动端B站扫码登录界面](/images/web-ui/mobile-b-qrcode.png)
 
