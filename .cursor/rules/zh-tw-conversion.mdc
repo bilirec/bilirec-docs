@@ -25,7 +25,7 @@ alwaysApply: true
 | Simplified (hand-edited) | `src/content/docs/zh-cn/` | `public/dashboards/zh-cn/` |
 | Traditional (generated) | `src/content/docs/zh-tw/` | `public/dashboards/zh-tw/` |
 
-Doc links should use `/dashboards/zh-cn/...` and `/images/dashboards/zh-cn/...`; the converter rewrites `zh-cn` → `zh-tw` in zh-tw pages.
+Doc links should use `/dashboards/zh-cn/...` for JSON. Grafana preview screenshots are **shared** (Traditional Chinese only) at `/images/dashboards/foo.png` with **no locale segment** — do not put `zh-cn` in screenshot URLs, or the converter will rewrite them to `zh-tw`. The converter still rewrites `zh-cn` → `zh-tw` in zh-tw pages.
 
 ## Workflow
 
