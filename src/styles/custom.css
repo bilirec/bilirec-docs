@@ -2,6 +2,8 @@
 	--sl-color-accent-low: #0f2840;
 	--sl-color-accent: #3b92f7;
 	--sl-color-accent-high: #c6e2ff;
+	/* Slightly wider than Starlight's 45rem so env-var names fit, without filling the viewport. */
+	--sl-content-width: 60rem;
 	--surface-border: color-mix(in srgb, var(--sl-color-accent) 18%, var(--sl-color-gray-5) 82%);
 	--surface-glow: 0 10px 26px color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
 	--sl-font: "Inter", "Noto Sans SC", "Noto Sans TC", "Segoe UI", sans-serif;
@@ -275,8 +277,16 @@ main :not(pre) > code {
 	background: color-mix(in srgb, var(--sl-color-accent-low) 38%, var(--sl-color-bg-inline-code) 62%);
 }
 
+/* Unlayered: beat Starlight @layer .sl-container { max-width: 45rem }. */
+.content-panel .sl-container {
+	max-width: var(--sl-content-width);
+}
+
 .sl-markdown-content table {
+	display: table;
 	width: 100%;
+	max-width: none;
+	overflow: visible;
 	border-collapse: collapse;
 	table-layout: auto;
 }
@@ -420,11 +430,12 @@ main :not(pre) > code {
 	padding-right: 1rem;
 }
 
-/* On long env-reference-style tables, break out past prose width. */
+/* Long env-reference tables may sit a little past the prose column. */
 @media (min-width: 72rem) {
 	.sl-markdown-content .table-scroll:has(thead th.col-env:first-child):has(tbody tr:nth-child(10)),
 	.sl-markdown-content .env-table-scroll {
 		width: min(64rem, calc(100vw - 24rem));
+		max-width: none;
 		margin-left: 50%;
 		transform: translateX(-50%);
 	}
