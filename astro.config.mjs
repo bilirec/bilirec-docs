@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
+import starlightLlmsTxt from 'starlight-llms-txt';
 import { bilirecMarkdownTables } from './src/integrations/markdown-tables.mjs';
 
 const sidebar = [
@@ -137,6 +138,34 @@ export default defineConfig({
 				baseUrl: 'https://github.com/bilirec/bilirec-docs/edit/main/',
 			},
 			sidebar,
+			components: {
+				PageFrame: './src/overrides/PageFrame.astro',
+			},
+			plugins: [
+				starlightLlmsTxt({
+					projectName: 'Bilirec',
+					description:
+						'Bilirec 是专为低配设备优化的高性能 Bilibili 直播录制后端。本文件只包含简体中文（zh-cn）文档；繁体页面由同一份简体源转换，请勿重复索引。',
+					details:
+						'优先阅读 /llms-full.txt 获取完整正文。站内问答额度用完时，把 https://www.bilirec.org/llms.txt 或 https://www.bilirec.org/llms-full.txt 交给 Cursor、ChatGPT 或 Claude 自行提问。',
+					optionalLinks: [
+						{
+							label: 'GitHub',
+							url: 'https://github.com/bilirec/bilirec',
+							description: 'Bilirec 后端源码',
+						},
+					],
+					promote: [
+						'zh-cn/index*',
+						'zh-cn/guides/installation*',
+						'zh-cn/guides/quick-start*',
+						'zh-cn/guides/faq*',
+					],
+					customSelectors: {
+						all: ['.qq-community'],
+					},
+				}),
+			],
 		}),
 		bilirecMarkdownTables(),
 	],

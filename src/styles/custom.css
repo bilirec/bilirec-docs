@@ -600,3 +600,91 @@ main :not(pre) > code {
 		object-fit: contain;
 	}
 }
+
+chat-bubble-snippet.bilirec-ask-ai {
+	--search-snippet-primary-color: var(--sl-color-accent);
+	--search-snippet-primary-hover: var(--sl-color-accent-high);
+	--search-snippet-font-family: var(--sl-font);
+	z-index: 200;
+}
+
+html:has(.bilirec-ask-ai-dialog[open]) {
+	overflow: hidden;
+}
+
+html:has(.bilirec-ask-ai-dialog[open]) chat-bubble-snippet.bilirec-ask-ai {
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.bilirec-ask-ai-dialog {
+	width: 100vw;
+	height: 100dvh;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: var(--sl-color-bg);
+	color: inherit;
+}
+
+.bilirec-ask-ai-dialog[open] {
+	display: flex;
+	flex-direction: column;
+}
+
+.bilirec-ask-ai-dialog::backdrop {
+	background: rgb(2 8 20 / 55%);
+}
+
+.bilirec-ask-ai-dialog__bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex: 0 0 auto;
+	padding: 0.65rem 0.9rem;
+	border-bottom: 1px solid var(--surface-border);
+	background: var(--sl-color-bg-nav);
+}
+
+.bilirec-ask-ai-dialog__bar h2 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.bilirec-ask-ai-dialog__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border: 0;
+	border-radius: 0.5rem;
+	background: transparent;
+	color: var(--sl-color-white);
+	cursor: pointer;
+}
+
+.bilirec-ask-ai-dialog__close:hover,
+.bilirec-ask-ai-dialog__close:focus-visible {
+	background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+}
+
+.bilirec-ask-ai-dialog__close svg {
+	width: 1.15rem;
+	height: 1.15rem;
+}
+
+.bilirec-ask-ai-dialog chat-page-snippet.bilirec-ask-ai-page {
+	display: block;
+	flex: 1 1 auto;
+	min-height: 0;
+	width: 100%;
+	height: auto;
+	--search-snippet-primary-color: var(--sl-color-accent);
+	--search-snippet-primary-hover: var(--sl-color-accent-high);
+	--search-snippet-font-family: var(--sl-font);
+}

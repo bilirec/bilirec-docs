@@ -1,0 +1,39 @@
+---
+import { aiSearchApiUrl, askAiLocale, chatTranslations, dialogCopy } from '../lib/ask-ai-i18n';
+import AskAiPage from './AskAiPage.astro';
+
+const rawUrl = import.meta.env.PUBLIC_AI_SEARCH_URL?.trim() ?? '';
+if (!rawUrl) {
+	return;
+}
+
+const apiUrl = aiSearchApiUrl(rawUrl);
+const locale = askAiLocale(Astro.locals.starlightRoute.lang);
+const strings = chatTranslations(locale, Astro.site?.origin ?? 'https://www.bilirec.org');
+const dialog = dialogCopy(locale);
+---
+
+<chat-bubble-snippet
+	class="bilirec-ask-ai"
+	api-url={apiUrl}
+	placeholder={strings.chatPlaceholder}
+	theme="auto"
+	translations={JSON.stringify(strings)}
+	chat-query-rewrite={JSON.stringify({ model: '@cf/zai-org/glm-4.7-flash' })}
+	data-expand-label={dialog.expandAriaLabel}
+/>
+<dialog class="bilirec-ask-ai-dialog" aria-labelledby="bilirec-ask-ai-dialog-title">
+	<div class="bilirec-ask-ai-dialog__bar">
+		<h2 id="bilirec-ask-ai-dialog-title">{dialog.title}</h2>
+		<button type="button" class="bilirec-ask-ai-dialog__close" aria-label={dialog.closeFullscreenAriaLabel}>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<line x1="18" y1="6" x2="6" y2="18"></line>
+				<line x1="6" y1="6" x2="18" y2="18"></line>
+			</svg>
+		</button>
+	</div>
+	<AskAiPage />
+</dialog>
+<script>
+	import '../lib/ask-ai-client.ts';
+</script>

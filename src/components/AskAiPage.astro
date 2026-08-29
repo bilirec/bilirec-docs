@@ -1,0 +1,21 @@
+---
+import { aiSearchApiUrl, askAiLocale, chatTranslations } from '../lib/ask-ai-i18n';
+
+const rawUrl = import.meta.env.PUBLIC_AI_SEARCH_URL?.trim() ?? '';
+if (!rawUrl) {
+	return;
+}
+
+const apiUrl = aiSearchApiUrl(rawUrl);
+const locale = askAiLocale(Astro.locals.starlightRoute.lang);
+const strings = chatTranslations(locale, Astro.site?.origin ?? 'https://www.bilirec.org');
+---
+
+<chat-page-snippet
+	class="bilirec-ask-ai-page"
+	api-url={apiUrl}
+	placeholder={strings.chatPlaceholder}
+	theme="auto"
+	translations={JSON.stringify(strings)}
+	chat-query-rewrite={JSON.stringify({ model: '@cf/zai-org/glm-4.7-flash' })}
+/>

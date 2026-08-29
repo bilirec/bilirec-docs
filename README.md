@@ -37,6 +37,8 @@ pnpm convert:zh-tw
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
+站內「問文檔」另外需要**建置時**的 `PUBLIC_AI_SEARCH_URL`（Cloudflare Pages / Workers 的建置環境變數，例如 `https://llm.bilirec.org/`）。這是給瀏覽器打的公開 URL，不必當密鑰。未設定時不渲染右下角氣泡；`/llms.txt`、`/llms-small.txt` 與 `/llms-full.txt` 仍會產出，可供 Cursor / ChatGPT 讀取。
+
 ## 相關項目
 
 - [bilirec](https://github.com/bilirec/bilirec) — 錄播後端
