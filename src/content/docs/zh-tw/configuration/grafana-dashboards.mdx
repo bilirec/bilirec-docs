@@ -124,7 +124,7 @@ import { Aside } from '@astrojs/starlight/components';
 **能回答：**
 
 - 每天寫入是否在漲？
-- 平均同時錄幾路？
+- 平均每天錄過幾個房間、開播裡有多少有在錄？
 - 按當前寫入速度，磁碟大概何時用完？
 
 **下載：** [bilirec-trends.json](/dashboards/zh-tw/bilirec-trends.json)
@@ -156,7 +156,7 @@ import { Aside } from '@astrojs/starlight/components';
 - 這些 JSON 的資料源類型是 Prometheus，地址指向 VictoriaMetrics。部分時長和磁碟預估用了 VictoriaMetrics 的查詢函數，純 Prometheus 裡對應面板會空。
 - **`job` / `instance` 對不上**時整張沒數：抓取設定裡的標籤要能在下拉里出現。
 - **圖例沒有主播名：** 房間下拉已用 `bilirec_room_info` 拼上主播名；若仍只有房間號，見 [監控指標](/zh-tw/configuration/metrics/) 中「顯示主播名」的說明。
-- **平均同時錄製偏大：** 見 [常見問題 · 平均同時錄製](/zh-tw/guides/faq/#grafana-裡平均同時錄製比實際同時路數大很多) 與指標頁「先加總再對時間平均」；用量趨勢盤已按這個寫法。
+- **自己畫「平均同時錄製」偏大：** 見 [常見問題 · 平均同時錄製](/zh-tw/guides/faq/#grafana-裡平均同時錄製比實際同時路數大很多) 與指標頁「先加總再對時間平均」。用量趨勢盤的「錄製房間數」是每天錄過幾間（不論錄多久），不是同時路數。
 - **空表不一定壞了：** 沒人在恢復、沒開彈幕、沒有主機磁碟指標時，對應區塊本來就是空的。
 
 指標清單與查詢寫法見 [監控指標](/zh-tw/configuration/metrics/)。

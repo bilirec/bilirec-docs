@@ -2,7 +2,7 @@
     "title": "bilirec / 用量趨勢",
     "uid": "bilirec-trends",
     "schemaVersion": 39,
-    "version": 13,
+    "version": 14,
     "refresh": "1m",
     "tags": ["bilirec"],
     "timezone": "browser",
@@ -32,7 +32,6 @@
           "definition": "label_values(bilirec_active_recordings, job)",
           "includeAll": true,
           "multi": true,
-          "allValue": ".*",
           "refresh": 2,
           "sort": 1,
           "current": { "selected": true, "text": "All", "value": "$__all" }
@@ -46,7 +45,6 @@
           "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
           "includeAll": true,
           "multi": true,
-          "allValue": ".*",
           "refresh": 2,
           "sort": 1,
           "current": { "selected": true, "text": "All", "value": "$__all" }
@@ -197,14 +195,14 @@
       {
         "id": 2,
         "type": "stat",
-        "title": "有錄製的房間",
-        "description": "平均每${per:text}裡，有幾個直播間實際寫入過錄製資料。長時間連續錄的房間也會算到。",
+        "title": "錄製房間數",
+        "description": "每個「平均每」時段裡，只要錄過就算 1 個房間，不看錄了多久。再對這些時段取平均。選「天」時就是平均每天錄過幾個房間。",
         "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "avg_over_time((count(sum by (room_id) (increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[${per}s])) > 0) or vector(0))[$__range:${per}s])",
+            "expr": "avg_over_time((count(max by (room_id) (max_over_time(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[${per}s])) > 0) or vector(0))[$__range:${per}s])",
             "legendFormat": "房間",
             "instant": true,
             "range": false
@@ -229,23 +227,23 @@
       {
         "id": 3,
         "type": "stat",
-        "title": "平均同時錄製",
-        "description": "選取時間內，平均同時在錄幾個直播間（含沒在錄的時段，所以會低於當天高峰）。與下方「每日錄製房間 / 場次」的同時錄製同一套算法，只是改成整段平均。",
+        "title": "錄製房間比例",
+        "description": "平均每時段錄過的房間數 ÷ 同期開播過的房間數。例如 4 個開播、3 個有錄，就是 75%。沒人開播時為 0。",
         "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "avg_over_time((sum(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}) or vector(0))[$__range:5m])",
-            "legendFormat": "同時",
+            "expr": "WITH (rec = avg_over_time((count(max by (room_id) (max_over_time(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[${per}s])) > 0) or vector(0))[$__range:${per}s]), live = avg_over_time((count(max by (room_id) (max_over_time(bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[${per}s])) > 0) or vector(0))[$__range:${per}s])) ((rec / live) if (live > 0)) default 0",
+            "legendFormat": "比例",
             "instant": true,
             "range": false
           }
         ],
         "fieldConfig": {
           "defaults": {
-            "decimals": 2,
-            "unit": "none",
+            "decimals": 1,
+            "unit": "percentunit",
             "thresholds": {
               "mode": "absolute",
               "steps": [{ "color": "blue", "value": null }]
@@ -358,13 +356,13 @@
         "id": 7,
         "type": "stat",
         "title": "開錄場次",
-        "description": "這段總場次再換成平均每${per:text}開始錄製幾次。同一房間連錄中斷再開會算多次。",
+        "description": "每個時段開始錄製的次數加總，再對這些時段取平均。選「天」時就是平均每天開了幾場。同一房間中斷再開會計多次。",
         "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "(sum(increase(bilirec_room_recording_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
+            "expr": "avg_over_time((sum(increase(bilirec_room_recording_sessions_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[${per}s])) or vector(0))[$__range:${per}s])",
             "legendFormat": "場次",
             "instant": true,
             "range": false
@@ -438,7 +436,7 @@
         "id": 10,
         "type": "timeseries",
         "title": "每日錄製房間 / 場次",
-        "description": "同時錄製 = 當天平均並發數。開錄場次 = 當天開始錄製的次數。一天一個點。",
+        "description": "錄製房間數 = 當天只要錄過就算 1 間，不看錄了多久。開錄場次 = 當天開始錄製的次數。一天一個點。",
         "gridPos": { "h": 8, "w": 16, "x": 0, "y": 14 },
         "interval": "1d",
         "maxDataPoints": 400,
@@ -446,8 +444,8 @@
         "targets": [
           {
             "refId": "A",
-            "expr": "avg_over_time((sum(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}) or vector(0))[1d:5m])",
-            "legendFormat": "同時錄製",
+            "expr": "count(max by (room_id) (max_over_time(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) > 0) or vector(0)",
+            "legendFormat": "錄製房間數",
             "interval": "1d"
           },
           {

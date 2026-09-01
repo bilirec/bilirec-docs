@@ -32,7 +32,6 @@
           "definition": "label_values(bilirec_active_recordings, job)",
           "includeAll": true,
           "multi": true,
-          "allValue": ".*",
           "refresh": 2,
           "sort": 1,
           "current": { "selected": true, "text": "All", "value": "$__all" }
@@ -46,7 +45,6 @@
           "definition": "label_values(bilirec_active_recordings{job=~\"$job\"}, instance)",
           "includeAll": true,
           "multi": true,
-          "allValue": ".*",
           "refresh": 2,
           "sort": 1,
           "current": { "selected": true, "text": "All", "value": "$__all" }
