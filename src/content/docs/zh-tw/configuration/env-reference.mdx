@@ -17,6 +17,12 @@ tableOfContents: false
 | `METRICS_ENABLED` | 是否啟用 Prometheus 指標暴露（獨立端口，詳見 [監控指標](/zh-tw/configuration/metrics/)） | `false` |
 | `METRICS_HOST` | metrics 伺服器綁定地址，空值監聽所有網卡 | (空字符串) |
 | `METRICS_PORT` | metrics 伺服器端口（與主 API 端口獨立） | `9090` |
+| `VICTORIALOGS_ENABLED` | 是否將結構化日誌推送到 VictoriaLogs（詳見 [遠端日誌](/zh-tw/configuration/victorialogs/)） | `false` |
+| `VICTORIALOGS_URL` | VictoriaLogs 根地址（不含路徑，如 `http://127.0.0.1:9428`） | (空字符串) |
+| `VICTORIALOGS_STREAM_FIELDS` | 日誌流字段（逗號分隔，低基數；勿含 `room_id`） | `app,logger` |
+| `VICTORIALOGS_ACCOUNT_ID` | VictoriaLogs 多租戶 AccountID（HTTP 頭，可選） | (空字符串) |
+| `VICTORIALOGS_PROJECT_ID` | VictoriaLogs 多租戶 ProjectID（HTTP 頭，可選） | (空字符串) |
+| `VICTORIALOGS_TIMEOUT` | 單次遠端日誌 HTTP 推送超時 | `10s` |
 | `DANMAKU_OUTPUT_FORMAT` | 彈幕檔案格式：`jsonl` 或 `xml`；`jsonl` 可用於 Web 回放彈幕與互動特效，詳見 [彈幕錄製](/zh-tw/configuration/danmaku/) | `jsonl` |
 | `DANMAKU_OVERFLOW_POLICY` | 彈幕寫入隊列已滿時的處理方式：`drop`（丟棄新消息）或 `block`（等待空位） | `drop` |
 | `DANMAKU_WRITER_BUFFER_SIZE` | 彈幕寫入前的合併緩衝區大小（字節） | `262144` (256 KB) |

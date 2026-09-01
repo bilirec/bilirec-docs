@@ -15,6 +15,10 @@ export PORT=8080
 # export METRICS_ENABLED=true
 # export METRICS_HOST=          # 留空监听所有网卡，便于跨机器抓取
 # export METRICS_PORT=9090
+# VictoriaLogs 远程日志（默认关闭）
+# export VICTORIALOGS_ENABLED=true
+# export VICTORIALOGS_URL=http://127.0.0.1:9428
+# export VICTORIALOGS_STREAM_FIELDS=app,logger
 export FRP_ENABLED=true
 export FRP_SERVER=tunnel.bilirec.org:7000
 export FRP_BASE_DOMAIN=tunnel.bilirec.org

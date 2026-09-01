@@ -1,0 +1,98 @@
+---
+title: 遠端日誌（VictoriaLogs）
+description: 將 bilirec 結構化日誌推送到 VictoriaLogs，便於集中查詢
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 預設把日誌寫到**標準錯誤**（終端或 Docker 日誌），格式為人類可讀的彩色文本。**預設不向任何遠端系統發送日誌**。
+
+開啟本功能後，會在保留本地可讀日誌的同時，把同一份日誌以 **JSON Line** 格式異步推送到 [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/)。適合在 NAS / 樹莓派上長期錄製時，用 Grafana 或 VMUI 按房間、模塊、級別檢索歷史日誌。
+
+## 前置知識
+
+- [VictoriaLogs 快速開始](https://docs.victoriametrics.com/victorialogs/quickstart/) — 安裝與 `/insert/jsonline` 寫入
+- [VictoriaLogs 查詢](https://docs.victoriametrics.com/victorialogs/querying/) — LogsQL 與 VMUI
+- 若已使用 [監控指標](/zh-tw/configuration/metrics/) 的 VictoriaMetrics，可在同一台機器上再部署 VictoriaLogs（預設端口常為 `9428`）
+
+bilirec **只負責推送**；儲存、保留策略與可視化由 VictoriaLogs / Grafana 完成。
+
+## 快速開始
+
+1. 安裝並啟動 VictoriaLogs（確保可從 bilirec 所在主機存取其 HTTP 端口）
+2. 在 `.env` 中設定：
+
+```bash
+export VICTORIALOGS_ENABLED=true
+export VICTORIALOGS_URL=http://127.0.0.1:9428
+```
+
+3. 重啟 bilirec。啟動日誌中會出現 `VictoriaLogs 遠端日誌已啟用：...`
+4. 在 VictoriaLogs VMUI 或 Grafana（VictoriaLogs / Loki 兼容資料源）中查詢，例如：
+
+```logsql
+app:bilirec AND logger:recorder
+```
+
+<Aside type="caution">
+遠端推送失敗**不會**阻止錄製或 API 服務；失敗的批次會被丟棄，並在標準錯誤打印簡短提示。請勿把 VictoriaLogs 當作唯一日誌留存手段，本地/Docker 日誌仍應保留。
+</Aside>
+
+## 環境變數
+
+| 變數 | 說明 | 預設值 |
+|------|------|--------|
+| `VICTORIALOGS_ENABLED` | 是否啟用遠端日誌推送 | `false` |
+| `VICTORIALOGS_URL` | VictoriaLogs 根地址（**不含**路徑，程式自動拼接 `/insert/jsonline`） | (空) |
+| `VICTORIALOGS_STREAM_FIELDS` | 日誌流字段（逗號分隔，低基數） | `app,logger` |
+| `VICTORIALOGS_ACCOUNT_ID` | 多租戶 AccountID（HTTP 頭，可選） | (空) |
+| `VICTORIALOGS_PROJECT_ID` | 多租戶 ProjectID（HTTP 頭，可選） | (空) |
+| `VICTORIALOGS_TIMEOUT` | 單次 HTTP 推送超時，如 `10s` | `10s` |
+
+完整列表見 [環境變數參考](/zh-tw/configuration/env-reference/)。
+
+啟用條件：`VICTORIALOGS_ENABLED=true` **且** `VICTORIALOGS_URL` 非空。若只開了開關卻未填 URL，程式會打一條警告並跳過遠端日誌，**不會**因此退出。
+
+## 日誌字段說明
+
+每條遠端日誌為 JSON 一行，主要字段：
+
+| 字段 | 含義 |
+|------|------|
+| `_time` | ISO8601 時間戳 |
+| `_msg` | 日誌正文 |
+| `level` | 級別（`debug` / `info` / `warn` / `error` 等） |
+| `logger` | 模塊名（與代碼中 `logger.Named("...")` 一致，如 `recorder`、`danmaku`） |
+| `app` | 固定為 `bilirec` |
+| `instance` | 主機名（便於區分多臺設備） |
+| 其它 | 結構化字段（如 `room`、`room_id`、`error`） |
+
+`app` 與 `logger` 用作 **stream fields**（日誌流分組），便於在 VictoriaLogs 中按應用與模塊過濾。**請勿**把 `room_id` 等高基數字段加入 `VICTORIALOGS_STREAM_FIELDS`，否則會產生過多日誌流、影響查詢性能。
+
+## 與本地日誌的關係
+
+- **本地**：仍為彩色可讀文本，行為與未開啟遠端日誌時相同
+- **遠端**：JSON Line，異步批量推送（約 1 秒或 64 KiB 一批）
+- 緩衝區滿時**丟棄**新日誌行，不阻塞錄製線程
+- 進程退出時（含 `fx` 優雅停止）會盡量 flush 剩餘批次
+
+## Grafana 接入簡述
+
+1. 在 Grafana 添加 **VictoriaLogs** 或兼容的日誌資料源，指向 VictoriaLogs 查詢地址
+2. 在 Explore 中用 LogsQL 過濾 `app:bilirec`
+3. 按 `logger`、`level` 或結構化字段（如 `room_id`）進一步縮小範圍
+
+本頁不提供現成日誌儀表盤；可按運維習慣自建面板。指標類面板見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。
+
+## 故障排查
+
+| 現象 | 可能原因 | 建議 |
+|------|----------|------|
+| 啟動無「遠端日誌已啟用」 | 未設 `VICTORIALOGS_ENABLED=true` 或 URL 為空 | 檢查 `.env` 並重啟 |
+| 標準錯誤出現 `victorialogs post` | VictoriaLogs 未啟動、地址錯誤或網路不通 | 確認 URL、防火牆與容器網路 |
+| 標準錯誤出現 `buffer full, dropped` | 日誌量過大或 VictoriaLogs 響應慢 | 提高 VictoriaLogs 資源、減少 `DEBUG`、或接受丟棄 |
+| VMUI 查不到日誌 | 查詢條件過嚴、時間範圍不對 | 先試 `app:bilirec`，擴大時間範圍 |
+
+## 與監控指標的配合
+
+[監控指標](/zh-tw/configuration/metrics/)（`METRICS_ENABLED`）與遠端日誌**相互獨立**，可只開其一，也可同時開啟：指標走 Prometheus 抓取，日誌走 VictoriaLogs 推送，在 Grafana 中分別設定資料源即可。
