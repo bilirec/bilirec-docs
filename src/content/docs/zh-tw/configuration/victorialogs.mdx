@@ -30,7 +30,7 @@ export VICTORIALOGS_URL=http://127.0.0.1:9428
 3. 重啟 bilirec。啟動日誌中會出現 `VictoriaLogs 遠端日誌已啟用：...`
 4. 在 VictoriaLogs VMUI 或 Grafana（VictoriaLogs / Loki 兼容資料源）中查詢，例如：
 
-```logsql
+```text
 app:bilirec AND logger:recorder
 ```
 
@@ -65,7 +65,7 @@ app:bilirec AND logger:recorder
 | `logger` | 模塊名（與代碼中 `logger.Named("...")` 一致，如 `recorder`、`danmaku`） |
 | `app` | 固定為 `bilirec` |
 | `instance` | 主機名（便於區分多臺設備） |
-| 其它 | 結構化字段（如 `room`、`room_id`、`error`） |
+| 其它 | 結構化字段（如 `room`、`file`、`processor`、`task_id`、`error`） |
 
 `app` 與 `logger` 用作 **stream fields**（日誌流分組），便於在 VictoriaLogs 中按應用與模塊過濾。**請勿**把 `room_id` 等高基數字段加入 `VICTORIALOGS_STREAM_FIELDS`，否則會產生過多日誌流、影響查詢性能。
 
@@ -78,11 +78,13 @@ app:bilirec AND logger:recorder
 
 ## Grafana 接入簡述
 
-1. 在 Grafana 添加 **VictoriaLogs** 或兼容的日誌資料源，指向 VictoriaLogs 查詢地址
-2. 在 Explore 中用 LogsQL 過濾 `app:bilirec`
-3. 按 `logger`、`level` 或結構化字段（如 `room_id`）進一步縮小範圍
+1. 在 Grafana 安裝 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)，並添加 `VictoriaLogs` 資料源。
+2. 在 Explore 用 LogsQL 查詢 `app:bilirec`，再按 `logger`、`level`、`room` 縮小範圍。
+3. 需要現成視圖時，導入 [bilirec 日誌分析儀表盤](/dashboards/zh-tw/bilirec-logging.json) 或 [bilirec 原始日誌瀏覽儀表盤](/dashboards/zh-tw/bilirec-logs-explorer.json)。
 
-本頁不提供現成日誌儀表盤；可按運維習慣自建面板。指標類面板見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。
+日誌分析盤看數量趨勢與傳輸健康，原始日誌瀏覽盤看完整內容與專題日誌。若要看丟棄、失敗、重試、發送隊列，還需開啟 [監控指標](/zh-tw/configuration/metrics/) 並選擇 Prometheus/VictoriaMetrics 指標資料源。
+
+指標類面板見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。
 
 ## 故障排查
 
@@ -95,4 +97,4 @@ app:bilirec AND logger:recorder
 
 ## 與監控指標的配合
 
-[監控指標](/zh-tw/configuration/metrics/)（`METRICS_ENABLED`）與遠端日誌**相互獨立**，可只開其一，也可同時開啟：指標走 Prometheus 抓取，日誌走 VictoriaLogs 推送，在 Grafana 中分別設定資料源即可。
+[監控指標](/zh-tw/configuration/metrics/)（`METRICS_ENABLED`）與遠端日誌**相互獨立**，可只開其一，也可同時開啟：指標走 Prometheus 抓取，日誌走 VictoriaLogs 推送，在 Grafana 中分別設定資料源即可。日誌分析儀表盤會使用 `bilirec_victorialogs_logs_dropped_total`、`bilirec_victorialogs_requests_failed_total`、`bilirec_victorialogs_retries_total` 與 `bilirec_victorialogs_queue_bytes`，以時間序列顯示遠端日誌傳輸健康。

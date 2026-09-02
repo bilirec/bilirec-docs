@@ -1,0 +1,473 @@
+{
+  "title": "bilirec / 日志浏览",
+  "uid": "bilirec-logs-explorer",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "bilirec",
+    "logging",
+    "victorialogs",
+    "explorer"
+  ],
+  "timezone": "browser",
+  "graphTooltip": 1,
+  "editable": true,
+  "id": null,
+  "description": "专注查看 VictoriaLogs 原始日志，并按房间、模块、级别、主机与 LogsQL 字段条件组合过滤；专题视图按异常、录制恢复、转码与文件写入整理日志内容。",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "victoriametrics-logs-datasource",
+        "label": "数据源",
+        "hide": 0,
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false
+      },
+      {
+        "name": "log_filter",
+        "type": "adhoc",
+        "label": "LogsQL 字段",
+        "hide": 0,
+        "description": "用字段、运算符和值建立 LogsQL 过滤条件；会应用到原始日志与所有专题日志面板。",
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "${datasource}"
+        },
+        "filters": [],
+        "skipUrlSync": false
+      },
+      {
+        "name": "search",
+        "type": "textbox",
+        "label": "完整 LogsQL",
+        "hide": 0,
+        "description": "全局 LogsQL 过滤栏：输入额外的完整 LogsQL 条件，例如 error、file:xxx 或 processor:convert；按 Enter 或离开输入框后应用到所有日志面板。",
+        "query": "",
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "skipUrlSync": false
+      },
+      {
+        "name": "room",
+        "type": "query",
+        "label": "房间",
+        "hide": 0,
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "VictoriaLogsVariableQueryEditor-VariableQuery",
+          "type": "fieldValue",
+          "field": "room",
+          "query": "app:bilirec",
+          "limit": 500
+        },
+        "definition": "",
+        "includeAll": true,
+        "multi": true,
+        "allValue": "*",
+        "allowCustomValue": true,
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "全部",
+          "value": "$__all"
+        },
+        "options": []
+      },
+      {
+        "name": "logger",
+        "type": "query",
+        "label": "模块",
+        "hide": 0,
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "VictoriaLogsVariableQueryEditor-VariableQuery",
+          "type": "fieldValue",
+          "field": "logger",
+          "query": "app:bilirec room:in($room)",
+          "limit": 100
+        },
+        "definition": "",
+        "includeAll": true,
+        "multi": true,
+        "allValue": "*",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "全部",
+          "value": "$__all"
+        },
+        "options": []
+      },
+      {
+        "name": "level",
+        "type": "query",
+        "label": "级别",
+        "hide": 0,
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "VictoriaLogsVariableQueryEditor-VariableQuery",
+          "type": "fieldValue",
+          "field": "level",
+          "query": "app:bilirec room:in($room)",
+          "limit": 50
+        },
+        "definition": "",
+        "includeAll": true,
+        "multi": true,
+        "allValue": "*",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "全部",
+          "value": "$__all"
+        },
+        "options": []
+      },
+      {
+        "name": "instance",
+        "type": "query",
+        "label": "主机",
+        "hide": 0,
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "VictoriaLogsVariableQueryEditor-VariableQuery",
+          "type": "fieldValue",
+          "field": "instance",
+          "query": "app:bilirec room:in($room)",
+          "limit": 100
+        },
+        "definition": "",
+        "includeAll": true,
+        "multi": true,
+        "allValue": "*",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "全部",
+          "value": "$__all"
+        },
+        "options": []
+      }
+    ]
+  },
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [
+        "bilirec"
+      ],
+      "targetBlank": false,
+      "title": "bilirec",
+      "tooltip": "",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "原始日志",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "logs",
+      "title": "原始日志明细",
+      "description": "按顶栏房间、模块、级别、主机菜单与 LogsQL 过滤条件显示最近日志；字段名称搜索已关闭，请直接在 LogsQL 过滤栏输入字段条件。",
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "app:bilirec room:in($room) logger:in($logger) level:in($level) instance:in($instance) $search",
+          "adHocFiltersMode": "extraFilters",
+          "queryType": "instant",
+          "maxLines": 2000
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "fontSize": "small",
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showControls": true,
+        "showFieldSelector": false,
+        "showLabels": true,
+        "showLevel": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": false
+      }
+    },
+    {
+      "id": 3,
+      "type": "row",
+      "title": "专题日志内容",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "logs",
+      "title": "异常与警告内容",
+      "description": "集中显示 error、warn 与 warning 日志；应用顶栏房间、模块、主机与 LogsQL 过滤条件。",
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "app:bilirec room:in($room) logger:in($logger) level:(error OR warn OR warning) instance:in($instance) $search",
+          "adHocFiltersMode": "extraFilters",
+          "queryType": "instant",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "fontSize": "small",
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showControls": true,
+        "showFieldSelector": false,
+        "showLabels": true,
+        "showLevel": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "录制、轮转与断线恢复",
+      "description": "显示 recorder 模块的实际日志内容，用于追查开录、分段轮转、停止与直播流恢复；应用顶栏房间、级别、主机与 LogsQL 过滤条件。",
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "app:bilirec room:in($room) logger:recorder level:in($level) instance:in($instance) $search",
+          "adHocFiltersMode": "extraFilters",
+          "queryType": "instant",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "fontSize": "small",
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showControls": true,
+        "showFieldSelector": false,
+        "showLabels": true,
+        "showLevel": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 6,
+      "type": "logs",
+      "title": "转码任务内容",
+      "description": "显示 convert 模块的任务提交、处理、完成、延后与失败内容；可展开 task_id 等结构化字段，并应用顶栏房间、级别、主机与 LogsQL 过滤条件。",
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 0,
+        "y": 34
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "app:bilirec room:in($room) logger:convert level:in($level) instance:in($instance) $search",
+          "adHocFiltersMode": "extraFilters",
+          "queryType": "instant",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "fontSize": "small",
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showControls": true,
+        "showFieldSelector": false,
+        "showLabels": true,
+        "showLevel": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 7,
+      "type": "logs",
+      "title": "文件写入与存储内容",
+      "description": "只显示带有 file 结构化字段的日志，便于追查创建、写入、flush、sync、页面缓存与文件路径问题；应用所有顶栏过滤条件。",
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "app:bilirec room:in($room) file:* logger:in($logger) level:in($level) instance:in($instance) $search",
+          "adHocFiltersMode": "extraFilters",
+          "queryType": "instant",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "fontSize": "small",
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showControls": true,
+        "showFieldSelector": false,
+        "showLabels": true,
+        "showLevel": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      }
+    }
+  ]
+}

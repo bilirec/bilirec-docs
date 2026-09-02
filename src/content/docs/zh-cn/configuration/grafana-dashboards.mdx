@@ -5,18 +5,18 @@ description: 现成的 Grafana JSON，导入后可查看录制、资源与用量
 
 import { Aside } from '@astrojs/starlight/components';
 
-如果你已经用 Grafana 接上 VictoriaMetrics（在 Grafana 里添加数据源时选 Prometheus 这一类），可以把下面的 JSON 导入进去，省去从零写查询。各张盘对应不同问题，按需要下载即可。指标如何开启、如何被抓取，见 [监控指标](/zh-cn/configuration/metrics/)。时序库和 Grafana 的安装见各项目官方文档。
+如果你已经用 Grafana 接上 VictoriaMetrics（在 Grafana 里添加数据源时选 Prometheus 这一类），可以把指标仪表盘的 JSON 导入进去，省去从零写查询。日志分析仪表盘则使用 VictoriaLogs datasource plugin，两者是不同数据源。各张盘对应不同问题，按需要下载即可。指标如何开启、如何被抓取，见 [监控指标](/zh-cn/configuration/metrics/)。时序库和 Grafana 的安装见各项目官方文档。
 
 请下载**与当前文档语言相同**的 JSON。简繁两套盘共用同一 `uid`，后导入的会覆盖先导入的。
 
 ## 快速开始
 
-1. Grafana、以及 VictoriaMetrics 或 Prometheus 已经装好；bilirec 已开启指标并被抓取（见 [监控指标](/zh-cn/configuration/metrics/)）。
-2. 在 Grafana 添加数据源：类型选 Prometheus，地址填 VictoriaMetrics 或 Prometheus。
+1. 指标仪表盘需要 Grafana、VictoriaMetrics 或 Prometheus，且 bilirec 已开启指标并被抓取（见 [监控指标](/zh-cn/configuration/metrics/)）；日志仪表盘需要 VictoriaLogs 与 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)，其中“日志分析”的传输健康区块也会读取 Prometheus metrics。
+2. 在 Grafana 添加数据源：指标盘选 Prometheus，地址填 VictoriaMetrics 或 Prometheus；日志盘选 `VictoriaLogs`，地址填 VictoriaLogs。
 3. Grafana → **Dashboards → Import** → 上传本页对应语言的 JSON（或粘贴内容）。
-4. 导入后在顶栏选 **数据源**；`job` / `instance` 一般保持 All。
+4. 导入后在顶栏选 **数据源**；指标盘的 `job` / `instance` 一般保持 All。“日志分析”请同时选择日志数据源与指标数据源；“原始日志浏览”只需选择 VictoriaLogs 数据源。
 
-可以从 **录制总览** 开始看。其余 6 张带相同 `bilirec` 标签，顶栏下拉可互相跳转，并保留时间范围与变量。
+可以从 **录制总览** 开始看。其余 8 张带相同 `bilirec` 标签，顶栏下拉可互相跳转，并保留时间范围与变量。
 
 ## 该选哪一张
 
@@ -31,8 +31,46 @@ import { Aside } from '@astrojs/starlight/components';
 | 这段时间一共录了多少、谁最吃磁盘？ | [累计用量](#累计用量) |
 | 每天趋势怎样、磁盘大概还能撑多久？ | [用量趋势](#用量趋势) |
 | 某一个房间今晚录没录上、断过几次？ | [单房间详情](#单房间详情) |
+| 想看日志量趋势、错误告警与房间 / 模块维度？ | [日志分析](#日志分析) |
+| 想盯原始日志、反复调 LogsQL，或直接查看录制 / 转码 / 文件写入内容？ | [原始日志浏览](#原始日志浏览) |
 
 日常先看总览往往就够；排查录制或弹幕异常时再打开对应的健康盘，关心磁盘占用时再看趋势或累计。某个主播的细节用单房间。没开弹幕录制时，「弹幕健康」会是空的。
+
+## 日志分析
+
+![日志分析](/images/dashboards/bilirec-logging.png)
+
+**用途：** 用 VictoriaLogs 看 bilirec 日志趋势与分布，并可按房间、模块、级别、主机过滤。
+
+**能回答：**
+
+- 哪些房间或模块在这段时间产生日志最多？
+- error / warn 是否突然增加？
+- 某一台主机或某个房间是否集中出现异常日志？
+- 选定时间内有多少日志被丢弃、请求失败或发生重试？当前发送队列多大？
+- 如何把多个房间、模块与级别条件组合起来查？
+
+**下载：** [bilirec-logging.json](/dashboards/zh-cn/bilirec-logging.json)
+
+**注意：** 日志面板需要 VictoriaLogs datasource plugin；传输健康四个面板还会读取 Prometheus metrics，所以也要开启 [监控指标](/zh-cn/configuration/metrics/) 并选对指标数据源。要看原始内容请用 [原始日志浏览](#原始日志浏览)。
+
+## 原始日志浏览
+
+![原始日志浏览](/images/dashboards/bilirec-logs-explorer.png)
+
+**用途：** 专注查看原始日志内容，并用房间、模块、级别、主机与 LogsQL 组合过滤。
+
+**能回答：**
+
+- 筛选后的原始日志内容是什么？
+- 最近的 error / warn 实际内容与结构化字段是什么？
+- 某个房间的开录、轮转、停止或断线恢复过程发生了什么？
+- 转码任务为何延后或失败？对应 `task_id` 是什么？
+- 哪个文件在创建、写入、flush、sync 或释放页面缓存时出现问题？
+
+**下载：** [bilirec-logs-explorer.json](/dashboards/zh-cn/bilirec-logs-explorer.json)
+
+**注意：** 第二列的“LogsQL 字段”和“完整 LogsQL”会应用到所有日志面板。请用这两个做过滤，不要用 Logs 面板内置的字段搜索。
 
 ## 录制总览
 
@@ -154,6 +192,8 @@ import { Aside } from '@astrojs/starlight/components';
 ## 导入后常见现象
 
 - 这些 JSON 的数据源类型是 Prometheus，地址指向 VictoriaMetrics。部分时长和磁盘预估用了 VictoriaMetrics 的查询函数，纯 Prometheus 里对应面板会空。
+- **日志分析盘没有日志数据：** 请确认已安装 VictoriaLogs datasource plugin、数据源地址可连通，并在顶栏选择日志数据源。
+- **日志分析盘的传输健康区块没有数据：** 请确认已开启 bilirec metrics、Prometheus/VictoriaMetrics 已抓取，并在顶栏选择指标数据源。
 - **`job` / `instance` 对不上**时整张没数：抓取配置里的标签要能在下拉里出现。
 - **图例没有主播名：** 房间下拉已用 `bilirec_room_info` 拼上主播名；若仍只有房间号，见 [监控指标](/zh-cn/configuration/metrics/) 中「显示主播名」的说明。
 - **自己画「平均同时录制」偏大：** 见 [常见问题 · 平均同时录制](/zh-cn/guides/faq/#grafana-里平均同时录制比实际同时路数大很多) 与指标页「先加总再对时间平均」。用量趋势盘的「录制房间数」是每天录过几间（不论录多久），不是同时路数。
