@@ -47,6 +47,7 @@ const sidebar = [
 			{ slug: 'configuration/auth-security' },
 			{ slug: 'configuration/notifications' },
 			{ slug: 'configuration/metrics' },
+			{ slug: 'configuration/local-logs' },
 			{ slug: 'configuration/victorialogs' },
 			{ slug: 'configuration/grafana-dashboards' },
 			{ slug: 'configuration/io-tuning' },

@@ -23,6 +23,18 @@ tableOfContents: false
 | `VICTORIALOGS_ACCOUNT_ID` | VictoriaLogs 多租户 AccountID（HTTP 头，可选） | (空字符串) |
 | `VICTORIALOGS_PROJECT_ID` | VictoriaLogs 多租户 ProjectID（HTTP 头，可选） | (空字符串) |
 | `VICTORIALOGS_TIMEOUT` | 单次远程日志 HTTP 推送超时 | `10s` |
+| `VICTORIALOGS_RETRY_MAX` | 暂时性网络错误、429 和 5xx 的额外重试次数；`0` 表示不重试 | `2` |
+| `LOCAL_LOGS_ENABLED` | 是否异步写入本地日志文件（详见 [本地日志文件](/zh-cn/configuration/local-logs/)） | `false` |
+| `LOCAL_LOGS_PATH` | 本地日志文件路径；空值时使用 `<DATABASE_DIR>/bilirec.log` | (空字符串) |
+| `LOCAL_LOGS_FORMAT` | 本地文件格式：`pretty` 或 `jsonline`（仅影响本地文件） | `pretty` |
+| `LOCAL_LOGS_MAX_SIZE_MB` | 单文件最大体积（MB），超出后轮转 | `20` |
+| `LOCAL_LOGS_MAX_AGE_DAYS` | 本地日志保留天数 | `7` |
+| `LOCAL_LOGS_MAX_BACKUPS` | 轮转后保留的旧文件个数 | `3` |
+| `LOCAL_LOGS_COMPRESS` | 轮转后是否 gzip 压缩旧文件 | `false` |
+| `LOCAL_LOGS_BATCH_BYTES` | 本地日志异步批量写入阈值（字节） | `65536` |
+| `LOCAL_LOGS_FLUSH_INTERVAL` | 本地日志定时刷盘间隔 | `1s` |
+| `LOCAL_LOGS_BUFFER_SIZE` | 本地日志内存队列槽位数 | `4096` |
+| `LOCAL_LOGS_OVERFLOW` | 本地日志队列满时：`drop`（丢弃当前行，不阻塞）或 `block`（等待空位，可能拖慢打 log 的 goroutine，见 [本地日志文件](/zh-cn/configuration/local-logs/)） | `drop` |
 | `DANMAKU_OUTPUT_FORMAT` | 弹幕文件格式：`jsonl` 或 `xml`；`jsonl` 可用于 Web 回放弹幕与互动特效，详见 [弹幕录制](/zh-cn/configuration/danmaku/) | `jsonl` |
 | `DANMAKU_OVERFLOW_POLICY` | 弹幕写入队列已满时的处理方式：`drop`（丢弃新消息）或 `block`（等待空位） | `drop` |
 | `DANMAKU_WRITER_BUFFER_SIZE` | 弹幕写入前的合并缓冲区大小（字节） | `262144` (256 KB) |

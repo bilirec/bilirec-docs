@@ -1,0 +1,81 @@
+---
+title: 本地日誌檔案
+description: 將 bilirec 日誌異步寫入本地檔案（lumberjack 輪轉），與 stderr、VictoriaLogs 可並存
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 預設把日誌寫到**標準錯誤**（終端或 Docker 日誌）。開啟本功能後，會在保留 stderr 可讀輸出的同時，把同一份日誌**異步寫入本地檔案**（支持按大小/天數輪轉）。
+
+可與 [遠端日誌（VictoriaLogs）](/zh-tw/configuration/victorialogs/) 同時啟用：stderr 為人類可讀文本，本地檔案可選 `pretty` 或 `jsonline`，遠端為 VictoriaLogs 專用 JSON Line。
+
+## 快速開始
+
+在 `.env` 中設定：
+
+```bash
+LOCAL_LOGS_ENABLED=true
+LOCAL_LOGS_PATH=./logs/bilirec.log   # 可選，預設 <DATABASE_DIR>/bilirec.log
+LOCAL_LOGS_FORMAT=pretty             # pretty 或 jsonline
+```
+
+重啟 bilirec。啟動日誌中會出現 `本地日誌已啟用：...`。
+
+## 環境變數
+
+| 變數 | 說明 | 預設值 |
+|------|------|--------|
+| `LOCAL_LOGS_ENABLED` | 是否寫入本地日誌檔案 | `false` |
+| `LOCAL_LOGS_PATH` | 日誌檔案路徑 | `<DATABASE_DIR>/bilirec.log` |
+| `LOCAL_LOGS_FORMAT` | 檔案格式：`pretty`（彩色文本）或 `jsonline` | `pretty` |
+| `LOCAL_LOGS_MAX_SIZE_MB` | 單檔案最大體積（MB），超出後輪轉 | `20` |
+| `LOCAL_LOGS_MAX_AGE_DAYS` | 保留天數 | `7` |
+| `LOCAL_LOGS_MAX_BACKUPS` | 最多保留的舊檔案個數 | `3` |
+| `LOCAL_LOGS_COMPRESS` | 輪轉後是否 gzip 壓縮舊檔案 | `false` |
+| `LOCAL_LOGS_BATCH_BYTES` | 異步批量寫入閾值（字節） | `65536` |
+| `LOCAL_LOGS_FLUSH_INTERVAL` | 定時刷盤間隔，如 `1s` | `1s` |
+| `LOCAL_LOGS_BUFFER_SIZE` | 記憶體隊列槽位數 | `4096` |
+| `LOCAL_LOGS_OVERFLOW` | 隊列滿時的策略，見下文 | `drop` |
+
+完整列表見 [環境變數參考](/zh-tw/configuration/env-reference/)。
+
+## 隊列滿時的策略（`LOCAL_LOGS_OVERFLOW`）
+
+本地日誌經異步隊列批量落盤。當磁碟寫入慢於日誌產生速度、隊列被寫滿時，行為由 `LOCAL_LOGS_OVERFLOW` 決定。
+
+### `drop`（預設，推薦與錄製同機部署）
+
+- 隊列滿時**丟棄當前這條**待寫入的日誌，**不阻塞**調用 log 的 goroutine。
+- 適合長期錄製：即使磁碟短暫變慢或 Debug 日誌過多，也不拖慢錄製主循環。
+- 代價：高峰或磁碟異常時，**本地檔案可能缺少部分行**；stderr 與 VictoriaLogs（若已開啟）仍可能收到同一條 log。
+
+### `block`（可選，優先保證本地檔案完整）
+
+- 隊列滿時，調用 log 的 goroutine **阻塞等待**空位，直到有槽位或進程關停。
+- 適合除錯、離線分析，或磁碟 I/O 穩定且可接受偶發等待的場景。
+- **代價（與錄製相關）：**
+  - 不是全進程「停世界」，但**正在打 log 的那條 goroutine 會卡住**。
+  - bilirec 使用 zap 多路輸出（stderr + 本地檔案 + 遠端）：本地 `block` 時，**同一條 log 在本地寫完之前，遠端 VictoriaLogs 也可能被拖住**。
+  - 若錄製熱路徑或 pipeline 在異常時頻繁 `Warn`/`Debug`，疊加磁碟慢（滿盤、NFS 卡頓、rotation 等），可能**拖慢該房間的錄製循環**。
+
+<Aside type="caution">
+同機錄製且開啟本地日誌時，建議保持預設 `drop`。若必須本地檔案儘量不丟行，可設 `block`，並同時：維持 **Info** 級別、確保日誌盤 I/O 充足、必要時增大 `LOCAL_LOGS_BUFFER_SIZE`。
+</Aside>
+
+## 與 stderr、遠端日誌的關係
+
+| 輸出 | 格式 | 隊列滿時 |
+|------|------|----------|
+| stderr | 彩色可讀 | 同步寫終端，不受本項影響 |
+| 本地檔案 | `pretty` / `jsonline` | 由 `LOCAL_LOGS_OVERFLOW` 控制 |
+| VictoriaLogs | JSON Line | 固定為丟棄新行（不阻塞），見 [遠端日誌](/zh-tw/configuration/victorialogs/) |
+
+進程退出時會按 **Sync → 斷開 log core → Stop sink** 順序儘量刷盤剩餘批次。
+
+## 故障排查
+
+| 現象 | 可能原因 | 建議 |
+|------|----------|------|
+| 本地檔案缺行 | 隊列滿且策略為 `drop` | 正常取捨；要完整可試 `block` 或減日誌量 |
+| 錄製偶發卡頓且開了本地 log | `block` + 磁碟慢 + 熱路徑打 log | 改回 `drop` 或優化磁碟 |
+| 檔案未生成 | 未設 `LOCAL_LOGS_ENABLED=true` 或路徑無寫權限 | 檢查 `.env` 與目錄權限 |

@@ -19,6 +19,11 @@ export PORT=8080
 # export VICTORIALOGS_ENABLED=true
 # export VICTORIALOGS_URL=http://127.0.0.1:9428
 # export VICTORIALOGS_STREAM_FIELDS=app,logger
+# 本地日志文件（默认关闭；队列满时默认 drop，不阻塞录制，详见 local-logs）
+# export LOCAL_LOGS_ENABLED=true
+# export LOCAL_LOGS_PATH=./logs/bilirec.log
+# export LOCAL_LOGS_FORMAT=pretty
+# export LOCAL_LOGS_OVERFLOW=drop
 export FRP_ENABLED=true
 export FRP_SERVER=tunnel.bilirec.org:7000
 export FRP_BASE_DOMAIN=tunnel.bilirec.org
