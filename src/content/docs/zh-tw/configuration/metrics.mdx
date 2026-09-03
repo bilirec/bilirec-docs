@@ -77,7 +77,7 @@ export METRICS_PORT=9090
 
 ## 指標清單
 
-指標分兩類：**資源用量**（進程級，無 label）與**房間級**（帶 `room_id` label）。
+指標分為**資源用量**（進程級，無 label）、**房間級**（帶 `room_id` label）、**彈幕**與**轉碼**指標。
 
 ### 資源用量
 
@@ -176,6 +176,23 @@ bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_conne
 彈幕 **counter** 在該房間第一次開始錄彈幕時創建，停錄後仍留在 `/metrics`。狀態 gauge（`danmaku_recording_active`、`danmaku_connection_active`）只在會話進行時出現。`messages_dropped_total` 大於 0 通常表示消息高峰超過了寫入速度，可以結合 [彈幕錄製](/zh-tw/configuration/danmaku/) 檢查 `DANMAKU_OVERFLOW_POLICY`、儲存設備和並發錄製數。
 </Aside>
 
+### 轉碼指標
+
+轉碼指標都帶 `provider` 標籤，固定為 `ffmpeg` 或 `cloudconvert`。
+
+| 指標 | 類型 | 說明 |
+|------|------|------|
+| `bilirec_convert_tasks_queued_total` | counter | 成功寫入轉碼隊列的任務數 |
+| `bilirec_convert_tasks_completed_total` | counter | 成功完成的轉碼任務數 |
+| `bilirec_convert_tasks_failed_total` | counter | 轉碼或相關處理失敗的嘗試次數。任務重試時可能重複增加，不等於唯一失敗任務數 |
+| `bilirec_convert_tasks_cancelled_total` | counter | 由使用者取消、併成功從隊列移除的任務數 |
+| `bilirec_convert_tasks_pending` | gauge | 當前仍在本機等待下一步動作的任務數。FFmpeg 包含尚未開始和等待重試的任務；CloudConvert 只包含尚未成功提交到雲端的任務 |
+| `bilirec_convert_tasks_processing` | gauge | 當前仍在處理生命週期中的任務數。FFmpeg 表示正在轉碼；CloudConvert 表示已經提交到雲端但仍保留在持久化隊列中的任務，包含雲端等待、執行及結果下載處理 |
+
+<Aside type="note">
+這些 counter 在 bilirec 進程內持續累加，重啟後歸零；`increase()` / `rate()` 會像其他 counter 一樣處理重置。`pending` 與 `processing` 會由既有 worker 週期性根據持久化隊列和本機處理狀態重新計算；CloudConvert 的 `processing` 包含已經提交但尚未從持久化隊列移除的任務，不代表雲端當前實際執行並發數。可直接導入 [轉碼健康儀表盤](/zh-tw/configuration/grafana-dashboards/#轉碼健康)。
+</Aside>
+
 ## Grafana / MetricsQL 查詢示例
 
 bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計全部在查詢端完成，bilirec 不做任何聚合。
@@ -200,6 +217,9 @@ bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計�
 | 錄製中但流沒連上 | `bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_connection_active == 1)` |
 | 每房間丟棄的彈幕事件 | `sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total[$__range]))` |
 | 每房間彈幕重連次數 | `increase(bilirec_danmaku_reconnects_total[$__range])` |
+| 各 provider 轉碼入隊數 | `sum by (provider) (increase(bilirec_convert_tasks_queued_total[$__range]))` |
+| 當前待處理轉碼任務 | `sum by (provider) (bilirec_convert_tasks_pending)` |
+| 當前處理中的轉碼任務 | `sum by (provider) (bilirec_convert_tasks_processing)` |
 | 當前 CPU 核數佔用 | `rate(process_cpu_seconds_total[5m])` |
 | 顯示主播名（join） | `... * on(room_id) group_left(uname) bilirec_room_info`，圖例用 `{{uname}} ({{room_id}})` |
 
