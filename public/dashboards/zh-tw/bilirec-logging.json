@@ -13,7 +13,7 @@
   "graphTooltip": 1,
   "editable": true,
   "id": null,
-  "description": "bilirec VictoriaLogs 日誌分析。房間、模組、級別與主機可多選組合，並可用搜尋欄輸入額外 LogsQL 條件；原始日誌瀏覽請使用 bilirec-logs-explorer。",
+  "description": "bilirec VictoriaLogs 日誌分析。房間、模塊、級別與主機可多選組合，並可用搜索欄輸入額外 LogsQL 條件；原始日誌瀏覽請使用 bilirec-logs-explorer。",
   "time": {
     "from": "now-6h",
     "to": "now"
@@ -88,7 +88,7 @@
       {
         "name": "logger",
         "type": "query",
-        "label": "模組",
+        "label": "模塊",
         "hide": 0,
         "datasource": {
           "type": "victoriametrics-logs-datasource",
@@ -175,7 +175,7 @@
       {
         "name": "search",
         "type": "textbox",
-        "label": "搜尋（LogsQL）",
+        "label": "搜索（LogsQL）",
         "hide": 0,
         "description": "可輸入額外的 LogsQL 條件，例如 error、file:xxx 或 processor:convert。",
         "query": "",
@@ -220,7 +220,7 @@
       "id": 2,
       "type": "stat",
       "title": "選定範圍日誌",
-      "description": "依頂欄房間、模組、級別、主機與搜尋條件統計。",
+      "description": "按頂欄房間、模塊、級別、主機與搜索條件統計。",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -397,7 +397,7 @@
       "id": 5,
       "type": "stat",
       "title": "結構化房間數",
-      "description": "選定範圍內出現過的不同 room 欄位數；只計算有結構化 room 欄位的日誌。",
+      "description": "選定範圍內出現過的不同 room 字段數；只計算有結構化 room 字段的日誌。",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -465,7 +465,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "按級別的日誌量",
-      "description": "以柱狀圖顯示每個時間桶的日誌數；時間桶由 Grafana 的時間範圍與資料點數自動決定。",
+      "description": "以柱狀圖顯示每個時間桶的日誌數；時間桶由 Grafana 的時間範圍與數據點數自動決定。",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -627,7 +627,7 @@
       "id": 8,
       "type": "timeseries",
       "title": "錯誤與警告趨勢",
-      "description": "錯誤與警告不受級別下拉限制，但仍套用房間、模組、主機與搜尋條件。",
+      "description": "錯誤與警告不受級別下拉限制，但仍套用房間、模塊、主機與搜索條件。",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -812,7 +812,7 @@
     {
       "id": 10,
       "type": "timeseries",
-      "title": "按模組的日誌量",
+      "title": "按模塊的日誌量",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -974,7 +974,7 @@
       "id": 11,
       "type": "timeseries",
       "title": "按房間的日誌量",
-      "description": "按結構化 room 欄位分組顯示完整時間序列；未帶 room 欄位或 room 為空值的日誌不會出現在此面板。",
+      "description": "按結構化 room 字段分組顯示完整時間序列；未帶 room 字段或 room 為空值的日誌不會出現在此面板。",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -1149,7 +1149,7 @@
       "id": 14,
       "type": "timeseries",
       "title": "時間內丟棄日誌",
-      "description": "選定時間範圍內，每個時間桶因 VictoriaLogs 傳送佇列已滿而被丟棄的日誌行數；圖例的總和可查看整段範圍的總量。",
+      "description": "選定時間範圍內，每個時間桶因 VictoriaLogs 發送佇列已滿而被丟棄的日誌行數；圖例的總和可查看整段範圍的總量。",
       "gridPos": { "h": 6, "w": 12, "x": 0, "y": 24 },
       "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
       "targets": [
@@ -1283,7 +1283,7 @@
       "id": 16,
       "type": "timeseries",
       "title": "時間內重試",
-      "description": "選定時間範圍內，每個時間桶 VictoriaLogs 批次傳送額外重試的次數；圖例的總和可查看整段範圍的總量。",
+      "description": "選定時間範圍內，每個時間桶 VictoriaLogs 批次發送額外重試的次數；圖例的總和可查看整段範圍的總量。",
       "gridPos": { "h": 6, "w": 12, "x": 0, "y": 30 },
       "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
       "targets": [
@@ -1349,8 +1349,8 @@
     {
       "id": 17,
       "type": "timeseries",
-      "title": "傳送佇列趨勢",
-      "description": "VictoriaLogs 遠端日誌傳送佇列 bytes 的時間序列。",
+      "title": "發送佇列趨勢",
+      "description": "VictoriaLogs 遠端日誌發送佇列 bytes 的時間序列。",
       "gridPos": { "h": 6, "w": 12, "x": 12, "y": 30 },
       "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
       "targets": [
@@ -1358,7 +1358,7 @@
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
           "expr": "sum(bilirec_victorialogs_queue_bytes) or vector(0)",
-          "legendFormat": "傳送佇列",
+          "legendFormat": "發送佇列",
           "instant": false,
           "range": true
         }
@@ -1391,7 +1391,7 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "傳送佇列" },
+            "matcher": { "id": "byName", "options": "發送佇列" },
             "properties": [
               {
                 "id": "color",

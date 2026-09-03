@@ -69,11 +69,12 @@ app:bilirec AND logger:recorder
 
 `app` 与 `logger` 用作 **stream fields**（日志流分组），便于在 VictoriaLogs 中按应用与模块过滤。**请勿**把 `room_id` 等高基数字段加入 `VICTORIALOGS_STREAM_FIELDS`，否则会产生过多日志流、影响查询性能。
 
-## 与本地日志的关系
+## 与本地日志文件的关系
 
-- **本地**：仍为彩色可读文本，行为与未开启远程日志时相同
+- **标准错误**：始终为人类可读彩色文本（Docker / 终端日志）
+- **本地文件**（可选，`LOCAL_LOGS_ENABLED=true`）：异步写入磁盘，格式可选 `pretty` / `jsonline`；队列满时默认 **丢弃新行、不阻塞**，详见 [本地日志文件](/zh-cn/configuration/local-logs/)
 - **远程**：JSON Line，异步批量推送（约 1 秒或 64 KiB 一批）
-- 缓冲区满时**丢弃**新日志行，不阻塞录制线程
+- 远程缓冲区满时**丢弃**新日志行，不阻塞录制线程
 - 进程退出时（含 `fx` 优雅停止）会尽量 flush 剩余批次
 
 ## Grafana 接入简述
