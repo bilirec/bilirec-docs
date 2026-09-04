@@ -1,100 +1,156 @@
 ---
-title: Bilirec
-description: 专为低配设备优化的高性能 Bilibili 直播录制后端
-template: splash
-hero:
-  tagline: 高性能、低功耗、边缘设备优先的 Bilibili 自动化录制与管理系统。
-  actions:
-    - text: 开始使用
-      link: /zh-cn/guides/installation/
-      icon: right-arrow
-      variant: primary
-    - text: 快速配置
-      link: /zh-cn/configuration/overview/
-      icon: right-arrow
-      variant: secondary
-    - text: 常见问题
-      link: /zh-cn/guides/faq/
-      icon: right-arrow
-      variant: minimal
-    - text: GitHub
-      link: https://github.com/bilirec/bilirec
-      icon: external
-      variant: minimal
+title: 文档导航
+description: Bilirec 文档入口：安装、使用指南、配置调优与 API 索引
+sidebar:
+  label: 文档导航
 ---
 
-import { Aside } from '@astrojs/starlight/components';
 import IconLinkCardGrid from '../../../components/IconLinkCardGrid.astro';
 import QqCommunity from '../../../components/QqCommunity.astro';
 
-## Bilirec 适用场景
+产品介绍与功能概览见 [网站主页](/)。本页按主题整理文档入口，便于查找。
+
+## 新手从这里开始
 
 <IconLinkCardGrid
   items={[
     {
+      icon: '📦',
+      title: '安装',
+      href: '/zh-cn/guides/installation/',
+      description: '二进制、Docker 镜像或从源码构建。',
+    },
+    {
+      icon: '🚀',
+      title: '快速开始',
+      href: '/zh-cn/guides/quick-start/',
+      description: '首次启动、环境变量与 B 站登录。',
+    },
+    {
       icon: '🧩',
-      title: '只有低配设备',
-      href: '/zh-cn/configuration/pi5-defaults/',
-      description: '你只有树莓派 / 旧笔记本 / NAS，也能稳定 24 小时挂机录制，不必再专门开一台高配电脑。',
+      title: '生态系概览',
+      href: '/zh-cn/guides/ecosystem/',
+      description: '后端、Web PWA 与 Android 客户端怎么配合。',
     },
     {
-      icon: '📱',
-      title: '没有电脑，只能挂手机',
-      href: '/zh-cn/guides/android/',
-      description: '用 bilirec-mobile 可在 Android 手机上直接跑后端并录制直播，不需要额外主机。',
-    },
-    {
-      icon: '🌐',
-      title: '想出门也能随时接入',
-      href: '/zh-cn/guides/frp/',
-      description: '启用 FRP 后可从外网访问，配合 PWA 与推送通知，外出也能随时管理录制状态。',
-    },
-    {
-      icon: '⏱️',
-      title: '需要长期无人值守',
-      href: '/zh-cn/guides/recording/',
-      description: '开播自动录制、异常恢复、转码与文件管理流程都可自动化，适合长期值守成本高的场景。',
+      icon: '❓',
+      title: '常见问题',
+      href: '/zh-cn/guides/faq/',
+      description: '部署、录制、容量与排错相关疑问。',
     },
   ]}
+  columnsClass="md:grid-cols-2"
+  titleClass="text-base"
+  cardClass="shadow-none"
 />
 
-## 核心能力
-
-- **录制与画质**：完整支持常见直播流格式；画质切换时会自动分段，减少坏文件。录 **4K / 杜比** 时根据画质自动加大缓冲，无需手动改基础配置。
-- **录制策略灵活**：支持手动录制、开播自动录制、定时停止与无限时长录制。  
-- **弹幕与互动记录**：可在录制时保存弹幕、醒目留言、礼物和舰长等互动内容。
-- **存储管理友好**：支持文件浏览、批量删除，以及含弹幕滚动和礼物特效的 MP4 内置回放。
-- **UI 简单易用**：提供直观的 Web 管理界面，新手也能快速完成登录、订阅与录制管理。  
-- **手机端适配（PWA）**：支持以 PWA 形式安装到手机主屏，移动端访问与操作体验更友好。  
-- **接入方式完整**：REST API、Web 界面（PWA）、Android App 多端协同。  
-
-## 3 分钟上手路径
-
-1. 先看 [安装说明](/zh-cn/guides/installation/) 部署 bilirec。  
-2. 按 [快速开始](/zh-cn/guides/quick-start/) 添加房间并启动录制。  
-3. 进阶调优可参考 [配置与调优](/zh-cn/configuration/overview/)、[I/O 调优](/zh-cn/configuration/io-tuning/) 与 [高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。  
-
-## 生态项目
+## 使用指南
 
 <IconLinkCardGrid
   items={[
     {
       icon: '🖥️',
-      title: 'bilirec（后端）',
-      href: 'https://github.com/bilirec/bilirec',
-      description: '录制核心与 REST API，本文档主要围绕该项目展开。',
+      title: 'Web 管理界面',
+      href: '/zh-cn/guides/web-ui/',
+      description: 'bilirec-web PWA 的日常操作。',
     },
     {
-      icon: '🌍',
-      title: 'bilirec-web（PWA）',
-      href: 'https://github.com/bilirec/bilirec-web',
-      description: 'Web 管理端，支持 PWA 安装，适合桌面端和移动端日常管理。',
+      icon: '🎥',
+      title: '录制',
+      href: '/zh-cn/guides/recording/',
+      description: '手动 / 自动录制、订阅与画质。',
+    },
+    {
+      icon: '📁',
+      title: '文件管理',
+      href: '/zh-cn/guides/file-management/',
+      description: '浏览、下载、回放与 MP4 转换。',
+    },
+    {
+      icon: '📱',
+      title: 'Android',
+      href: '/zh-cn/guides/android/',
+      description: '用手机跑后端并录制。',
+    },
+    {
+      icon: '🐳',
+      title: 'Docker',
+      href: '/zh-cn/guides/docker/',
+      description: '容器部署与常见挂载。',
+    },
+    {
+      icon: '🌐',
+      title: 'FRP 远程访问',
+      href: '/zh-cn/guides/frp/',
+      description: '内网穿透后从外网管理。',
+    },
+    {
+      icon: '📊',
+      title: '性能实测',
+      href: '/zh-cn/guides/performance-benchmark/',
+      description: '树莓派等环境下的实测数据表。',
+    },
+  ]}
+  columnsClass="md:grid-cols-2"
+  titleClass="text-base"
+  cardClass="shadow-none"
+/>
+
+## 配置与调优
+
+<IconLinkCardGrid
+  items={[
+    {
+      icon: '⚙️',
+      title: '配置总览',
+      href: '/zh-cn/configuration/overview/',
+      description: '环境变量加载方式与配置入口。',
+    },
+    {
+      icon: '📋',
+      title: '环境变量参考',
+      href: '/zh-cn/configuration/env-reference/',
+      description: '完整参数一览与默认值。',
+    },
+    {
+      icon: '💾',
+      title: 'I/O 与存储调优',
+      href: '/zh-cn/configuration/io-tuning/',
+      description: '写入频率、缓冲与磁盘相关参数。',
+    },
+    {
+      icon: '🧠',
+      title: '内存占用估算',
+      href: '/zh-cn/configuration/memory-estimation/',
+      description: '按路数与画质估算容器内存上限。',
+    },
+  ]}
+  columnsClass="md:grid-cols-2"
+  titleClass="text-base"
+  cardClass="shadow-none"
+/>
+
+## 开发者
+
+<IconLinkCardGrid
+  items={[
+    {
+      icon: '🔌',
+      title: 'REST API',
+      href: '/zh-cn/api/overview/',
+      description: '接口概览、Swagger 与认证。',
+    },
+    {
+      icon: '🏗️',
+      title: '架构说明',
+      href: '/zh-cn/development/architecture/',
+      description: '项目结构与核心实现。',
     },
     {
       icon: '📲',
-      title: 'bilirec-mobile（Android）',
-      href: 'https://github.com/bilirec/bilirec-mobile',
-      description: 'Android 设备一体化客户端，可直接运行后端并完成录制管理。',
+      title: 'Android 库集成',
+      href: '/zh-cn/development/android-library/',
+      description: '将 libbilirec.so 嵌入自有应用。',
     },
   ]}
   columnsClass="md:grid-cols-3"
@@ -102,12 +158,8 @@ import QqCommunity from '../../../components/QqCommunity.astro';
   cardClass="shadow-none"
 />
 
-## 社区交流
+## 需要帮助
+
+排错与容量问题优先看 [常见问题](/zh-cn/guides/faq/)。也可加入社区交流：
 
 <QqCommunity />
-
-## 性能实测
-
-<Aside type="note">
-树莓派 5B 上的实测数据见 [性能实测](/zh-cn/guides/performance-benchmark/)。
-</Aside>

@@ -106,7 +106,6 @@ export default defineConfig({
 		}),
 	},
 	redirects: {
-		'/': '/zh-cn',
 		'/zh-cn/guides/android-library': '/zh-cn/development/android-library',
 		'/zh-tw/guides/android-library': '/zh-tw/development/android-library',
 		'/zh-cn/guides/android-huawei': '/zh-cn/guides/android-mainland',
@@ -143,6 +142,7 @@ export default defineConfig({
 				baseUrl: 'https://github.com/bilirec/bilirec-docs/edit/main/',
 			},
 			sidebar,
+			routeMiddleware: './src/starlightRouteData.ts',
 			components: {
 				PageFrame: './src/overrides/PageFrame.astro',
 			},
