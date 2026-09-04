@@ -59,7 +59,7 @@ app:bilirec AND logger:recorder
 
 | 字段 | 含义 |
 |------|------|
-| `_time` | ISO8601 时间戳 |
+| `_time` | RFC3339 时间戳 |
 | `_msg` | 日志正文 |
 | `level` | 级别（`debug` / `info` / `warn` / `error` 等） |
 | `logger` | 模块名（与代码中 `logger.Named("...")` 一致，如 `recorder`、`danmaku`） |
@@ -79,7 +79,7 @@ app:bilirec AND logger:recorder
 
 ## Grafana 接入简述
 
-1. 在 Grafana 安装 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)，并添加 `VictoriaLogs` 数据源。
+1. 在 Grafana 安装 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)（**v0.19.2 及以上**；旧版会把时间戳截到毫秒，排序问题依旧），并添加 `VictoriaLogs` 数据源。
 2. 在 Explore 用 LogsQL 查询 `app:bilirec`，再按 `logger`、`level`、`room` 缩小范围。
 3. 需要现成视图时，导入 [bilirec 日志分析仪表盘](/dashboards/zh-cn/bilirec-logging.json) 或 [bilirec 原始日志浏览仪表盘](/dashboards/zh-cn/bilirec-logs-explorer.json)。
 

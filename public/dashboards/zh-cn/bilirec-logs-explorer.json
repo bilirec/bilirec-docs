@@ -263,7 +263,7 @@
         "showLevel": true,
         "showTime": true,
         "sortOrder": "Descending",
-        "timestampResolution": "ms",
+        "timestampResolution": "ns",
         "unwrappedColumns": false,
         "wrapLogMessage": false
       }
@@ -323,7 +323,7 @@
         "showLevel": true,
         "showTime": true,
         "sortOrder": "Descending",
-        "timestampResolution": "ms",
+        "timestampResolution": "ns",
         "unwrappedColumns": false,
         "wrapLogMessage": true
       }
@@ -370,7 +370,7 @@
         "showLevel": true,
         "showTime": true,
         "sortOrder": "Descending",
-        "timestampResolution": "ms",
+        "timestampResolution": "ns",
         "unwrappedColumns": false,
         "wrapLogMessage": true
       }
@@ -417,7 +417,7 @@
         "showLevel": true,
         "showTime": true,
         "sortOrder": "Descending",
-        "timestampResolution": "ms",
+        "timestampResolution": "ns",
         "unwrappedColumns": false,
         "wrapLogMessage": true
       }
@@ -464,7 +464,7 @@
         "showLevel": true,
         "showTime": true,
         "sortOrder": "Descending",
-        "timestampResolution": "ms",
+        "timestampResolution": "ns",
         "unwrappedColumns": false,
         "wrapLogMessage": true
       }
