@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bilirec — 专为低配设备优化的 Bilibili 直播录制</title>
+<meta name="description" content="开源自托管的 Bilibili 直播录制后端。支持 Web PWA、Android 与 Docker，适合树莓派、NAS 与手机挂机无人值守。" />
+<meta name="theme-color" content="#05070b" />
+<link rel="icon" href="/images/web-ui/logo.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #05070b;
+    --bg-elev: #0a0e16;
+    --panel: rgba(12, 18, 28, 0.72);
+    --ink: #e6eef8;
+    --muted: #8b9bb0;
+    --faint: #5a6b80;
+    --line: rgba(125, 179, 232, 0.16);
+    --line-strong: rgba(125, 179, 232, 0.32);
+    --blue: #7db3e8;
+    --cyan: #5eead4;
+    --max: 1400px;
+    --font-display: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    --font-body: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    --font-mono: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+
+  /* Atmosphere: soft aurora + grid + scanline + noise — no product shake */
+  .atmosphere {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .aurora {
+    position: absolute; inset: -25%;
+    background:
+      radial-gradient(ellipse 50% 38% at 18% 8%, rgba(125,179,232,.22), transparent 58%),
+      radial-gradient(ellipse 42% 32% at 88% 12%, rgba(94,234,212,.12), transparent 52%),
+      radial-gradient(ellipse 48% 40% at 55% 92%, rgba(90,130,210,.10), transparent 58%);
+    filter: blur(48px);
+    animation: auroraDrift 22s ease-in-out infinite alternate;
+  }
+  @keyframes auroraDrift {
+    0% { transform: translate3d(-1.5%, -1%, 0) scale(1); }
+    100% { transform: translate3d(2%, 1.5%, 0) scale(1.04); }
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(125,179,232,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(125,179,232,.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 75% 55% at 50% 20%, #000 15%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 75% 55% at 50% 20%, #000 15%, transparent 78%);
+  }
+  .scanlines {
+    position: absolute; inset: 0; opacity: .035;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(125,179,232,.35) 2px,
+      rgba(125,179,232,.35) 3px
+    );
+  }
+  .noise {
+    position: absolute; inset: 0; opacity: .04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap { position: relative; z-index: 1; }
+
+  /* —— Nav —— */
+  .nav {
+    position: sticky; top: 0; z-index: 40;
+    backdrop-filter: blur(16px) saturate(1.15);
+    -webkit-backdrop-filter: blur(16px) saturate(1.15);
+    background: rgba(5,7,11,.62);
+    border-bottom: 1px solid transparent;
+    transition: border-color .25s, background .25s;
+  }
+  .nav.scrolled {
+    border-bottom-color: var(--line);
+    background: rgba(5,7,11,.86);
+  }
+  .nav-inner {
+    max-width: var(--max); margin: 0 auto;
+    padding: 12px 28px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--font-display); font-weight: 700; font-size: 1.02rem;
+    letter-spacing: -.02em;
+  }
+  .brand img { width: 26px; height: 26px; border-radius: 7px; }
+  .brand .tag {
+    font-family: var(--font-mono); font-size: .62rem; font-weight: 500;
+    color: var(--cyan); letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 999px;
+    border: 1px solid rgba(94,234,212,.28);
+    background: rgba(94,234,212,.06);
+  }
+  .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .nav-links a {
+    padding: 7px 11px; border-radius: 999px;
+    font-size: .84rem; color: var(--muted);
+    transition: color .2s, background .2s;
+  }
+  .nav-links a:hover { color: var(--ink); background: rgba(125,179,232,.08); }
+  .nav-cta {
+    margin-left: 4px;
+    padding: 8px 14px !important;
+    border: 1px solid var(--line-strong) !important;
+    background: rgba(125,179,232,.12) !important;
+    color: var(--ink) !important; font-weight: 600 !important;
+  }
+  .nav-cta:hover { background: rgba(125,179,232,.2) !important; }
+  .nav-toggle {
+    display: none;
+    min-width: 44px; min-height: 44px;
+    padding: 10px; margin: -6px -6px -6px 0;
+    color: var(--muted);
+    border-radius: 10px;
+  }
+  .nav-toggle:hover { color: var(--ink); background: rgba(125,179,232,.08); }
+  .nav-toggle svg { width: 22px; height: 22px; display: block; }
+
+  /* —— Shared —— */
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: .72rem; font-weight: 500;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .mono-label::before {
+    content: ""; width: 8px; height: 8px;
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 0 3px rgba(94,234,212,.12);
+  }
+  .sec {
+    max-width: var(--max); margin: 0 auto;
+    padding: 72px 28px;
+  }
+  .sec-title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(1.7rem, 3.4vw, 2.55rem);
+    letter-spacing: -.03em; line-height: 1.18;
+    margin-bottom: 12px; max-width: 20ch;
+  }
+  .sec-sub {
+    color: var(--muted); font-size: 1rem; max-width: 48ch; margin-bottom: 22px;
+  }
+  .glass {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--radius);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.02) inset,
+      0 24px 60px rgba(0,0,0,.28);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 18px; border-radius: 999px;
+    font-weight: 600; font-size: .92rem;
+    transition: background .2s, border-color .2s, color .2s, box-shadow .2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), #6aa4d6);
+    color: #061018;
+    box-shadow: 0 0 28px rgba(125,179,232,.28);
+  }
+  .btn-primary:hover { box-shadow: 0 0 36px rgba(125,179,232,.42); filter: brightness(1.04); }
+  .btn-ghost {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+    color: var(--ink);
+  }
+  .btn-ghost:hover {
+    border-color: var(--line-strong);
+    background: rgba(125,179,232,.08);
+  }
+
+  /* —— Hero —— */
+  .hero {
+    max-width: var(--max); margin: 0 auto;
+    padding: 64px 28px 36px;
+    display: grid; grid-template-columns: 0.92fr 1.08fr; gap: 40px; align-items: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: .72rem; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--cyan);
+    padding: 6px 11px; border-radius: 999px;
+    border: 1px solid rgba(94,234,212,.25);
+    background: rgba(94,234,212,.05);
+    margin-bottom: 20px;
+  }
+  .hero-eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .hero h1 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(2.2rem, 4.6vw, 3.5rem);
+    line-height: 1.08; letter-spacing: -.04em;
+    margin-bottom: 16px;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(120deg, var(--blue), var(--cyan));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero-lead {
+    color: var(--muted); font-size: 1.02rem; max-width: 36ch; margin-bottom: 26px;
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+  .hero-meta {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    padding-top: 18px; border-top: 1px solid var(--line);
+  }
+  .hero-meta strong {
+    display: block;
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums; font-size: .95rem; font-weight: 600;
+    color: var(--ink); letter-spacing: -.01em;
+  }
+  .hero-meta span {
+    font-size: .74rem; color: var(--faint);
+  }
+
+  .hero-stage {
+    position: relative;
+  }
+  .hero-chrome {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    background: #070b12;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,.45),
+      0 0 0 1px rgba(255,255,255,.03) inset,
+      0 0 50px rgba(125,179,232,.1);
+  }
+  .hero-chrome-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(10,14,22,.95);
+  }
+  .hero-chrome-bar i {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(125,179,232,.35);
+  }
+  .hero-chrome-bar i:nth-child(1) { background: #ff5f57; opacity: .75; }
+  .hero-chrome-bar i:nth-child(2) { background: #febc2e; opacity: .75; }
+  .hero-chrome-bar i:nth-child(3) { background: #28c840; opacity: .75; }
+  .hero-chrome-bar .url {
+    margin-left: 8px;
+    font-family: var(--font-mono); font-size: .68rem; color: var(--faint);
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hero-chrome img {
+    width: 100%; height: auto;
+    object-fit: contain; object-position: top;
+  }
+  .hero-glow {
+    position: absolute; inset: auto 10% -18% 10%; height: 40%;
+    background: radial-gradient(ellipse, rgba(125,179,232,.22), transparent 70%);
+    filter: blur(28px); z-index: -1;
+  }
+
+  /* —— Stats —— */
+  .stats {
+    max-width: none; margin: 20px 0 0; padding: 0;
+    border-block: 1px solid var(--line);
+    background:
+      linear-gradient(90deg, transparent, rgba(125,179,232,.04), transparent),
+      rgba(8,12,20,.35);
+  }
+  .stats-inner {
+    max-width: var(--max); margin: 0 auto;
+    padding: 56px 22px;
+    display: grid; grid-template-columns: 1.1fr repeat(3, 1fr); gap: 18px; align-items: center;
+  }
+  .stats-intro .mono-label { margin-bottom: 8px; }
+  .stats-intro h2 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(1.35rem, 2.4vw, 1.7rem); letter-spacing: -.025em; line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .stats-intro p { color: var(--faint); font-size: .82rem; max-width: 28ch; }
+  .stat {
+    padding: 22px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(8,12,20,.55);
+  }
+  .stat-num {
+    font-family: var(--font-display); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(1.7rem, 3vw, 2.2rem); letter-spacing: -.03em; line-height: 1;
+    color: var(--ink);
+  }
+  .stat-num span { color: var(--cyan); font-size: .7em; margin-left: 2px; }
+  .stat-label { margin-top: 8px; color: var(--muted); font-size: .84rem; }
+
+
+  /* Focus (a11y) */
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+  }
+
+
+
+
+  /* —— Feature blocks —— */
+  .feature-head { margin-bottom: 18px; }
+  .dual {
+    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 20px; align-items: stretch;
+  }
+  .panel-shot {
+    padding: 14px;
+    overflow: hidden;
+  }
+  .panel-shot img {
+    width: 100%; border-radius: 10px;
+    border: 1px solid var(--line);
+    object-fit: contain;
+    background: #070b12;
+  }
+  .panel-copy {
+    padding: 28px 26px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .panel-copy h3 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 1.25rem; letter-spacing: -.02em; margin-bottom: 10px;
+  }
+  .panel-copy p { color: var(--muted); font-size: .95rem; margin-bottom: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .04em;
+    color: var(--blue);
+    padding: 5px 9px; border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(125,179,232,.06);
+  }
+
+  /* Phone frame — accurate, contain, no crop */
+  .phone {
+    --bezel: 10px;
+    width: min(248px, 78vw);
+    margin: 0 auto;
+    padding: var(--bezel);
+    border-radius: 28px;
+    background: linear-gradient(160deg, #1a2230, #0a0e16);
+    border: 1px solid rgba(125,179,232,.28);
+    box-shadow:
+      0 20px 50px rgba(0,0,0,.45),
+      0 0 0 1px rgba(255,255,255,.04) inset;
+    position: relative;
+  }
+  .phone-pill {
+    width: 54px; height: 5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    margin: 0 auto 6px;
+  }
+  .phone-screen {
+    border-radius: 18px;
+    overflow: hidden;
+    background: #05070b;
+    border: 1px solid rgba(125,179,232,.12);
+    line-height: 0;
+  }
+  .phone-screen img {
+    width: 100%; height: auto;
+    display: block;
+    object-fit: contain;
+    object-position: center top;
+    vertical-align: top;
+  }
+  .phone-lg { width: min(280px, 82vw); }
+
+
+  /* Desktop window frame — peer to .phone */
+  .desk {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(125,179,232,.28);
+    background: linear-gradient(160deg, #1a2230, #0a0e16);
+    box-shadow:
+      0 20px 50px rgba(0,0,0,.45),
+      0 0 0 1px rgba(255,255,255,.04) inset;
+    padding: 0;
+  }
+  .desk-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(10,14,22,.95);
+  }
+  .desk-bar i {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(125,179,232,.35);
+  }
+  .desk-bar i:nth-child(1) { background: #ff5f57; opacity: .75; }
+  .desk-bar i:nth-child(2) { background: #febc2e; opacity: .75; }
+  .desk-bar i:nth-child(3) { background: #28c840; opacity: .75; }
+  .desk-bar .url {
+    margin-left: 8px;
+    font-family: var(--font-mono); font-size: .68rem; color: var(--faint);
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .desk-screen {
+    background: #05070b;
+    line-height: 0;
+  }
+  .desk-screen img {
+    width: 100%; height: auto; display: block;
+    object-fit: contain; object-position: top;
+  }
+  .shot-col {
+    display: flex; flex-direction: column; align-items: stretch; gap: 10px;
+    padding: 16px 14px 18px;
+  }
+  .shot-col .caption {
+    font-family: var(--font-mono); font-size: .68rem;
+    color: var(--faint); letter-spacing: .06em; text-transform: uppercase;
+    text-align: center;
+  }
+  .shot-col.phone-col { align-items: center; }
+
+  /* PWA & Replay — same dual layout, vertically centered */
+  .pwa-grid,
+  .replay-layout {
+    display: grid;
+    grid-template-columns: 1.35fr 0.65fr;
+    gap: 22px;
+    align-items: center;
+  }
+  .pwa-grid > .glass,
+  .replay-layout > .glass {
+    min-width: 0;
+  }
+
+  /* Android — full-width dual phones, no side copy card */
+  .android-dual {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: end;
+    justify-items: center;
+    padding: 28px 24px 32px;
+    width: 100%;
+  }
+  .android-dual .phone {
+    width: min(320px, 38vw);
+  }
+  .android-actions {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 18px;
+  }
+
+
+  /* Monitoring */
+  .monitor.glass { padding: 10px; overflow: hidden; }
+  .monitor-slider { position: relative; }
+  .monitor-stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #070b12;
+  }
+  .monitor-stage .slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .45s ease;
+    z-index: 0;
+  }
+  .monitor-stage .slide.is-active {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+  }
+  .monitor-stage img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+    object-fit: contain;
+    object-position: top center;
+    display: block;
+    background: #070b12;
+  }
+  .monitor-slider .monitor-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .monitor-slider .monitor-toolbar .pwa-slide-label {
+    margin-top: 0;
+    order: -1;
+  }
+  .monitor-slider .pwa-controls { margin-top: 0; }
+
+  /* Deploy */
+  .deploy-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  }
+  .deploy-card {
+    padding: 26px 22px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: border-color .2s, background .2s;
+  }
+  .deploy-card:hover {
+    border-color: var(--line-strong);
+    background: rgba(125,179,232,.06);
+  }
+  .deploy-idx {
+    font-family: var(--font-mono); font-size: .72rem; color: var(--cyan);
+    letter-spacing: .08em;
+  }
+  .deploy-card h3 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 1.12rem; letter-spacing: -.02em;
+  }
+  .deploy-card p { color: var(--muted); font-size: .9rem; flex: 1; }
+  .deploy-card a {
+    font-family: var(--font-mono); font-size: .78rem; color: var(--blue);
+  }
+  .deploy-card a:hover { color: var(--cyan); }
+
+  /* Community */
+  .community {
+    display: grid; grid-template-columns: 1.25fr .75fr; gap: 24px; align-items: center;
+    padding: 32px 28px;
+  }
+  .community h2 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(1.4rem, 2.6vw, 1.85rem); letter-spacing: -.025em;
+    margin-bottom: 10px;
+  }
+  .community p { color: var(--muted); margin-bottom: 20px; max-width: 42ch; }
+  .community strong { color: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .qr {
+    justify-self: end;
+    padding: 14px; border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(0,0,0,.35);
+  }
+  .qr img { width: 168px; height: 168px; border-radius: 6px; }
+  .qr figcaption {
+    text-align: center; margin-top: 8px;
+    font-size: .74rem; color: #334; font-weight: 600;
+    font-family: var(--font-mono);
+  }
+
+  /* Footer */
+  footer {
+    max-width: var(--max); margin: 0 auto;
+    padding: 36px 22px 56px;
+    border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px 24px;
+    justify-content: space-between; align-items: center;
+  }
+  footer .links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  footer a {
+    font-family: var(--font-mono); font-size: .74rem;
+    color: var(--faint); letter-spacing: .02em;
+  }
+  footer a:hover { color: var(--blue); }
+  footer .copy {
+    font-family: var(--font-mono); font-size: .72rem; color: var(--faint);
+  }
+
+  /* PWA slider — crossfade + directional slide */
+  .pwa-slider { position: relative; }
+  .desk-screen, .phone-screen { position: relative; overflow: hidden; }
+  .pwa-stage {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 0%, #121a28 0%, #070b12 62%);
+  }
+  .desk-screen .pwa-stage {
+    aspect-ratio: 2.01 / 1;
+    height: auto;
+  }
+  .phone-screen .pwa-stage {
+    aspect-ratio: 9 / 20;
+    height: auto;
+  }
+  .pwa-stage .slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(12%, 0, 0) scale(0.985);
+    filter: blur(0px);
+    transition:
+      opacity .55s cubic-bezier(.22,.61,.36,1),
+      transform .55s cubic-bezier(.22,.61,.36,1),
+      filter .55s cubic-bezier(.22,.61,.36,1);
+    will-change: opacity, transform;
+    z-index: 0;
+  }
+  .pwa-stage .slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+    z-index: 2;
+  }
+  .pwa-stage .slide.is-leave-next {
+    opacity: 0;
+    transform: translate3d(-10%, 0, 0) scale(0.99);
+    filter: blur(1.5px);
+    z-index: 1;
+  }
+  .pwa-stage .slide.is-leave-prev {
+    opacity: 0;
+    transform: translate3d(10%, 0, 0) scale(0.99);
+    filter: blur(1.5px);
+    z-index: 1;
+  }
+  .pwa-stage .slide.is-enter-next {
+    transform: translate3d(14%, 0, 0) scale(0.985);
+  }
+  .pwa-stage .slide.is-enter-prev {
+    transform: translate3d(-14%, 0, 0) scale(0.985);
+  }
+  .pwa-stage .slide-fill {
+    position: absolute;
+    inset: -12%;
+    width: 124%;
+    height: 124%;
+    object-fit: cover;
+    object-position: top center;
+    filter: blur(28px) saturate(1.08) brightness(0.72);
+    transform: scale(1.08);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .pwa-stage .slide-fg {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    object-position: center center;
+    background: transparent;
+  }
+  .pwa-stage .slide img {
+    display: block;
+  }
+  .desk-screen {
+    background: #070b12;
+  }
+  .phone-screen {
+    background: #05070b;
+  }
+  .pwa-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .pwa-controls button {
+    width: 34px; height: 34px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(12,18,28,.72);
+    color: var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color .2s, background .2s, transform .2s;
+  }
+  .pwa-controls button:hover {
+    border-color: var(--line-strong);
+    background: rgba(125,179,232,.08);
+  }
+  .pwa-controls button:active { transform: scale(0.94); }
+  .pwa-dots {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pwa-dots button {
+    width: 8px; height: 8px; padding: 0;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(125,179,232,.28);
+    transition: width .35s cubic-bezier(.22,.61,.36,1), background .35s ease;
+  }
+  .pwa-dots button[aria-current="true"] {
+    width: 22px;
+    background: var(--cyan);
+  }
+  .pwa-slide-label {
+    text-align: center;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .06em;
+    color: var(--faint);
+    text-transform: uppercase;
+    min-height: 1.2em;
+    transition: opacity .25s ease, transform .35s cubic-bezier(.22,.61,.36,1);
+  }
+  .pwa-slide-label.is-swap {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pwa-stage .slide,
+    .pwa-dots button,
+    .pwa-slide-label {
+      transition: opacity .2s ease !important;
+      transform: none !important;
+      filter: none !important;
+    }
+  }
+
+  /* Soft divider strip */
+  .tech-strip {
+    max-width: var(--max); margin: 0 auto; padding: 0 22px 8px;
+  }
+  .tech-strip ul {
+    list-style: none; display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .tech-strip li {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em;
+    color: var(--faint);
+    padding: 6px 10px; border-radius: 999px;
+    border: 1px solid rgba(125,179,232,.1);
+    background: rgba(125,179,232,.03);
+  }
+
+  /* Nav collapses earlier — many links wrap awkwardly before 960 */
+  @media (max-width: 1100px) {
+    .nav-links { display: none; }
+    .nav-links.open {
+      display: flex; flex-direction: column; align-items: stretch;
+      position: absolute; top: 100%; left: 0; right: 0;
+      padding: 10px 14px 16px;
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+      background: rgba(5,7,11,.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 20;
+    }
+    .nav-links.open a {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: .92rem;
+    }
+    .nav-links.open .nav-cta { margin-left: 0; margin-top: 4px; text-align: center; }
+    .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+    .nav-inner {
+      position: relative;
+      padding-left: max(18px, env(safe-area-inset-left));
+      padding-right: max(18px, env(safe-area-inset-right));
+    }
+  }
+
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; padding-top: 40px; gap: 32px; }
+    .hero-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stats-inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stats-intro { grid-column: 1 / -1; }
+    .dual, .pwa-grid, .replay-layout, .community {
+      grid-template-columns: 1fr;
+    }
+    .pwa-grid,
+    .replay-layout { gap: 20px; }
+    .deploy-grid { grid-template-columns: 1fr; }
+    .qr { justify-self: center; }
+    .phone, .phone-lg { width: min(280px, 72vw); }
+    /* Tablet: keep side-by-side Android if width allows */
+    .android-dual { grid-template-columns: 1fr 1fr; gap: 16px; padding: 18px 12px 22px; }
+    .android-dual .phone { width: min(260px, 42vw); }
+    .sec { padding: 56px 18px; }
+    .sec, .hero, .tech-strip {
+      padding-left: max(18px, env(safe-area-inset-left));
+      padding-right: max(18px, env(safe-area-inset-right));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .hero-meta { grid-template-columns: 1fr; gap: 10px; }
+    .stats-inner { grid-template-columns: 1fr; }
+    .hero-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hero-actions .btn { width: 100%; justify-content: center; text-align: center; }
+    .android-dual {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 22px 16px 28px;
+      justify-items: center;
+    }
+    .android-dual .phone { width: min(280px, 78vw); }
+    /* Difference-first: keep both previews, stack vertically */
+    .pwa-grid,
+    .replay-layout {
+      grid-template-columns: 1fr;
+      justify-items: stretch;
+    }
+    .pwa-grid > .shot-col,
+    .replay-layout > .shot-col {
+      width: 100%;
+    }
+    .pwa-grid .phone-col,
+    .replay-layout .phone-col {
+      justify-self: center;
+    }
+    .hero h1 { font-size: clamp(1.85rem, 7.2vw, 2.6rem); }
+    .hero-lead { font-size: .95rem; max-width: none; }
+    /* Desktop shot is unreadable at phone width; mobile shot only lengthens the fold */
+    .hero-stage { display: none; }
+    .hero { padding-bottom: 8px; gap: 0; }
+    .hero-actions { margin-bottom: 18px; }
+    .tech-strip { padding-bottom: 4px; }
+    .tech-strip ul { gap: 6px; justify-content: flex-start; }
+    .tech-strip li {
+      font-size: .62rem;
+      padding: 5px 8px;
+      letter-spacing: .04em;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .brand .tag { display: none; }
+    .phone, .phone-lg { width: min(268px, 86vw); }
+    .android-dual .phone { width: min(268px, 86vw); }
+    .nav-inner { padding: 10px 14px; padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+    .sec { padding-top: 48px; padding-bottom: 48px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aurora { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="aurora"></div>
+    <div class="grid"></div>
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+  </div>
+
+  <div class="wrap">
+    <header class="nav" id="nav">
+      <div class="nav-inner">
+        <a class="brand" href="/">
+          <img src="/images/web-ui/logo.svg" alt="" width="26" height="26" />
+          Bilirec
+          <span class="tag">self-host</span>
+        </a>
+        <button class="nav-toggle" id="navToggle" aria-label="菜单" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <nav class="nav-links" id="navLinks">
+          <a href="#pwa">Web / PWA</a>
+          <a href="#android">Android</a>
+          <a href="#replay">回放</a>
+          <a href="#monitor">监控</a>
+          <a href="#deploy">部署</a>
+          <a href="/zh-cn/">文档</a>
+          <a href="https://github.com/bilirec/bilirec" target="_blank" rel="noopener">GitHub</a>
+          <a class="nav-cta" href="https://app.bilirec.org" target="_blank" rel="noopener">打开 Web 应用</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="hero-eyebrow"><span class="dot" aria-hidden="true"></span> 树莓派 · NAS · Android · Docker</div>
+        <h1>高性能、低功耗、<br /><span class="grad">边缘设备优先</span></h1>
+        <p class="hero-lead">高性能、低功耗、边缘设备优先的 Bilibili 自动化录制与管理系统。面向树莓派 / NAS / 旧笔记本挂机、Android 录制、远程管理与无人值守等场景。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/zh-cn/guides/installation/">开始使用</a>
+          <a class="btn btn-ghost" href="https://app.bilirec.org" target="_blank" rel="noopener">打开 Web 应用</a>
+          <a class="btn btn-ghost" href="/zh-cn/guides/faq/">常见问题</a>
+        </div>
+      </div>
+      <div class="hero-stage">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <figure class="hero-chrome">
+          <div class="hero-chrome-bar" aria-hidden="true">
+            <i></i><i></i><i></i>
+            <span class="url">app.bilirec.org · recording</span>
+          </div>
+          <picture>
+            <source
+              media="(min-width: 721px)"
+              srcset="/images/web-ui/desktop-recording-empty.png"
+              width="2558"
+              height="1260"
+            />
+            <img
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+              alt="Bilirec 桌面端：录制管理空状态"
+              width="2558"
+              height="1260"
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+        </figure>
+      </div>
+    </section>
+
+    <div class="tech-strip" aria-hidden="true">
+      <ul>
+        <li>HTTP-FLV</li>
+        <li>HLS-TS</li>
+        <li>HLS-fMP4</li>
+        <li>弹幕回放</li>
+        <li>自动分段</li>
+        <li>断流重连</li>
+        <li>PWA</li>
+        <li>Docker</li>
+        <li>Android</li>
+        <li>Grafana</li>
+      </ul>
+    </div>
+
+    <section class="stats" id="stats" aria-label="效能数据">
+      <div class="stats-inner">
+        <div class="stats-intro">
+          <p class="mono-label">benchmark</p>
+          <h2>为自建服务优化的效能表现</h2>
+          <p>树莓派 5B · Docker 1GB · 1080p · 详见 <a href="/zh-cn/guides/performance-benchmark/" style="color:var(--blue)">性能实测</a></p>
+        </div>
+        <div class="stat">
+          <div class="stat-num">~12<span>MB</span></div>
+          <div class="stat-label">初始闲置内存</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">~193<span>MB</span></div>
+          <div class="stat-label">五路并发占用</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">~5.3<span>%</span></div>
+          <div class="stat-label">CPU 五路并发负载</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="pwa">
+      <div class="feature-head">
+        <p class="mono-label">01 · web / pwa</p>
+        <h2 class="sec-title">Web PWA 应用</h2>
+        <p class="sec-sub">通过 app.bilirec.org 访问 Web 管理界面，支持以 PWA 形式安装到桌面或主屏，桌面与移动端体验一致。</p>
+      </div>
+      <div class="pwa-slider" id="pwaSlider" data-interval="5000">
+        <div class="pwa-grid">
+          <div class="shot-col glass">
+            <span class="caption">Desktop · web UI</span>
+            <div class="desk">
+              <div class="desk-bar" aria-hidden="true">
+                <i></i><i></i><i></i>
+                <span class="url" data-pwa-url>app.bilirec.org · recording</span>
+              </div>
+              <div class="desk-screen">
+                <div class="pwa-stage" data-pwa-desktop>
+                  <div class="slide is-active" data-label="录制管理" data-url="app.bilirec.org · recording">
+                    <img src="/images/web-ui/desktop-recording-empty.png" alt="桌面：录制管理" width="2558" height="1260" loading="eager" />
+                  </div>
+                  <div class="slide" data-label="订阅管理" data-url="app.bilirec.org · subscription">
+                    <img src="/images/web-ui/desktop-subscription.png" alt="桌面：订阅管理" width="2555" height="1278" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="录制文件" data-url="app.bilirec.org · files">
+                    <img src="/images/web-ui/desktop-files.png" alt="桌面：录制文件" width="2554" height="1270" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="转换任务" data-url="app.bilirec.org · convert">
+                    <img src="/images/web-ui/desktop-convert.png" alt="桌面：转换任务" width="2555" height="1271" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="录制中" data-url="app.bilirec.org · recording">
+                    <img src="/images/web-ui/desktop-recording.png" alt="桌面：录制中" width="2555" height="1273" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="房间配置" data-url="app.bilirec.org · room">
+                    <img src="/images/web-ui/desktop-sub-config.png" alt="桌面：房间配置" width="2556" height="1270" loading="lazy" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="shot-col phone-col glass">
+            <span class="caption">Mobile · web UI</span>
+            <div class="phone phone-lg">
+              <div class="phone-pill" aria-hidden="true"></div>
+              <div class="phone-screen">
+                <div class="pwa-stage" data-pwa-mobile>
+                  <div class="slide is-active" data-label="录制管理">
+                    <img src="/images/web-ui/mobile-recording-empty.png" alt="手机：录制管理" width="415" height="924" loading="eager" />
+                  </div>
+                  <div class="slide" data-label="订阅管理">
+                    <img src="/images/web-ui/mobile-subscription.png" alt="手机：订阅管理" width="412" height="912" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="录制文件">
+                    <img src="/images/web-ui/mobile-files.png" alt="手机：录制文件" width="414" height="917" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="转换任务">
+                    <img src="/images/web-ui/mobile-convert.png" alt="手机：转换任务" width="411" height="915" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="录制中">
+                    <img src="/images/web-ui/mobile-recording.png" alt="手机：录制中" width="413" height="918" loading="lazy" />
+                  </div>
+                  <div class="slide" data-label="房间配置">
+                    <img src="/images/web-ui/mobile-sub-config.png" alt="手机：房间配置" width="413" height="921" loading="lazy" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pwa-slide-label" data-pwa-label>录制管理</p>
+        <div class="pwa-controls" aria-label="Web UI 截图切换">
+          <button type="button" data-pwa-prev aria-label="上一张">‹</button>
+          <div class="pwa-dots" data-pwa-dots></div>
+          <button type="button" data-pwa-next aria-label="下一张">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="android">
+      <div class="feature-head">
+        <p class="mono-label">02 · android</p>
+        <h2 class="sec-title">Android 客户端</h2>
+        <p class="sec-sub">bilirec-mobile 可在 Android 设备上直接运行后端并完成录制。对比展示手机浏览器 / PWA 与官方客户端界面。</p>
+      </div>
+      <div class="android-dual glass">
+        <div class="shot-col phone-col">
+          <span class="caption">PWA · web UI</span>
+          <div class="phone">
+            <div class="phone-pill" aria-hidden="true"></div>
+            <div class="phone-screen">
+              <img
+                src="/images/web-ui/mobile-recording-empty.png"
+                alt="手机 Web UI"
+                width="415"
+                height="924"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="shot-col phone-col">
+          <span class="caption">Android · control</span>
+          <div class="phone">
+            <div class="phone-pill" aria-hidden="true"></div>
+            <div class="phone-screen">
+              <img
+                src="/images/android/mobile-control-running.png"
+                alt="Android 控制中心运行中界面"
+                width="400"
+                height="889"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="android-actions">
+        <a class="btn btn-ghost" href="/zh-cn/guides/android/">阅读文档</a>
+      </div>
+    </section>
+
+    <section class="sec" id="replay">
+      <div class="feature-head">
+        <p class="mono-label">03 · replay</p>
+        <h2 class="sec-title">弹幕与礼物互动回放</h2>
+        <p class="sec-sub">内置回放播放器。录制时可保存弹幕、醒目留言与礼物等互动内容，并在回放中还原。</p>
+      </div>
+      <div class="replay-layout">
+        <div class="shot-col glass">
+          <span class="caption">Desktop · danmaku replay</span>
+          <div class="desk">
+            <div class="desk-bar" aria-hidden="true">
+              <i></i><i></i><i></i>
+              <span class="url">app.bilirec.org · replay</span>
+            </div>
+            <div class="desk-screen">
+              <img
+                src="/images/web-ui/desktop-replay-danmaku.png"
+                alt="桌面端弹幕回放播放器"
+                width="1024"
+                height="576"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="shot-col phone-col glass">
+          <span class="caption">Mobile · danmaku replay</span>
+          <div class="phone">
+            <div class="phone-pill" aria-hidden="true"></div>
+            <div class="phone-screen">
+              <img
+                src="/images/web-ui/mobile-replay-danmaku.png"
+                alt="手机端弹幕回放播放器"
+                width="411"
+                height="918"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="monitor">
+      <div class="feature-head">
+        <p class="mono-label">04 · monitoring</p>
+        <h2 class="sec-title">运行指标监控</h2>
+        <p class="sec-sub">提供标准 Prometheus 监控接口，可通过 Grafana 观察录制与资源占用；对接 VictoriaLogs 后还能浏览原始日志。</p>
+      </div>
+      <div class="monitor-slider" id="monitorSlider" data-interval="6500">
+        <div class="monitor-toolbar">
+          <p class="pwa-slide-label" data-monitor-label>录制预览</p>
+          <div class="pwa-controls" aria-label="仪表盘预览切换">
+            <button type="button" data-monitor-prev aria-label="上一张">‹</button>
+            <div class="pwa-dots" data-monitor-dots></div>
+            <button type="button" data-monitor-next aria-label="下一张">›</button>
+          </div>
+        </div>
+        <figure class="monitor glass">
+          <div class="monitor-stage" data-monitor-stage>
+            <div class="slide is-active" data-label="录制预览">
+              <img
+                src="/images/dashboards/bilirec-overview.png"
+                alt="Bilirec Grafana 录制总览仪表盘"
+                width="1920"
+                height="2401"
+                loading="lazy"
+              />
+            </div>
+            <div class="slide" data-label="日志浏览">
+              <img
+                src="/images/dashboards/bilirec-logs-explorer.png"
+                alt="Bilirec Grafana 原始日志浏览仪表盘"
+                width="1920"
+                height="1985"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="sec" id="deploy">
+      <div class="feature-head">
+        <p class="mono-label">05 · deploy</p>
+        <h2 class="sec-title">多平台部署支持</h2>
+        <p class="sec-sub">基于 Go 语言开发，支持所有主流操作系统与架构。</p>
+      </div>
+      <div class="deploy-grid">
+        <article class="deploy-card glass">
+          <div class="deploy-idx">01 / docker</div>
+          <h3>Docker 容器</h3>
+          <p>适用于 NAS、轻量服务器。支持一键 Compose 部署。</p>
+          <a href="/zh-cn/guides/docker/">docker pull ghcr.io/bilirec/bilirec →</a>
+        </article>
+        <article class="deploy-card glass">
+          <div class="deploy-idx">02 / binary</div>
+          <h3>二进制运行</h3>
+          <p>无环境依赖，直接执行即可启动服务。适配 x64/arm64。</p>
+          <a href="/zh-cn/guides/installation/">获取下载地址 →</a>
+        </article>
+        <article class="deploy-card glass">
+          <div class="deploy-idx">03 / android</div>
+          <h3>Android 平台</h3>
+          <p>利用闲置手机作为低功耗录制中心。支持常驻后台运行。</p>
+          <a href="/zh-cn/guides/android/">获取安装包 →</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="sec" id="community">
+      <div class="community glass">
+        <div>
+          <p class="mono-label">community</p>
+          <h2>QQ 交流群</h2>
+          <p>群号 <strong>834229325</strong>。安装、配置、踩坑经验都可以来问，也欢迎分享自己的部署方式。</p>
+          <div class="hero-actions" style="margin-bottom:0">
+            <a class="btn btn-primary" href="https://qm.qq.com/q/oMTN3EsGBy" target="_blank" rel="noopener">加入 QQ 群</a>
+            <a class="btn btn-ghost" href="/zh-cn/guides/installation/">开始使用</a>
+          </div>
+        </div>
+        <figure class="qr">
+          <img src="/images/community/qq-group.png" alt="QQ 群 834229325 二维码" width="168" height="168" loading="lazy" />
+          <figcaption>834229325</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <footer>
+      <div class="links">
+        <a href="/zh-cn/">文档</a>
+        <a href="https://app.bilirec.org" target="_blank" rel="noopener">Web 应用</a>
+        <a href="https://github.com/bilirec/bilirec" target="_blank" rel="noopener">源码</a>
+        <a href="#community">交流群</a>
+        <a href="mailto:me@ericlamm.com">联系</a>
+      </div>
+      <p class="copy">© Bilirec · 开源自托管 · 边缘设备优先</p>
+    </footer>
+  </div>
+
+<script>
+(function () {
+  var nav = document.getElementById('nav');
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  function onScroll() {
+    if (!nav) return;
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+  }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  if (toggle && links) {
+    toggle.addEventListener('click', function () {
+      var open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    links.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        links.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && links.classList.contains('open')) {
+        links.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus();
+      }
+    });
+  }
+
+  var root = document.getElementById('pwaSlider');
+  if (root) {
+  var desk = root.querySelector('[data-pwa-desktop]');
+  var mob = root.querySelector('[data-pwa-mobile]');
+  var deskSlides = desk ? Array.prototype.slice.call(desk.querySelectorAll('.slide')) : [];
+  var mobSlides = mob ? Array.prototype.slice.call(mob.querySelectorAll('.slide')) : [];
+  var n = Math.min(deskSlides.length, mobSlides.length);
+  if (n) {
+  var dotsWrap = root.querySelector('[data-pwa-dots]');
+  var labelEl = root.querySelector('[data-pwa-label]');
+  var urlEl = root.querySelector('[data-pwa-url]');
+  var i = 0;
+  var timer = null;
+  var busy = false;
+  var interval = parseInt(root.getAttribute('data-interval') || '5200', 10);
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function addFill(slides) {
+    slides.forEach(function (slide) {
+      var img = slide.querySelector('img');
+      if (!img || slide.querySelector('.slide-fill')) return;
+      img.classList.add('slide-fg');
+      var fill = img.cloneNode(true);
+      fill.className = 'slide-fill';
+      fill.removeAttribute('alt');
+      fill.setAttribute('aria-hidden', 'true');
+      fill.removeAttribute('width');
+      fill.removeAttribute('height');
+      slide.insertBefore(fill, img);
+    });
+  }
+  addFill(deskSlides);
+  addFill(mobSlides);
+  function fitAll() {}
+
+  function clearAnim(el) {
+    el.classList.remove('is-active', 'is-leave-next', 'is-leave-prev', 'is-enter-next', 'is-enter-prev');
+  }
+
+  function renderDots() {
+    if (!dotsWrap) return;
+    dotsWrap.innerHTML = '';
+    for (var d = 0; d < n; d++) {
+      (function (idx) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', '第 ' + (idx + 1) + ' 张');
+        b.addEventListener('click', function () { go(idx); restart(); });
+        dotsWrap.appendChild(b);
+      })(d);
+    }
+  }
+
+  function syncMeta() {
+    var active = deskSlides[i];
+    if (!active) return;
+    if (labelEl) {
+      labelEl.classList.add('is-swap');
+      window.setTimeout(function () {
+        labelEl.textContent = active.getAttribute('data-label') || '';
+        labelEl.classList.remove('is-swap');
+      }, reduce ? 0 : 160);
+    }
+    if (urlEl) urlEl.textContent = active.getAttribute('data-url') || 'app.bilirec.org';
+    if (dotsWrap) {
+      Array.prototype.forEach.call(dotsWrap.children, function (dot, idx) {
+        if (idx === i) dot.setAttribute('aria-current', 'true');
+        else dot.removeAttribute('aria-current');
+      });
+    }
+  }
+
+  function animatePair(slides, from, to, dir) {
+    slides.forEach(clearAnim);
+    var leave = slides[from];
+    var enter = slides[to];
+    if (!enter) return;
+    if (reduce || from === to) {
+      enter.classList.add('is-active');
+      return;
+    }
+    var leaveCls = dir > 0 ? 'is-leave-next' : 'is-leave-prev';
+    var enterCls = dir > 0 ? 'is-enter-next' : 'is-enter-prev';
+    leave.classList.add(leaveCls);
+    enter.classList.add(enterCls);
+    // force reflow then activate
+    void enter.offsetWidth;
+    enter.classList.remove(enterCls);
+    enter.classList.add('is-active');
+    window.setTimeout(function () {
+      leave.classList.remove(leaveCls);
+    }, 560);
+  }
+
+  function go(next) {
+    if (busy) return;
+    var target = ((next % n) + n) % n;
+    if (target === i && deskSlides[i].classList.contains('is-active')) {
+      syncMeta();
+      return;
+    }
+    var dir = target === i ? 1 : (target > i || (i === n - 1 && target === 0) ? 1 : -1);
+    if (i === 0 && target === n - 1 && next < i) dir = -1;
+    // normalize dir from requested next vs current for wrap
+    if (typeof next === 'number') {
+      if (next === i + 1 || (i === n - 1 && target === 0 && next >= i)) dir = 1;
+      else if (next === i - 1 || (i === 0 && target === n - 1 && next <= i)) dir = -1;
+      else dir = target > i ? 1 : -1;
+      if (i === n - 1 && target === 0) dir = 1;
+      if (i === 0 && target === n - 1 && next < 0) dir = -1;
+    }
+    var from = i;
+    busy = true;
+    animatePair(deskSlides, from, target, dir);
+    animatePair(mobSlides, from, target, dir);
+    i = target;
+    fitAll();
+    syncMeta();
+    window.setTimeout(function () { busy = false; }, reduce ? 50 : 520);
+  }
+
+  function restart() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(function () { go(i + 1); }, interval);
+  }
+
+  renderDots();
+  deskSlides.forEach(clearAnim);
+  mobSlides.forEach(clearAnim);
+  deskSlides[0].classList.add('is-active');
+  mobSlides[0].classList.add('is-active');
+  syncMeta();
+  var prev = root.querySelector('[data-pwa-prev]');
+  var nextBtn = root.querySelector('[data-pwa-next]');
+  if (prev) prev.addEventListener('click', function () { go(i - 1); restart(); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { go(i + 1); restart(); });
+  root.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+  root.addEventListener('mouseleave', restart);
+  // touch swipe
+  var sx = 0;
+  root.addEventListener('touchstart', function (e) {
+    if (e.changedTouches && e.changedTouches[0]) sx = e.changedTouches[0].clientX;
+  }, { passive: true });
+  root.addEventListener('touchend', function (e) {
+    if (!e.changedTouches || !e.changedTouches[0]) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) go(i + 1); else go(i - 1);
+    restart();
+  }, { passive: true });
+  restart();
+  }
+  }
+
+  (function initMonitorSlider() {
+    var root = document.getElementById('monitorSlider');
+    if (!root) return;
+    var stage = root.querySelector('[data-monitor-stage]');
+    if (!stage) return;
+    var slides = Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+    var n = slides.length;
+    if (!n) return;
+    var dotsWrap = root.querySelector('[data-monitor-dots]');
+    var labelEl = root.querySelector('[data-monitor-label]');
+    var i = 0;
+    var timer = null;
+    var interval = parseInt(root.getAttribute('data-interval') || '6500', 10);
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function renderDots() {
+      if (!dotsWrap) return;
+      dotsWrap.innerHTML = '';
+      for (var d = 0; d < n; d++) {
+        (function (idx) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.setAttribute('aria-label', '第 ' + (idx + 1) + ' 张');
+          b.addEventListener('click', function () { go(idx); restart(); });
+          dotsWrap.appendChild(b);
+        })(d);
+      }
+    }
+
+    function syncMeta() {
+      var active = slides[i];
+      if (!active) return;
+      if (labelEl) {
+        labelEl.classList.add('is-swap');
+        window.setTimeout(function () {
+          labelEl.textContent = active.getAttribute('data-label') || '';
+          labelEl.classList.remove('is-swap');
+        }, reduce ? 0 : 140);
+      }
+      if (dotsWrap) {
+        Array.prototype.forEach.call(dotsWrap.children, function (dot, idx) {
+          if (idx === i) dot.setAttribute('aria-current', 'true');
+          else dot.removeAttribute('aria-current');
+        });
+      }
+    }
+
+    function go(next) {
+      var target = ((next % n) + n) % n;
+      if (target === i) {
+        syncMeta();
+        return;
+      }
+      slides.forEach(function (s) { s.classList.remove('is-active'); });
+      i = target;
+      slides[i].classList.add('is-active');
+      syncMeta();
+    }
+
+    function restart() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(function () { go(i + 1); }, interval);
+    }
+
+    renderDots();
+    slides.forEach(function (s) { s.classList.remove('is-active'); });
+    slides[0].classList.add('is-active');
+    syncMeta();
+    var prev = root.querySelector('[data-monitor-prev]');
+    var nextBtn = root.querySelector('[data-monitor-next]');
+    if (prev) prev.addEventListener('click', function () { go(i - 1); restart(); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { go(i + 1); restart(); });
+    root.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+    root.addEventListener('mouseleave', restart);
+    var sx = 0;
+    root.addEventListener('touchstart', function (e) {
+      if (e.changedTouches && e.changedTouches[0]) sx = e.changedTouches[0].clientX;
+    }, { passive: true });
+    root.addEventListener('touchend', function (e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      var dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) < 40) return;
+      if (dx < 0) go(i + 1); else go(i - 1);
+      restart();
+    }, { passive: true });
+    restart();
+  })();
+})();
+</script>
+</body>
+</html>
