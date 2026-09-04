@@ -1,13 +1,13 @@
 ---
 title: 本地日志文件
-description: 将 bilirec 日志异步写入本地文件（lumberjack 轮转），与 stderr、VictoriaLogs 可并存
+description: 将 bilirec 日志异步写入本地文件，可按大小与天数轮转；可与 stderr、VictoriaLogs 并存
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-bilirec 默认把日志写到**标准错误**（终端或 Docker 日志）。开启本功能后，会在保留 stderr 可读输出的同时，把同一份日志**异步写入本地文件**（支持按大小/天数轮转）。
+bilirec 默认把日志写到**标准错误**（终端或 Docker 日志）。开启本功能后，会在保留 stderr 的同时，把同一份日志**异步写入本地文件**，并可按大小、天数自动轮转。
 
-可与 [远程日志（VictoriaLogs）](/zh-cn/configuration/victorialogs/) 同时启用：stderr 为人类可读文本，本地文件可选 `pretty` 或 `jsonline`，远程为 VictoriaLogs 专用 JSON Line。
+也可与 [远程日志（VictoriaLogs）](/zh-cn/configuration/victorialogs/) 同时开启。
 
 ## 快速开始
 
@@ -21,61 +21,51 @@ LOCAL_LOGS_FORMAT=pretty             # pretty 或 jsonline
 
 重启 bilirec。启动日志中会出现 `本地日志已启用：...`。
 
-## 环境变量
+## 常用设置
 
-| 变量 | 说明 | 默认值 |
-|------|------|--------|
-| `LOCAL_LOGS_ENABLED` | 是否写入本地日志文件 | `false` |
-| `LOCAL_LOGS_PATH` | 日志文件路径 | `<DATABASE_DIR>/bilirec.log` |
-| `LOCAL_LOGS_FORMAT` | 文件格式：`pretty`（彩色文本）或 `jsonline` | `pretty` |
-| `LOCAL_LOGS_MAX_SIZE_MB` | 单文件最大体积（MB），超出后轮转 | `20` |
-| `LOCAL_LOGS_MAX_AGE_DAYS` | 保留天数 | `7` |
-| `LOCAL_LOGS_MAX_BACKUPS` | 最多保留的旧文件个数 | `3` |
+| 变量 | 作用 | 默认 |
+|------|------|------|
+| `LOCAL_LOGS_ENABLED` | 是否写入本地文件 | `false` |
+| `LOCAL_LOGS_PATH` | 文件路径；空则用 `<DATABASE_DIR>/bilirec.log` | (空) |
+| `LOCAL_LOGS_FORMAT` | `pretty`（可读文本）或 `jsonline` | `pretty` |
+| `LOCAL_LOGS_MAX_SIZE_MB` | 单文件超过该体积（MB）后轮转 | `20` |
+| `LOCAL_LOGS_MAX_AGE_DAYS` | 旧文件保留天数 | `7` |
+| `LOCAL_LOGS_MAX_BACKUPS` | 最多保留几个旧文件 | `3` |
 | `LOCAL_LOGS_COMPRESS` | 轮转后是否 gzip 压缩旧文件 | `false` |
-| `LOCAL_LOGS_BATCH_BYTES` | 异步批量写入阈值（字节） | `65536` |
-| `LOCAL_LOGS_FLUSH_INTERVAL` | 定时刷盘间隔，如 `1s` | `1s` |
-| `LOCAL_LOGS_BUFFER_SIZE` | 内存队列槽位数 | `4096` |
-| `LOCAL_LOGS_OVERFLOW` | 队列满时的策略，见下文 | `drop` |
+| `LOCAL_LOGS_OVERFLOW` | 写入排队已满时：`drop` 或 `block`，见下文 | `drop` |
 
-完整列表见 [环境变量参考](/zh-cn/configuration/env-reference/)。
+批量大小、刷盘间隔、队列深度等进阶项见 [环境变量参考](/zh-cn/configuration/env-reference/)。
 
-## 队列满时的策略（`LOCAL_LOGS_OVERFLOW`）
+## 写入跟不上时（`LOCAL_LOGS_OVERFLOW`）
 
-本地日志经异步队列批量落盘。当磁盘写入慢于日志产生速度、队列被写满时，行为由 `LOCAL_LOGS_OVERFLOW` 决定。
+日志先进入内存排队再批量写盘。磁盘一时跟不上、排队写满时：
 
-### `drop`（默认，推荐与录制同机部署）
+### `drop`（默认）
 
-- 队列满时**丢弃当前这条**待写入的日志，**不阻塞**调用 log 的 goroutine。
-- 适合长期录制：即使磁盘短暂变慢或 Debug 日志过多，也不拖慢录制主循环。
-- 代价：高峰或磁盘异常时，**本地文件可能缺少部分行**；stderr 与 VictoriaLogs（若已开启）仍可能收到同一条 log。
+丢掉这一条本地写入，**不拖慢**正在打日志的流程。适合与录制同机：磁盘短暂变慢或日志偏多时，优先保证录制稳定。代价是本地文件在高峰时可能少几行；stderr 与已开启的 VictoriaLogs 仍可能收到同一条。
 
-### `block`（可选，优先保证本地文件完整）
+### `block`
 
-- 队列满时，调用 log 的 goroutine **阻塞等待**空位，直到有槽位或进程关停。
-- 适合调试、离线分析，或磁盘 I/O 稳定且可接受偶发等待的场景。
-- **代价（与录制相关）：**
-  - 不是全进程「停世界」，但**正在打 log 的那条 goroutine 会卡住**。
-  - bilirec 使用 zap 多路输出（stderr + 本地文件 + 远程）：本地 `block` 时，**同一条 log 在本地写完之前，远程 VictoriaLogs 也可能被拖住**。
-  - 若录制热路径或 pipeline 在异常时频繁 `Warn`/`Debug`，叠加磁盘慢（满盘、NFS 卡顿、rotation 等），可能**拖慢该房间的录制循环**。
+等队列有空位再继续。本地文件更不容易缺行，但磁盘慢时，打日志的流程可能卡住；若录制相关路径也在频繁打日志，可能感到录制变顿。
 
 <Aside type="caution">
-同机录制且开启本地日志时，建议保持默认 `drop`。若必须本地文件尽量不丢行，可设 `block`，并同时：维持 **Info** 级别、确保日志盘 I/O 充足、必要时增大 `LOCAL_LOGS_BUFFER_SIZE`。
+与录制同机时建议保持 `drop`。只有确实需要本地文件尽量完整、且日志盘 I/O 稳定时，再考虑 `block`，并尽量维持 Info 级别、必要时增大 `LOCAL_LOGS_BUFFER_SIZE`。
 </Aside>
 
-## 与 stderr、远程日志的关系
+## 和其他输出的关系
 
-| 输出 | 格式 | 队列满时 |
-|------|------|----------|
-| stderr | 彩色可读 | 同步写终端，不受本项影响 |
-| 本地文件 | `pretty` / `jsonline` | 由 `LOCAL_LOGS_OVERFLOW` 控制 |
-| VictoriaLogs | JSON Line | 固定为丢弃新行（不阻塞），见 [远程日志](/zh-cn/configuration/victorialogs/) |
+| 输出 | 你会看到 | 排队写满时 |
+|------|----------|------------|
+| stderr | 终端 / Docker 日志里的彩色文本 | 不受本项影响 |
+| 本地文件 | `pretty` 或 `jsonline` 文件 | 由 `LOCAL_LOGS_OVERFLOW` 决定 |
+| VictoriaLogs | 远程 JSON 日志 | 固定丢弃新行、不阻塞，见 [远程日志](/zh-cn/configuration/victorialogs/) |
 
-进程退出时会按 **Sync → 断开 log core → Stop sink** 顺序尽量刷盘剩余批次。
+关闭进程时会尽量把仍在排队的本地日志刷到磁盘。
 
 ## 故障排查
 
 | 现象 | 可能原因 | 建议 |
 |------|----------|------|
-| 本地文件缺行 | 队列满且策略为 `drop` | 正常取舍；要完整可试 `block` 或减日志量 |
-| 录制偶发卡顿且开了本地 log | `block` + 磁盘慢 + 热路径打 log | 改回 `drop` 或优化磁盘 |
-| 文件未生成 | 未设 `LOCAL_LOGS_ENABLED=true` 或路径无写权限 | 检查 `.env` 与目录权限 |
+| 本地文件缺行 | 排队满且策略为 `drop` | 属默认取舍；要更完整可试 `block` 或减少日志量 |
+| 开了本地日志后录制偶发卡顿 | `block` + 磁盘慢 | 改回 `drop`，或改善日志盘写入 |
+| 文件未生成 | 未开启，或路径无写权限 | 确认 `LOCAL_LOGS_ENABLED=true` 与目录权限 |
