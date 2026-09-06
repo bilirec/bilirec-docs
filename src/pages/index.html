@@ -606,6 +606,122 @@
     font-family: var(--font-mono); font-size: .72rem; color: var(--faint);
   }
 
+  /* —— Sight · passive-monitor easter egg (idle reveal) —— */
+  .sight {
+    --sight-red: #ff4d5e;
+    --sight-red-dim: rgba(255, 77, 94, .5);
+    --sight-ink: #ffd9dd;
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    z-index: 60;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .18s ease, transform .18s ease;
+    font-family: var(--font-mono);
+    color: var(--sight-ink);
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 77, 94, .06) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, rgba(22, 6, 11, .92), rgba(10, 3, 6, .95));
+    border: 1px solid rgba(255, 77, 94, .38);
+    border-radius: 10px;
+    padding: 8px 12px 7px;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, .5) inset,
+      0 0 22px rgba(255, 77, 94, .16),
+      0 12px 32px rgba(0, 0, 0, .4);
+    min-width: 236px;
+    max-width: min(86vw, 340px);
+  }
+  .sight-head {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .6rem; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--sight-red);
+    margin-bottom: 5px;
+  }
+  .sight-head .rec-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sight-red);
+    box-shadow: 0 0 8px var(--sight-red);
+    animation: sight-blink 1.1s steps(2, start) infinite;
+  }
+  .sight-text {
+    display: inline-block;
+    min-width: 11em;
+    font-size: .82rem;
+    letter-spacing: .06em;
+    white-space: nowrap;
+    text-shadow:
+      .6px 0 rgba(255, 60, 90, .55),
+      -.6px 0 rgba(0, 255, 240, .35);
+  }
+  .sight-meta {
+    margin-top: 5px;
+    font-size: .58rem;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--sight-red-dim);
+  }
+  .sight.is-on {
+    opacity: 1;
+    transform: translateY(0);
+    animation: sight-flicker .55s steps(4, end) 1;
+  }
+  .sight.is-glitch-out {
+    animation: sight-glitch .22s steps(2, end) 1 forwards;
+  }
+  .sight .k {
+    color: rgba(255, 217, 221, .42);
+    text-shadow: none;
+  }
+  .sight .r {
+    color: var(--sight-ink);
+  }
+  @keyframes sight-blink {
+    0%, 55% { opacity: 1; }
+    56%, 100% { opacity: .25; }
+  }
+  @keyframes sight-flicker {
+    0% { opacity: 0; }
+    18% { opacity: .85; }
+    30% { opacity: .15; }
+    46% { opacity: 1; }
+    62% { opacity: .45; }
+    100% { opacity: 1; }
+  }
+  @keyframes sight-glitch {
+    0% { opacity: 1; clip-path: inset(0 0 0 0); transform: translate(0, 0); }
+    25% { opacity: .9; clip-path: inset(12% 0 58% 0); transform: translate(-3px, 1px); }
+    50% { opacity: .7; clip-path: inset(52% 0 8% 0); transform: translate(3px, -1px); }
+    75% { opacity: .4; clip-path: inset(28% 0 34% 0); transform: translate(-2px, 0); }
+    100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: translate(0, 0); }
+  }
+  @media (max-width: 720px) {
+    .sight {
+      right: 10px;
+      bottom: 10px;
+      min-width: 0;
+      padding: 6px 9px;
+    }
+    .sight-text { font-size: .72rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sight {
+      transition: opacity .25s ease;
+      transform: none;
+    }
+    .sight.is-on,
+    .sight.is-glitch-out,
+    .sight-head .rec-dot {
+      animation: none;
+    }
+    .sight.is-glitch-out {
+      opacity: 0;
+    }
+  }
+
   /* PWA slider — crossfade + directional slide */
   .pwa-slider { position: relative; }
   .desk-screen, .phone-screen { position: relative; overflow: hidden; }
@@ -1247,6 +1363,12 @@
     </footer>
   </div>
 
+  <div class="sight" id="sight" aria-hidden="true">
+    <div class="sight-head"><span class="rec-dot"></span>REC · CLASSIFIED</div>
+    <div class="sight-text" id="sightText">██████</div>
+    <div class="sight-meta">SIGNAL INTERCEPT · 04</div>
+  </div>
+
 <script>
 (function () {
   var nav = document.getElementById('nav');
@@ -1518,6 +1640,175 @@
       restart();
     }, { passive: true });
     restart();
+  })();
+
+  /* —— Sight · passive-monitor easter egg —— */
+  (function initSight() {
+    var el = document.getElementById('sight');
+    if (!el) return;
+    var textEl = document.getElementById('sightText');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Aceternity "Encrypted Text"-style reveal: unrevealed slots keep flipping
+    // gibberish (dimmed). Each cycle locks a head+tail window; the middle stays
+    // scrambled — cycle 3 spans the whole line for the payoff.
+    var CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-={}[];:,.<>/?';
+    var FLIP_DELAY_MS = 50;   // gibberish flip cadence for unrevealed slots
+    var SCRAMBLE_MS = 420;    // pure-gibberish lead-in before anchors lock in
+    var IDLE_MS = 2000;
+
+    // Per-cycle locked anchors: prefix + suffix stay readable while the middle
+    // keeps flipping gibberish. Stages 1-2 run on the plain line; the 😈 only
+    // joins for the cycle-3 payoff when the whole line locks.
+    var STAGES = [
+      { text: '为录制擦边主播而生', head: 3, tail: 2 },        // 为录制▮▮▮▮而生
+      { text: '为录制擦边主播而生', head: 3, tail: 4 },        // 为录制▮▮主播而生
+      { text: '为录制擦边主播而生 😈', head: Infinity, tail: 0 } // full line
+    ];
+    var SHOW_MS = [900, 1300, 1700]; // linger time per cycle
+
+    var MAX_CYCLES = 3;       // fires at most 3 times, then retires for good
+
+    var cycle = 0;
+    var lastActive = Date.now();
+    var showing = false;
+    var retired = false;
+    var hideTimer = null;
+    var flipTimer = null;
+    var revealTimer = null;
+
+    // Pre-compute code points so surrogate pairs (😈) render as one unit.
+    // head/tail are character counts split from each end; what remains between
+    // them stays as live gibberish for that cycle.
+    var targets = STAGES.map(function (s) {
+      var cps = Array.prototype.map.call(s.text, function (c) { return c; });
+      var tail = Math.min(s.tail, cps.length);
+      return {
+        headLen: Math.min(s.head, cps.length - tail),
+        tailLen: tail,
+        text: s.text,
+        cps: cps
+      };
+    });
+
+    function randomChar() {
+      return CHARSET.charAt(Math.floor(Math.random() * CHARSET.length));
+    }
+
+    // Lock [0, headLen) + [cps.length - tailLen, cps.length); the middle
+    // band stays as flipping gibberish. Tail grows per cycle (tail-anchored);
+    // in the last stage tail is empty so headLen covers the whole line.
+    function render(target) {
+      var frag = document.createDocumentFragment();
+      var tailFrom = target.cps.length - (target.tailLen || 0);
+      for (var i = 0; i < target.cps.length; i++) {
+        var span = document.createElement('span');
+        if (target.cps[i] === ' ') {
+          span.innerHTML = '&nbsp;';
+        } else if (i < target.headLen || i >= tailFrom) {
+          span.className = 'r';
+          span.textContent = target.cps[i];
+        } else {
+          span.className = 'k';
+          span.textContent = randomChar();
+        }
+        frag.appendChild(span);
+      }
+      textEl.innerHTML = '';
+      textEl.appendChild(frag);
+    }
+
+    // All-scramble first paint: every slot flips gibberish (spaces stay).
+    function renderScramble(target) {
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < target.cps.length; i++) {
+        var span = document.createElement('span');
+        if (target.cps[i] === ' ') {
+          span.innerHTML = '&nbsp;';
+        } else {
+          span.className = 'k';
+          span.textContent = randomChar();
+        }
+        frag.appendChild(span);
+      }
+      textEl.innerHTML = '';
+      textEl.appendChild(frag);
+    }
+
+    function clearTimers() {
+      if (flipTimer) { clearInterval(flipTimer); flipTimer = null; }
+      if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    }
+
+    function retire() {
+      clearTimers();
+      retired = true;
+      showing = false;
+      el.classList.remove('is-on');
+    }
+
+    function finish() {
+      showing = false;
+      clearTimers();
+      el.classList.remove('is-on');
+      void el.offsetWidth;
+      el.classList.add('is-glitch-out');
+      window.setTimeout(function () { el.classList.remove('is-glitch-out'); }, reduce ? 0 : 240);
+      if (cycle >= MAX_CYCLES) retire();
+    }
+
+    function trigger() {
+      showing = true;
+      var idx = Math.min(cycle, MAX_CYCLES - 1);
+      cycle++;
+      var target = targets[idx];
+      el.classList.remove('is-glitch-out');
+      el.classList.add('is-on');
+      if (reduce) {
+        render(target);
+        hideTimer = setTimeout(finish, SHOW_MS[idx]);
+        return;
+      }
+      renderScramble(target); // lead-in: everything flips gibberish
+      var startDelay = SCRAMBLE_MS + Math.random() * 120;
+      flipTimer = setInterval(function () {
+        // flip only the middle band (keeps .k slots cycling gibberish)
+        var spans = textEl.children;
+        for (var i = 0; i < spans.length; i++) {
+          if (spans[i].className === 'k') spans[i].textContent = randomChar();
+        }
+      }, FLIP_DELAY_MS);
+      // After the lead-in the head+tail anchors lock in one step; the middle
+      // band keeps flipping during the linger, then the cycle glitchs out.
+      revealTimer = setTimeout(function () {
+        render(target);
+        // keep flipTimer running: .k middle band stays alive during linger
+        hideTimer = setTimeout(finish, SHOW_MS[idx]);
+      }, startDelay);
+    }
+
+    function activity() {
+      lastActive = Date.now();
+      if (showing) finish();
+    }
+
+    ['mousemove', 'pointerdown', 'touchstart', 'touchend', 'wheel', 'keydown'].forEach(function (type) {
+      window.addEventListener(type, activity, { passive: true });
+    });
+
+    // Only trigger while the tab is actually visible — background tabs get
+    // timer-throttled and would render half-baked cycles.
+    setInterval(function () {
+      if (retired || showing) return;
+      if (document.hidden) { lastActive = Date.now(); return; }
+      if (Date.now() - lastActive >= IDLE_MS) trigger();
+    }, 1000);
+
+    try {
+      console.log('%c REC 04 · SIGNAL INTERCEPT — 你被记录了 · 它只出现三次',
+        'color:#ff4d5e;background:#16060b;padding:4px 10px;border:1px solid rgba(255,77,94,.4);border-radius:4px;font-family:monospace');
+    } catch (e) {}
   })();
 })();
 </script>
