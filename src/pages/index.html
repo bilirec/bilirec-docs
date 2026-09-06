@@ -7,10 +7,47 @@
 <meta name="description" content="开源自托管的 Bilibili 直播录制后端。支持 Web PWA、Android 与 Docker，适合树莓派、NAS 与手机挂机无人值守。" />
 <meta name="theme-color" content="#05070b" />
 <link rel="icon" href="/images/web-ui/logo.svg" type="image/svg+xml" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
+  /* Inter self-hosted (latin subset only, ~24KB/weight): zero third-party
+     requests, no render-blocking risk in mainland China. Chinese text falls
+     through to the system font stack below — bundling Noto Sans SC (~1-4MB
+     per weight) would outweigh any fidelity gain. */
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/inter/inter-latin-400-normal.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("/fonts/inter/inter-latin-500-normal.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/fonts/inter/inter-latin-600-normal.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/fonts/inter/inter-latin-700-normal.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url("/fonts/inter/inter-latin-800-normal.woff2") format("woff2");
+  }
+
   :root {
     --bg: #05070b;
     --bg-elev: #0a0e16;
@@ -23,9 +60,9 @@
     --blue: #7db3e8;
     --cyan: #5eead4;
     --max: 1400px;
-    --font-display: "Inter", "Noto Sans SC", system-ui, sans-serif;
-    --font-body: "Inter", "Noto Sans SC", system-ui, sans-serif;
-    --font-mono: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    --font-display: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --font-body: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --font-mono: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
     --radius: 18px;
   }
 
