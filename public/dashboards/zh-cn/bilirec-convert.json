@@ -717,7 +717,7 @@
       "id": 8,
       "type": "timeseries",
       "title": "待处理与处理中",
-      "description": "按 provider 显示等待下一步动作及仍在处理生命周期中的任务数。CloudConvert 的处理中包括云端等待、执行及结果下载处理。",
+      "description": "按 provider 显示等待下一步动作及仍在处理生命周期中的任务数。数值随任务状态变化即时更新，并按检查周期校正。CloudConvert 的处理中包括云端等待、执行及结果下载处理。",
       "gridPos": {
         "h": 8,
         "w": 12,

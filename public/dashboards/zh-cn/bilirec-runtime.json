@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "bilirec 进程的 CPU、内存、goroutine、文件描述符与 GC。右侧「录制中」用来对照并发录制有没有把资源一起擡高。Linux 才有 Anon / File；没有时内存图只显示 RSS。Y 轴从 0 开始，避免堆叠图把基底裁掉。",
+    "description": "bilirec 进程的 CPU、内存、goroutine、文件描述符与 GC。右侧「录制中」与「FFmpeg 处理中」用来对照并发录制 / 本地转码有没有把资源一起擡高（FFmpeg 处理中不含 CloudConvert）。Linux 才有 Anon / File；没有时内存图只显示 RSS。Y 轴从 0 开始，避免堆叠图把基底裁掉。",
     "time": { "from": "now-12h", "to": "now" },
     "templating": {
       "list": [
@@ -238,7 +238,7 @@
         "id": 8,
         "type": "timeseries",
         "title": "User + System",
-        "description": "两条堆叠：User 是程序本身，System 是系统呼叫。录制中画在右侧轴，用来对照并发。",
+        "description": "两条堆叠：User 是程序本身，System 是系统呼叫。录制中与 FFmpeg 处理中画在右侧轴，用来对照并发。FFmpeg 处理中只统计本地转码，CloudConvert 不在内。",
         "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
@@ -256,6 +256,11 @@
             "refId": "C",
             "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
             "legendFormat": "录制中"
+          },
+          {
+            "refId": "D",
+            "expr": "sum(bilirec_convert_tasks_processing{job=~\"$job\", instance=~\"$instance\", provider=\"ffmpeg\"}) or vector(0)",
+            "legendFormat": "FFmpeg 处理中"
           }
         ],
         "fieldConfig": {
@@ -295,7 +300,19 @@
                 { "id": "custom.axisPlacement", "value": "right" },
                 { "id": "unit", "value": "short" },
                 { "id": "decimals", "value": 0 },
-                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "FFmpeg 处理中" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "unit", "value": "short" },
+                { "id": "decimals", "value": 0 },
+                { "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }
               ]
             }
           ]
@@ -317,7 +334,7 @@
         "id": 10,
         "type": "timeseries",
         "title": "Anon + File",
-        "description": "Linux：File（文件页缓存，含录制档）与 Anon（程序本身）堆叠。「合计」是两者相加，约等于 RSS。没有 Anon/File 时只显示 RSS。Y 轴从 0 开始。",
+        "description": "Linux：File（文件页缓存，含录制档）与 Anon（程序本身）堆叠。「合计」是两者相加，约等于 RSS。没有 Anon/File 时只显示 RSS。Y 轴从 0 开始。录制中与 FFmpeg 处理中画在右侧轴。",
         "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
@@ -345,6 +362,11 @@
             "refId": "E",
             "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
             "legendFormat": "录制中"
+          },
+          {
+            "refId": "F",
+            "expr": "sum(bilirec_convert_tasks_processing{job=~\"$job\", instance=~\"$instance\", provider=\"ffmpeg\"}) or vector(0)",
+            "legendFormat": "FFmpeg 处理中"
           }
         ],
         "fieldConfig": {
@@ -400,7 +422,19 @@
                 { "id": "custom.axisPlacement", "value": "right" },
                 { "id": "unit", "value": "short" },
                 { "id": "decimals", "value": 0 },
-                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "FFmpeg 处理中" },
+              "properties": [
+                { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "unit", "value": "short" },
+                { "id": "decimals", "value": 0 },
+                { "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }
               ]
             }
           ]
@@ -489,6 +523,11 @@
             "refId": "D",
             "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
             "legendFormat": "录制中"
+          },
+          {
+            "refId": "E",
+            "expr": "sum(bilirec_convert_tasks_processing{job=~\"$job\", instance=~\"$instance\", provider=\"ffmpeg\"}) or vector(0)",
+            "legendFormat": "FFmpeg 处理中"
           }
         ],
         "fieldConfig": {
@@ -512,7 +551,16 @@
                 { "id": "custom.axisPlacement", "value": "right" },
                 { "id": "custom.fillOpacity", "value": 0 },
                 { "id": "custom.lineWidth", "value": 2 },
-                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "FFmpeg 处理中" },
+              "properties": [
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }
               ]
             }
           ]
@@ -547,6 +595,11 @@
             "refId": "B",
             "expr": "sum(bilirec_active_recordings{job=~\"$job\", instance=~\"$instance\"})",
             "legendFormat": "录制中"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(bilirec_convert_tasks_processing{job=~\"$job\", instance=~\"$instance\", provider=\"ffmpeg\"}) or vector(0)",
+            "legendFormat": "FFmpeg 处理中"
           }
         ],
         "fieldConfig": {
@@ -570,7 +623,16 @@
                 { "id": "custom.axisPlacement", "value": "right" },
                 { "id": "custom.fillOpacity", "value": 0 },
                 { "id": "custom.lineWidth", "value": 2 },
-                { "id": "color", "value": { "fixedColor": "text", "mode": "fixed" } }
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "FFmpeg 处理中" },
+              "properties": [
+                { "id": "custom.axisPlacement", "value": "right" },
+                { "id": "custom.fillOpacity", "value": 0 },
+                { "id": "custom.lineWidth", "value": 2 },
+                { "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }
               ]
             }
           ]

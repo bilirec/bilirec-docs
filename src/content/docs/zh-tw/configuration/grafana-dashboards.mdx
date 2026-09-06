@@ -138,23 +138,23 @@ import { Aside } from '@astrojs/starlight/components';
 
 **下載：** [bilirec-convert.json](/dashboards/zh-tw/bilirec-convert.json)
 
-**注意：** 「失敗」按失敗嘗試計數，重試會重複累加。CloudConvert 的「待處理」是尚未成功提交到雲端，「處理中」是已提交但仍在雲端等待、執行或下載結果。預設時間範圍約 6 小時，與其他健康盤一致。沒有轉碼任務時「各實例積壓」為空是正常的。
+**注意：** 「失敗」按失敗嘗試計數，重試會重複累加。CloudConvert 的「待處理」是尚未成功提交到雲端，「處理中」是已提交但仍在雲端等待、執行或下載結果。「待處理」與「處理中」在任務狀態變化時即時更新（另有每個檢查週期校正一次）；因輸入檔案消失而被移出隊列的 FFmpeg 任務會計入「取消」。預設時間範圍約 6 小時，與其他健康盤一致。沒有轉碼任務時「各實例積壓」為空是正常的。
 
 ## 行程資源
 
 ![行程資源](/images/dashboards/bilirec-runtime.png)
 
-**用途：** 對照「同時在錄幾路」看 CPU / 記憶體。Linux 上會把程式自己佔用的記憶體和用來加速讀檔案的緩存分開顯示，避免把緩存當成程式在漲記憶體。
+**用途：** 對照「同時在錄幾路」與「FFmpeg 轉碼處理中幾路」看 CPU / 記憶體。Linux 上會把程式自己佔用的記憶體和用來加速讀檔案的緩存分開顯示，避免把緩存當成程式在漲記憶體。
 
 **能回答：**
 
 - 記憶體高是不是錄製檔案緩存？（見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)）
-- CPU 是否隨路數一起抬高？
+- CPU 是否隨路數一起抬高？本地轉碼（FFmpeg）是否把資源一起抬高？
 - 打開的檔案數是否異常？
 
 **下載：** [bilirec-runtime.json](/dashboards/zh-tw/bilirec-runtime.json)
 
-**注意：** Windows 上可能只有一項總記憶體，沒有把檔案緩存拆開。
+**注意：** Windows 上可能只有一項總記憶體，沒有把檔案緩存拆開。「FFmpeg 處理中」只統計本地 ffmpeg 轉碼，CloudConvert 不在內。
 
 ## 累計用量
 

@@ -138,23 +138,23 @@ import { Aside } from '@astrojs/starlight/components';
 
 **下载：** [bilirec-convert.json](/dashboards/zh-cn/bilirec-convert.json)
 
-**注意：** 「失败」按失败尝试计数，重试会重复累加。CloudConvert 的「待处理」是尚未成功提交到云端，「处理中」是已提交但仍在云端等待、执行或下载结果。默认时间范围约 6 小时，与其他健康盘一致。没有转码任务时「各实例积压」为空是正常的。
+**注意：** 「失败」按失败尝试计数，重试会重复累加。CloudConvert 的「待处理」是尚未成功提交到云端，「处理中」是已提交但仍在云端等待、执行或下载结果。「待处理」与「处理中」在任务状态变化时即时更新（另有每个检查周期校正一次）；因输入文件消失而被移出队列的 FFmpeg 任务会计入「取消」。默认时间范围约 6 小时，与其他健康盘一致。没有转码任务时「各实例积压」为空是正常的。
 
 ## 进程资源
 
 ![进程资源](/images/dashboards/bilirec-runtime.png)
 
-**用途：** 对照「同时在录几路」看 CPU / 内存。Linux 上会把程序自己占用的内存和用来加速读文件的缓存分开显示，避免把缓存当成程序在涨内存。
+**用途：** 对照「同时在录几路」与「FFmpeg 转码处理中几路」看 CPU / 内存。Linux 上会把程序自己占用的内存和用来加速读文件的缓存分开显示，避免把缓存当成程序在涨内存。
 
 **能回答：**
 
 - 内存高是不是录制文件缓存？（见 [内存占用估算](/zh-cn/configuration/memory-estimation/)）
-- CPU 是否随路数一起抬高？
+- CPU 是否随路数一起抬高？本地转码（FFmpeg）是否把资源一起擡高？
 - 打开的文件数是否异常？
 
 **下载：** [bilirec-runtime.json](/dashboards/zh-cn/bilirec-runtime.json)
 
-**注意：** Windows 上可能只有一项总内存，没有把文件缓存拆开。
+**注意：** Windows 上可能只有一项总内存，没有把文件缓存拆开。「FFmpeg 处理中」只统计本地 ffmpeg 转码，CloudConvert 不在内。
 
 ## 累计用量
 

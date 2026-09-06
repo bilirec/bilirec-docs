@@ -185,12 +185,12 @@ bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_conne
 | `bilirec_convert_tasks_queued_total` | counter | 成功寫入轉碼隊列的任務數 |
 | `bilirec_convert_tasks_completed_total` | counter | 成功完成的轉碼任務數 |
 | `bilirec_convert_tasks_failed_total` | counter | 轉碼或相關處理失敗的嘗試次數。任務重試時可能重複增加，不等於唯一失敗任務數 |
-| `bilirec_convert_tasks_cancelled_total` | counter | 由使用者取消、併成功從隊列移除的任務數 |
+| `bilirec_convert_tasks_cancelled_total` | counter | 計入取消的任務數：使用者取消，或 FFmpeg 任務因輸入檔案消失而被移出隊列 |
 | `bilirec_convert_tasks_pending` | gauge | 當前仍在本機等待下一步動作的任務數。FFmpeg 包含尚未開始和等待重試的任務；CloudConvert 只包含尚未成功提交到雲端的任務 |
 | `bilirec_convert_tasks_processing` | gauge | 當前仍在處理生命週期中的任務數。FFmpeg 表示正在轉碼；CloudConvert 表示已經提交到雲端但仍保留在持久化隊列中的任務，包含雲端等待、執行及結果下載處理 |
 
 <Aside type="note">
-這些 counter 在 bilirec 進程內持續累加，重啟後歸零；`increase()` / `rate()` 會像其他 counter 一樣處理重置。`pending` 與 `processing` 會由既有 worker 週期性根據持久化隊列和本機處理狀態重新計算；CloudConvert 的 `processing` 包含已經提交但尚未從持久化隊列移除的任務，不代表雲端當前實際執行並發數。可直接導入 [轉碼健康儀表盤](/zh-tw/configuration/grafana-dashboards/#轉碼健康)。
+這些 counter 在 bilirec 進程內持續累加，重啟後歸零；`increase()` / `rate()` 會像其他 counter 一樣處理重置。`pending` 與 `processing` 在任務狀態變化時（入隊、開始處理、完成、失敗、取消）即時更新，另有 worker 每個檢查週期根據持久化隊列和本機處理狀態校正一次。CloudConvert 的 `processing` 包含已經提交但尚未從持久化隊列移除的任務，不代表雲端當前實際執行並發數。可直接導入 [轉碼健康儀表盤](/zh-tw/configuration/grafana-dashboards/#轉碼健康)。
 </Aside>
 
 ## Grafana / MetricsQL 查詢示例
