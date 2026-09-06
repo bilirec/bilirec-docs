@@ -2,14 +2,14 @@
     "title": "bilirec / 錄製總覽",
     "uid": "bilirec-overview",
     "schemaVersion": 39,
-    "version": 10,
+    "version": 11,
     "refresh": "30s",
     "tags": ["bilirec"],
     "timezone": "browser",
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "bilirec 錄製總覽。資料源選 VictoriaMetrics（Prometheus 類型）。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
+    "description": "bilirec 錄製總覽。資料源選 VictoriaMetrics（Prometheus 類型）。KPI 含本地 FFmpeg 轉碼待處理數；斷線恢復的成功 / 失敗 / 放棄趨勢在「趨勢」區。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
     "time": { "from": "now-6h", "to": "now" },
     "templating": {
       "list": [
@@ -172,14 +172,15 @@
       {
         "id": 5,
         "type": "stat",
-        "title": "近 1 小時斷線恢復",
+        "title": "FFmpeg 待處理",
+        "description": "本機 ffmpeg 轉碼佇列裡等待處理的任務數（不含 CloudConvert）。持續大於 0 並上漲，說明轉碼跟不上錄製產出。",
         "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum(increase(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\"}[1h]))",
-            "legendFormat": "恢復",
+            "expr": "sum(bilirec_convert_tasks_pending{job=~\"$job\", instance=~\"$instance\", provider=\"ffmpeg\"}) or vector(0)",
+            "legendFormat": "待處理",
             "range": true
           }
         ],
@@ -382,8 +383,66 @@
         "fieldConfig": {
           "defaults": {
             "unit": "short",
-            "custom": { "drawStyle": "line", "fillOpacity": 15, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never" }
+            "min": 0,
+            "custom": { "drawStyle": "line", "fillOpacity": 15, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never", "axisSoftMin": 0 }
           }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 20,
+        "type": "timeseries",
+        "title": "斷線恢復",
+        "description": "恢復嘗試速率：成功是斷線後重新連上流；失敗是恢復迴圈連流失敗（正常下播後的重試不算）；放棄是失敗到上限後放棄這場錄製。持續不為 0 說明網路到直播源不穩。",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_recovery_success_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])) or vector(0)",
+            "legendFormat": "恢復成功"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_recovery_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])) or vector(0)",
+            "legendFormat": "恢復失敗"
+          },
+          {
+            "refId": "C",
+            "expr": "sum(rate(bilirec_room_recording_gave_up_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])) or vector(0)",
+            "legendFormat": "放棄"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "decimals": 2,
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never", "axisSoftMin": 0 }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "恢復成功" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "恢復失敗" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "放棄" },
+              "properties": [
+                { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              ]
+            }
+          ]
         },
         "options": {
           "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
@@ -394,7 +453,7 @@
         "id": 10,
         "type": "table",
         "title": "開播但目前沒在錄",
-        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 32 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
@@ -420,7 +479,7 @@
         "id": 11,
         "type": "timeseries",
         "title": "全站直播流讀取速率",
-        "gridPos": { "h": 7, "w": 24, "x": 0, "y": 32 },
+        "gridPos": { "h": 7, "w": 16, "x": 0, "y": 40 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
@@ -444,7 +503,7 @@
         "id": 12,
         "type": "row",
         "title": "各房間",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
         "collapsed": false,
         "panels": []
       },
@@ -452,7 +511,7 @@
         "id": 13,
         "type": "timeseries",
         "title": "各房間讀取速率（top 10）",
-        "gridPos": { "h": 10, "w": 16, "x": 0, "y": 40 },
+        "gridPos": { "h": 10, "w": 16, "x": 0, "y": 48 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
@@ -476,7 +535,7 @@
         "id": 14,
         "type": "timeseries",
         "title": "各房間斷線恢復",
-        "gridPos": { "h": 10, "w": 8, "x": 16, "y": 40 },
+        "gridPos": { "h": 10, "w": 8, "x": 16, "y": 48 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
@@ -500,7 +559,7 @@
         "id": 15,
         "type": "table",
         "title": "目前追蹤中的房間",
-        "gridPos": { "h": 10, "w": 24, "x": 0, "y": 50 },
+        "gridPos": { "h": 10, "w": 24, "x": 0, "y": 58 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
