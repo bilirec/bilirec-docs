@@ -5,7 +5,6 @@
   "version": 1,
   "refresh": "30s",
   "tags": [
-    "bilirec",
     "logging",
     "victorialogs",
     "explorer"
@@ -199,10 +198,10 @@
       "includeVars": true,
       "keepTime": true,
       "tags": [
-        "bilirec"
+        "logging"
       ],
       "targetBlank": false,
-      "title": "bilirec",
+      "title": "日志仪表盘",
       "tooltip": "",
       "type": "dashboards"
     }
