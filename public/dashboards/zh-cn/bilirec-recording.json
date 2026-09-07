@@ -307,13 +307,13 @@
         "id": 9,
         "type": "table",
         "title": "录制中但流没连上",
-        "description": "场次还在、却没有在读直播流。恢复空档会出现在这里。停录后 series 会卸载，不会用 == 0 去配。",
+        "description": "场次还在、主播仍在播、却不在恢复、也没有在读直播流。正常下播后的恢复空档不会出现在这里。停录后 series 会卸载，不会用 == 0 去配。",
         "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "(bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1 unless on(room_id) (bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "expr": "((bilirec_room_recording_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1 and on(room_id) bilirec_room_live_status{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) unless on(room_id) (bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1 or bilirec_room_recording_recovering{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1)) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
             "format": "table",
             "instant": true,
             "range": false
@@ -333,7 +333,7 @@
       {
         "id": 10,
         "type": "timeseries",
-        "title": "录制中 vs 已连上流",
+        "title": "录制中 vs 已连上流 vs 恢复中",
         "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
@@ -346,6 +346,11 @@
             "refId": "B",
             "expr": "count(bilirec_room_stream_connection_active{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
             "legendFormat": "已连上流"
+          },
+          {
+            "refId": "C",
+            "expr": "count(bilirec_room_recording_recovering{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"} == 1) or vector(0)",
+            "legendFormat": "恢复中"
           }
         ],
         "fieldConfig": {

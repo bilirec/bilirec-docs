@@ -109,6 +109,7 @@ Go 运行时与进程资源指标由 [VictoriaMetrics/metrics](https://github.co
 | `bilirec_room_stream_bytes_total` | counter | 串流写入字节数（≈ 落盘量）。停录后仍留在 `/metrics`，同房间下场继续累加 |
 | `bilirec_room_recording_sessions_total` | counter | 录制场次数。停录后仍留在 `/metrics`，同房间下场继续累加 |
 | `bilirec_room_recording_active` | gauge 1/0 | 是否正在录制（积分得每日录制时长）。恢复中仍为 1。停录后会从 `/metrics` 消失，历史仍在时序数据库 |
+| `bilirec_room_recording_recovering` | gauge 1/0 | 是否正在恢复循环（断线后重试连流，含正常下播后的重试）。开录时建为 0；进入恢复为 1；恢复成功或停录归 0。停录后会从 `/metrics` 消失 |
 | `bilirec_room_stream_connection_active` | gauge 1/0 | 是否正在从直播流读数据。场次还在、流却断了时为 0。停录后同样会从 `/metrics` 消失 |
 | `bilirec_room_stream_connect_attempts_total` | counter | 每次真正去连流算 1 次（含恢复），不是每条备用网址各算 1 次 |
 | `bilirec_room_recording_rotations_total` | counter | 切档次数（画质变化切档、恢复后开的新档）。使用者开录的第一档不算 |
@@ -129,7 +130,7 @@ Go 运行时与进程资源指标由 [VictoriaMetrics/metrics](https://github.co
 <Aside type="note">
 写入量、场次数、失败次数这类 **counter** 在停录后仍留在 `/metrics`。同一个房间下次开录会接着往上加，这样 Grafana 里的 `increase()` 才能把一段时间内的多场加总。进程重启后这些计数会从 0 再开始；时序数据库里的历史还在，`increase()` 会把重启前后的增量加在一起。
 
-`recording_active`、`stream_connection_active` 这类 **状态 gauge** 停录后会从 `/metrics` 消失，用来看「现在谁在录」。算时长请用时序数据库里的历史，见下表 `integrate()`。
+`recording_active`、`recording_recovering`、`stream_connection_active` 这类 **状态 gauge** 停录后会从 `/metrics` 消失，用来看「现在谁在录」。算时长请用时序数据库里的历史，见下表 `integrate()`。
 </Aside>
 
 开录失败 `reason` 只会是下面这些固定值，不会把错误全文写进标签：
@@ -148,12 +149,19 @@ Go 运行时与进程资源指标由 [VictoriaMetrics/metrics](https://github.co
 
 放弃录制 `reason`：`max_attempts`（恢复次数用尽）、`not_live_timeout`（下播后重试超过最长分钟数）、`concurrent`、`banned`、`encrypted`。
 
-场次还在、流却没连上，可以用：
+场次还在、主播仍在播、却不在恢复、流也没连上，可以用：
 
 ```text
-bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_connection_active == 1)
+(
+  bilirec_room_recording_active == 1
+    and on(room_id) bilirec_room_live_status == 1
+)
+unless on(room_id)
+(
+  bilirec_room_stream_connection_active == 1
+    or bilirec_room_recording_recovering == 1
+)
 ```
-
 ### 弹幕指标
 
 开启房间的弹幕录制后，还会产生带 `room_id` 标签的弹幕相关指标。消息数量指标另外带有 `event_type` 标签，值为 `danmaku`、`super_chat`、`gift` 或 `guard`。
@@ -214,7 +222,7 @@ bilirec 只暴露**累积 counter** 与**即时 gauge**，每日 / 总量统计�
 | 每房间断线恢复失败次数 | `increase(bilirec_room_stream_recovery_total[$__range])` |
 | 每房间断线后恢复成功 | `increase(bilirec_room_stream_recovery_success_total[$__range])` |
 | 每房间开录失败 | `sum by (reason) (increase(bilirec_room_recording_start_failures_total[$__range]))` |
-| 录制中但流没连上 | `bilirec_room_recording_active == 1 unless on(room_id) (bilirec_room_stream_connection_active == 1)` |
+| 录制中但流没连上（排除恢复中 / 已下播） | `(bilirec_room_recording_active == 1 and on(room_id) bilirec_room_live_status == 1) unless on(room_id) (bilirec_room_stream_connection_active == 1 or bilirec_room_recording_recovering == 1)` |
 | 每房间丢弃的弹幕事件 | `sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total[$__range]))` |
 | 每房间弹幕重连次数 | `increase(bilirec_danmaku_reconnects_total[$__range])` |
 | 各 provider 转码入队数 | `sum by (provider) (increase(bilirec_convert_tasks_queued_total[$__range]))` |
@@ -246,7 +254,7 @@ bilirec **不在本地保存任何指标数据**，所有历史由 VictoriaMetri
 - counter 只在单次进程生命周期内单调递增。停录不会清零，同一个房间下场会接着加；**重启会归零**，这是设计使然。若某段历史是在停录就拿掉 counter 的旧版本里抓的，那一段的场次 `increase()` 可能仍然偏小；升级后新录制的场次才会按场累加。
 - VictoriaMetrics 每次抓取的样本全部入库，`increase()` / `rate()` 会自动识别 counter 重置（值变小视为重启），跨重启的每日统计由重启前增量与重启后增量相加得出。
 - 唯一损失窗口：最后一次抓取到重启之间尚未被抓走的增量。以 `scrape_interval=15–30s`、6 Mbps 串流估算，约为 25 MB 量级的误差。
-- gauge（`live_status`、`recording_active`、`stream_connection_active`）每轮 / 每事件无条件 Set，重启后自动恢复当前值，不依赖历史。
+- gauge（`live_status`、`recording_active`、`recording_recovering`、`stream_connection_active`）每轮 / 每事件无条件 Set，重启后自动恢复当前值，不依赖历史。
 
 ## 已知限制
 
