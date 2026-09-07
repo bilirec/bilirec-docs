@@ -1,0 +1,71 @@
+# Grafana Prometheus YAML 匯入：
+# - 下方 namespace 覆寫檔名；Target folder 必須留空（不要選 Network）
+# - 匯入後：UnifiControllerDown → No data = Alerting（Error = OK）
+
+namespace: Network
+
+groups:
+  - name: network-unifi
+    interval: 1m
+    rules:
+      - alert: UnifiControllerDown
+        expr: unpoller_controller_up == 0
+        for: 3m
+        labels:
+          team: network
+          component: unifi
+          severity: critical
+        annotations:
+          summary: UniFi controller / unpoller 無法取得狀態
+          description: unpoller_controller_up == 0
+
+      - alert: UcgHighCpu
+        expr: unpoller_device_cpu_utilization_ratio{type="udm"} > 0.85
+        for: 15m
+        labels:
+          team: network
+          component: unifi
+          severity: warning
+        annotations:
+          summary: UCG {{ $labels.name }} CPU > 85%
+          description: unpoller_device_cpu_utilization_ratio
+
+      - alert: UcgHighMemory
+        expr: unpoller_device_memory_utilization_ratio{type="udm"} > 0.90
+        for: 20m
+        labels:
+          team: network
+          component: unifi
+          severity: warning
+        annotations:
+          summary: UCG {{ $labels.name }} 記憶體 > 90%
+          description: unpoller_device_memory_utilization_ratio
+
+      - alert: WanPortErrors
+        expr: |
+          (
+            rate(unpoller_device_port_receive_errors_total{port_num="5"}[15m]) > 0.1
+          )
+          or
+          (
+            rate(unpoller_device_port_transmit_errors_total{port_num="5"}[15m]) > 0.1
+          )
+        for: 10m
+        labels:
+          team: network
+          component: wan
+          severity: warning
+        annotations:
+          summary: UCG WAN Port 5 出現錯誤
+          description: '可能是線路 / 光貓問題。name={{ $labels.name }}'
+
+      - alert: LanPortErrors
+        expr: rate(unpoller_device_port_receive_errors_total{port_num!="5"}[15m]) > 1
+        for: 15m
+        labels:
+          team: network
+          component: lan
+          severity: info
+        annotations:
+          summary: 'LAN 埠錯誤偏高: {{ $labels.port_name }}'
+          description: receive errors rate > 1/s

@@ -1,0 +1,99 @@
+# Grafana Prometheus YAML 匯入：
+# - 下方 namespace 會覆寫預設（檔名 bilirec.yml），對應既有資料夾標題
+# - Target folder 必須留空（不要選 Bilirec），否則會建成 Bilirec/<namespace>
+# - 前置：部署含 bilirec_room_recording_recovering 的 bilirec
+# - 匯入後：BilirecDown → No data = Alerting（Error = OK）
+
+namespace: Bilirec
+
+groups:
+  - name: bilirec-health
+    interval: 1m
+    rules:
+      - alert: BilirecDown
+        expr: up{job="bilirec"} == 0
+        for: 2m
+        labels:
+          team: bilirec
+          component: service
+          severity: critical
+        annotations:
+          summary: bilirec 服務 down
+          description: 'up{job="bilirec"} == 0，instance={{ $labels.instance }}'
+
+      - alert: BilirecRecordingWithoutStream
+        expr: |
+          (
+            bilirec_room_recording_active == 1
+              and on(room_id) bilirec_room_live_status == 1
+          )
+          unless on(room_id)
+          (
+            bilirec_room_stream_connection_active == 1
+              or bilirec_room_recording_recovering == 1
+          )
+        for: 2m
+        labels:
+          team: bilirec
+          component: recording
+          severity: warning
+        annotations:
+          summary: 房間 {{ $labels.room_id }} 錄製中且主播在線，但流沒連上（非恢復中）
+          description: recording_active=1、live_status=1，且沒有 stream_connection_active / recording_recovering
+
+      - alert: BilirecStreamStalled
+        expr: |
+          ((bilirec_room_recording_active == 1) and on(room_id) (bilirec_room_stream_connection_active == 1))
+          unless on(room_id) (rate(bilirec_room_stream_bytes_total[5m]) > 0)
+        for: 5m
+        labels:
+          team: bilirec
+          component: recording
+          severity: warning
+        annotations:
+          summary: 房間 {{ $labels.room_id }} 連著但讀取速率為 0
+          description: 可能卡流或上游無資料
+
+      - alert: BilirecGaveUpRecording
+        expr: |
+          sum by (room_id) (
+            increase(bilirec_room_recording_gave_up_total{reason!="not_live_timeout"}[1h])
+          ) > 0
+        labels:
+          team: bilirec
+          component: recovery
+          severity: warning
+        annotations:
+          summary: 房間 {{ $labels.room_id }} 近 1 小時異常放棄恢復
+          description: '可能漏錄。not_live_timeout（正常下播重試逾時）已排除。reason={{ $labels.reason }}'
+
+      - alert: BilirecConvertBacklog
+        # 有錄製進行時，PK 切檔 / 多房間收播會正常堆佇列，不算故障。
+        # 無錄製且 pending 長期 > 1：多半是轉碼失敗反覆回 pending 重試。
+        expr: |
+          (
+            sum by (instance, provider) (bilirec_convert_tasks_pending) > 1
+          )
+          and on(instance)
+          (
+            bilirec_active_recordings == 0
+          )
+        for: 30m
+        labels:
+          team: bilirec
+          component: convert
+          severity: warning
+        annotations:
+          summary: 無錄製中但轉碼佇列仍積壓 provider={{ $labels.provider }} > 1
+          description: 持續 30 分鐘。可能是轉碼失敗不斷重試；有房間在錄時的切檔積壓不告警
+
+      - alert: BilirecVictoriaLogsQueueGrow
+        expr: increase(bilirec_victorialogs_logs_dropped_total[5m]) > 0
+        for: 5m
+        labels:
+          team: bilirec
+          component: logging
+          severity: warning
+        annotations:
+          summary: 遠端日誌佇列溢出，有日誌被丟棄
+          description: bilirec_victorialogs_logs_dropped_total 近 5 分鐘有增量（佇列滿時 OverflowDrop）

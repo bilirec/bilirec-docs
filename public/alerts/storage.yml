@@ -1,0 +1,243 @@
+# Grafana Prometheus YAML 匯入：
+# - 下方 namespace 覆寫檔名；Target folder 必須留空（不要選 Storage）
+# - Groups：host-exporters / sas-phy / storage-hardware / storage-smart / storage-zfs
+# - 匯入後：ExporterDown → No data = Alerting（Error = OK）
+
+namespace: Storage
+
+groups:
+  - name: host-exporters
+    interval: 1m
+    rules:
+      - alert: ExporterDown
+        expr: up{job=~"nas-node|nas-hdd-smart|unifi-router-gateway"} == 0
+        for: 3m
+        labels:
+          team: host
+          component: exporter
+          severity: critical
+        annotations:
+          summary: 'Exporter down: {{ $labels.job }} ({{ $labels.instance }})'
+          description: up == 0 持續 3 分鐘（bilirec 由 BilirecDown 專責）
+
+      - alert: HostHighCpu
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 15m
+        labels:
+          team: host
+          component: cpu
+          severity: warning
+        annotations:
+          summary: NAS CPU > 90% 持續 15 分鐘
+          description: 'instance={{ $labels.instance }}'
+
+      - alert: HostHighMemory
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.92
+        for: 15m
+        labels:
+          team: host
+          component: memory
+          severity: warning
+        annotations:
+          summary: NAS 可用記憶體偏低（used > 92%）
+          description: ZFS ARC 會吃記憶體，閾值刻意放寬
+
+      - alert: RootFilesystemSpaceLow
+        expr: (1 - node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) > 0.85
+        for: 15m
+        labels:
+          team: host
+          component: filesystem
+          severity: warning
+        annotations:
+          summary: 根分割區已用 > 85%
+          description: mountpoint=/
+
+  - name: sas-phy
+    interval: 1m
+    rules:
+      - alert: SASPhyErrorsIncreasing
+        expr: |
+          increase(sas_phy_invalid_dword_count[10m]) > 50
+          or
+          increase(sas_phy_running_disparity_error_count[10m]) > 50
+        for: 5m
+        labels:
+          team: storage
+          component: sas_phy
+          severity: warning
+        annotations:
+          summary: SAS PHY ({{ $labels.phy }}) 物理層訊號錯誤持續增加
+          description: 硬碟 {{ $labels.device }} 在過去 10 分鐘內累積超過 50 次物理層訊號錯誤，可能為纜線鬆動或訊號干擾。
+
+      - alert: SASPhyLinkReset
+        expr: |
+          increase(sas_phy_loss_of_dword_sync_count[10m]) > 1
+          or
+          increase(sas_phy_phy_reset_problem_count[10m]) > 0
+        for: 5m
+        labels:
+          team: storage
+          component: sas_phy
+          severity: critical
+        annotations:
+          summary: SAS PHY ({{ $labels.phy }}) 鏈路發生重置/失步
+          description: 硬碟 {{ $labels.device }} 發生物理層斷線重連，可能引發卡頓或掉盤危險。
+
+  - name: storage-hardware
+    interval: 1m
+    rules:
+      - alert: SgSesUnhealthy
+        expr: sg_ses_health_status == 0
+        for: 2m
+        labels:
+          team: storage
+          component: ses
+          severity: critical
+        annotations:
+          summary: SES expander {{ $labels.device }} 不健康
+          description: sg_ses_health_status == 0
+
+      - alert: TextfileCollectorStale
+        expr: (time() - node_textfile_mtime_seconds{file=~".*(hba_storcli|sg_ses).*"}) > 600
+        for: 10m
+        labels:
+          team: storage
+          component: textfile
+          severity: warning
+        annotations:
+          summary: textfile {{ $labels.file }} 超過 10 分鐘未更新
+          description: HBA/SES 指標可能過期
+
+  - name: storage-smart
+    interval: 1m
+    rules:
+      - alert: SmartCrcIncrease1h
+        expr: increase(smartctl_device_attribute{attribute_name="UDMA_CRC_Error_Count",attribute_value_type="raw"}[30m]) > 0
+        labels:
+          team: storage
+          component: smart
+          severity: warning
+        annotations:
+          summary: HDD {{ $labels.device }} 近 30 分鐘 CRC 有新增
+          description: UDMA_CRC_Error_Count 增量 > 0。可能是纜線、背板或 HBA 訊號問題。
+
+      - alert: SmartReallocatedIncrease
+        expr: increase(smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct",attribute_value_type="raw"}[1h]) > 0
+        labels:
+          team: storage
+          component: smart
+          severity: critical
+        annotations:
+          summary: HDD {{ $labels.device }} 出現新的重配置扇區
+          description: Reallocated_Sector_Ct 近 1 小時有增量。
+
+      - alert: SmartPendingOrOfflineUncorrectable
+        expr: increase(smartctl_device_attribute{attribute_name=~"Current_Pending_Sector|Offline_Uncorrectable",attribute_value_type="raw"}[6h]) > 0
+        for: 5m
+        labels:
+          team: storage
+          component: smart
+          severity: critical
+        annotations:
+          summary: HDD {{ $labels.device }} 有新增 pending / offline uncorrectable
+          description: 'attribute={{ $labels.attribute_name }}（追蹤近 6 小時增量，避免歷史殘留永久 firing）'
+
+      - alert: SmartStatusFailed
+        expr: smartctl_device_smart_status == 0
+        for: 2m
+        labels:
+          team: storage
+          component: smart
+          severity: critical
+        annotations:
+          summary: 裝置 {{ $labels.device }} SMART overall health 失敗
+          description: smartctl_device_smart_status == 0
+
+      - alert: DiskTemperatureHigh
+        expr: |
+          (
+            smartctl_device_temperature{temperature_type="current",device=~"sd.*"} > 50
+          )
+          or
+          (
+            smartctl_device_temperature{temperature_type="current",device=~"nvme.*"} > 65
+          )
+        for: 10m
+        labels:
+          team: storage
+          component: temperature
+          severity: warning
+        annotations:
+          summary: 裝置 {{ $labels.device }} 溫度偏高
+          description: HDD > 50°C 或 NVMe > 65°C，持續 10 分鐘
+
+      - alert: HbaTemperatureHigh
+        expr: storcli_hba_roc_temperature > 85
+        for: 10m
+        labels:
+          team: storage
+          component: hba
+          severity: warning
+        annotations:
+          summary: HBA ROC 溫度 > 85°C
+          description: storcli_hba_roc_temperature
+
+      - alert: NvmeWearHigh
+        expr: smartctl_device_percentage_used > 80
+        for: 1h
+        labels:
+          team: storage
+          component: smart
+          severity: warning
+        annotations:
+          summary: NVMe {{ $labels.device }} 已用壽命 > 80%
+          description: smartctl_device_percentage_used
+
+  - name: storage-zfs
+    interval: 1m
+    rules:
+      # Verified: node_zfs_zpool_state emits one series per state with 0/1.
+      - alert: ZpoolNotOnline
+        expr: node_zfs_zpool_state{state="online"} != 1
+        for: 2m
+        labels:
+          team: storage
+          component: zfs
+          severity: critical
+        annotations:
+          summary: ZFS pool {{ $labels.zpool }} 不在 online
+          description: 'node_zfs_zpool_state{state="online"} != 1'
+
+      - alert: ZpoolDegradedOrWorse
+        expr: max by (zpool, instance) (node_zfs_zpool_state{state=~"degraded|faulted|unavail|suspended"}) == 1
+        for: 1m
+        labels:
+          team: storage
+          component: zfs
+          severity: critical
+        annotations:
+          summary: ZFS pool {{ $labels.zpool }} 進入 degraded/faulted/unavail/suspended
+          description: 立刻檢查 zpool status
+
+      # Verified: only one ZFS filesystem series (device=media, mountpoint=/media).
+      - alert: ZfsPoolSpaceLow
+        expr: (1 - node_filesystem_avail_bytes{fstype="zfs"} / node_filesystem_size_bytes{fstype="zfs"}) > 0.85
+        for: 15m
+        labels:
+          team: storage
+          component: zfs
+          severity: warning
+        annotations:
+          summary: ZFS {{ $labels.device }} 已用 > 85%
+          description: 可視需要另加 critical 92%
+
+      - alert: ZilCommitErrors
+        expr: increase(node_zfs_zil_zil_commit_error_count[1h]) > 0
+        labels:
+          team: storage
+          component: zfs
+          severity: warning
+        annotations:
+          summary: ZIL commit 近 1 小時有錯誤
+          description: 可能影響同步寫入穩定性
