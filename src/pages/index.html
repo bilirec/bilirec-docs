@@ -518,10 +518,6 @@
   .android-dual .phone {
     width: min(320px, 38vw);
   }
-  .android-actions {
-    display: flex; flex-wrap: wrap; gap: 10px;
-    margin-top: 18px;
-  }
 
 
   /* Monitoring */
@@ -1071,7 +1067,7 @@
         <p class="hero-lead">高性能、低功耗、边缘设备优先的 Bilibili 自动化录制与管理系统。面向树莓派 / NAS / 旧笔记本挂机、Android 录制、远程管理与无人值守等场景。</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="/zh-cn/guides/installation/">开始使用</a>
-          <a class="btn btn-ghost" href="https://app.bilirec.org" target="_blank" rel="noopener">打开 Web 应用</a>
+          <a class="btn btn-ghost" href="/zh-cn">阅读文档</a>
           <a class="btn btn-ghost" href="/zh-cn/guides/faq/">常见问题</a>
         </div>
       </div>
@@ -1143,7 +1139,7 @@
       <div class="feature-head">
         <p class="mono-label">01 · web / pwa</p>
         <h2 class="sec-title">Web PWA 应用</h2>
-        <p class="sec-sub">通过 app.bilirec.org 访问 Web 管理界面，支持以 PWA 形式安装到桌面或主屏，桌面与移动端体验一致。</p>
+        <p class="sec-sub"><b>一套界面，双端可用。</b>通过 app.bilirec.org 访问 Web 管理界面，支持以 PWA 形式安装到桌面或主屏。</p>
       </div>
       <div class="pwa-slider" id="pwaSlider" data-interval="5000">
         <div class="pwa-grid">
@@ -1220,12 +1216,11 @@
       <div class="feature-head">
         <p class="mono-label">02 · android</p>
         <h2 class="sec-title">Android 客户端</h2>
-        <p class="sec-sub">bilirec-mobile 可在 Android 设备上直接运行后端并完成录制。对比展示手机浏览器 / PWA 与官方客户端界面。</p>
+        <p class="sec-sub"><b>手机秒变录播机。</b>bilirec-mobile 可在 Android 设备上直接运行后端并完成录制，对比展示手机浏览器 / PWA 与官方客户端界面。</p>
       </div>
       <div class="android-dual glass">
         <div class="shot-col phone-col">
-          <span class="caption">PWA · web UI</span>
-          <div class="phone">
+          <span class="caption">PWA · web UI</span>          <div class="phone">
             <div class="phone-pill" aria-hidden="true"></div>
             <div class="phone-screen">
               <img
@@ -1254,16 +1249,13 @@
           </div>
         </div>
       </div>
-      <div class="android-actions">
-        <a class="btn btn-ghost" href="/zh-cn/guides/android/">阅读文档</a>
-      </div>
     </section>
 
     <section class="sec" id="replay">
       <div class="feature-head">
         <p class="mono-label">03 · replay</p>
         <h2 class="sec-title">弹幕与礼物互动回放</h2>
-        <p class="sec-sub">内置回放播放器。录制时可保存弹幕、醒目留言与礼物等互动内容，并在回放中还原。</p>
+        <p class="sec-sub"><b>把现场再看一遍。</b>内置回放播放器，录制时可保存弹幕、醒目留言与礼物等互动内容，并在回放中还原。</p>
       </div>
       <div class="replay-layout">
         <div class="shot-col glass">
@@ -1306,7 +1298,7 @@
       <div class="feature-head">
         <p class="mono-label">04 · monitoring</p>
         <h2 class="sec-title">运行指标监控</h2>
-        <p class="sec-sub">提供标准 Prometheus 监控接口，可通过 Grafana 观察录制与资源占用；对接 VictoriaLogs 后还能浏览原始日志。</p>
+        <p class="sec-sub"><b>一切尽在掌握。</b>提供标准 Prometheus 监控接口，可通过 Grafana 观察录制与资源占用；对接 VictoriaLogs 后还能浏览原始日志。</p>
       </div>
       <div class="monitor-slider" id="monitorSlider" data-interval="6500">
         <div class="monitor-toolbar">
@@ -1346,13 +1338,13 @@
       <div class="feature-head">
         <p class="mono-label">05 · deploy</p>
         <h2 class="sec-title">多平台部署支持</h2>
-        <p class="sec-sub">基于 Go 语言开发，支持所有主流操作系统与架构。</p>
+        <p class="sec-sub"><b>开箱即跑。</b>基于 Go 语言开发，支持所有主流操作系统与架构。</p>
       </div>
       <div class="deploy-grid">
         <article class="deploy-card glass">
           <div class="deploy-idx">01 / docker</div>
           <h3>Docker 容器</h3>
-          <p>适用于 NAS、轻量服务器。支持一键 Compose 部署。</p>
+          <p>适用于 NAS、轻量服务器。一行命令即可部署。</p>
           <a href="/zh-cn/guides/docker/">docker pull ghcr.io/bilirec/bilirec →</a>
         </article>
         <article class="deploy-card glass">
@@ -1364,7 +1356,7 @@
         <article class="deploy-card glass">
           <div class="deploy-idx">03 / android</div>
           <h3>Android 平台</h3>
-          <p>把闲置手机变成插电挂机的录制主机。支持常驻后台运行。</p>
+          <p>把闲置手机变成自动录制系统。支持常驻后台运行。</p>
           <a href="/zh-cn/guides/android/">获取安装包 →</a>
         </article>
       </div>
@@ -1375,7 +1367,7 @@
         <div>
           <p class="mono-label">community</p>
           <h2>QQ 交流群</h2>
-          <p>群号 <strong>834229325</strong>。安装、配置、踩坑经验都可以来问，也欢迎分享自己的部署方式。</p>
+          <p>群号 <strong>834229325</strong>。遇到问题、想交流使用经验或反馈建议，欢迎进群一起讨论。</p>
           <div class="hero-actions" style="margin-bottom:0">
             <a class="btn btn-primary" href="https://qm.qq.com/q/oMTN3EsGBy" target="_blank" rel="noopener">加入 QQ 群</a>
             <a class="btn btn-ghost" href="/zh-cn/guides/installation/">开始使用</a>
