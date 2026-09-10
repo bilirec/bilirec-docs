@@ -24,48 +24,62 @@ groups:
       - alert: BilirecRecordingWithoutStream
         expr: |
           (
-            bilirec_room_recording_active == 1
-              and on(room_id) bilirec_room_live_status == 1
+            (
+              bilirec_room_recording_active == 1
+                and on(room_id) bilirec_room_live_status == 1
+            )
+            unless on(room_id)
+            (
+              bilirec_room_stream_connection_active == 1
+                or bilirec_room_recording_recovering == 1
+            )
           )
-          unless on(room_id)
-          (
-            bilirec_room_stream_connection_active == 1
-              or bilirec_room_recording_recovering == 1
-          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
         for: 2m
         labels:
           team: bilirec
           component: recording
           severity: warning
         annotations:
-          summary: 房間 {{ $labels.room_id }} 錄製中且主播在線，但流沒連上（非恢復中）
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}錄製中且主播在線，但流沒連上（非恢復中）'
           description: recording_active=1、live_status=1，且沒有 stream_connection_active / recording_recovering
 
       - alert: BilirecStreamStalled
         expr: |
-          ((bilirec_room_recording_active == 1) and on(room_id) (bilirec_room_stream_connection_active == 1))
-          unless on(room_id) (rate(bilirec_room_stream_bytes_total[5m]) > 0)
+          (
+            ((bilirec_room_recording_active == 1) and on(room_id) (bilirec_room_stream_connection_active == 1))
+            unless on(room_id) (rate(bilirec_room_stream_bytes_total[5m]) > 0)
+          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
         for: 5m
         labels:
           team: bilirec
           component: recording
           severity: warning
         annotations:
-          summary: 房間 {{ $labels.room_id }} 連著但讀取速率為 0
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}連著但讀取速率為 0'
           description: 可能卡流或上游無資料
 
       - alert: BilirecGaveUpRecording
+        # 必須按 reason 聚合，否則通知裡 reason 會變成 [no value]。
+        # join room_info 才能顯示主播名；component 用 recording，避免通知看起來像「已恢復」。
         expr: |
-          sum by (room_id) (
-            increase(bilirec_room_recording_gave_up_total{reason!="not_live_timeout"}[1h])
-          ) > 0
+          (
+            sum by (room_id, reason) (
+              increase(bilirec_room_recording_gave_up_total{reason!="not_live_timeout"}[1h])
+            ) > 0
+          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
         labels:
           team: bilirec
-          component: recovery
+          component: recording
           severity: warning
         annotations:
-          summary: 房間 {{ $labels.room_id }} 近 1 小時異常放棄恢復
-          description: '可能漏錄。not_live_timeout（正常下播重試逾時）已排除。reason={{ $labels.reason }}'
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}停止恢復：{{ if eq $labels.reason "banned" }}直播間已被封禁{{ else if eq $labels.reason "encrypted" }}付費／加密直播{{ else if eq $labels.reason "max_attempts" }}斷線重試次數用盡{{ else if eq $labels.reason "concurrent" }}同時錄製數已滿{{ else }}{{ $labels.reason }}{{ end }}'
+          description: '{{ if eq $labels.reason "banned" }}B 站回傳此直播間已被封禁，因此停止恢復連流。這不是錄製程式故障。已經錄下的檔案會照常收尾轉碼。{{ else if eq $labels.reason "encrypted" }}直播間已改為付費／加密，無法繼續錄製。這不是斷流重試失敗。已經錄下的檔案會照常收尾。{{ else if eq $labels.reason "max_attempts" }}斷線後已依設定次數重試，仍連不上，因此結束這場錄製。請檢查網路、畫質或直播間狀態。後半段可能沒錄到。{{ else if eq $labels.reason "concurrent" }}同時錄製路數已滿，無法為這間房恢復。可稍後再錄，或提高同時錄製上限。{{ else }}恢復失敗後已停止這場錄製（reason={{ $labels.reason }}）。正常下播逾時（not_live_timeout）不會觸發此告警。{{ end }}'
 
       - alert: BilirecConvertBacklog
         # 有錄製進行時，PK 切檔 / 多房間收播會正常堆佇列，不算故障。
