@@ -127,7 +127,7 @@
       "description": "當前仍在處理生命週期中的任務數。FFmpeg 表示正在轉碼；CloudConvert 表示已提交到雲端但仍保留在持久化佇列中的任務，包含雲端等待、執行及結果下載處理。",
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 8,
         "x": 0,
         "y": 1
       },
@@ -181,8 +181,8 @@
       "description": "當前仍在本機等待下一步動作的任務數。FFmpeg 是尚未開始或等待重試的任務；CloudConvert 是尚未成功提交到雲端的任務。",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 4,
+        "w": 8,
+        "x": 8,
         "y": 1
       },
       "datasource": {
@@ -239,8 +239,8 @@
       "description": "所選時間區間內成功寫入轉碼佇列的任務數。",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
+        "w": 8,
+        "x": 16,
         "y": 1
       },
       "datasource": {
@@ -290,9 +290,9 @@
       "description": "所選時間區間內成功完成的轉碼任務數。",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 1
+        "w": 8,
+        "x": 0,
+        "y": 5
       },
       "datasource": {
         "type": "prometheus",
@@ -345,9 +345,9 @@
       "description": "所選時間區間內轉碼或相關處理失敗的次數。任務重試時可能重複計數，因此不一定等於唯一失敗任務數。",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 1
+        "w": 8,
+        "x": 8,
+        "y": 5
       },
       "datasource": {
         "type": "prometheus",
@@ -404,9 +404,9 @@
       "description": "所選時間區間內由使用者取消、併成功從佇列移除的任務數。",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 1
+        "w": 8,
+        "x": 16,
+        "y": 5
       },
       "datasource": {
         "type": "prometheus",
@@ -460,7 +460,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 9
       },
       "collapsed": false,
       "panels": []
@@ -471,10 +471,10 @@
       "title": "區間失敗率",
       "description": "失敗嘗試 ÷（完成 + 失敗嘗試）。分母不含取消。重試會抬高此值，不等於唯一任務失敗比例。",
       "gridPos": {
-        "h": 8,
-        "w": 6,
+        "h": 4,
+        "w": 8,
         "x": 0,
-        "y": 6
+        "y": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -532,10 +532,10 @@
       "title": "FFmpeg 積壓",
       "description": "當前 FFmpeg 待處理 + 處理中。",
       "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 6,
-        "y": 6
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -590,10 +590,10 @@
       "title": "CloudConvert 積壓",
       "description": "當前 CloudConvert 待處理 + 處理中（含已提交雲端尚未結束）。",
       "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 12,
-        "y": 6
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -649,9 +649,9 @@
       "description": "按 instance、provider 看當前待處理與處理中。沒任務時為空表。",
       "gridPos": {
         "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 6
+        "w": 24,
+        "x": 0,
+        "y": 14
       },
       "datasource": {
         "type": "prometheus",
@@ -708,7 +708,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "collapsed": false,
       "panels": []
@@ -722,7 +722,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 15
+        "y": 23
       },
       "datasource": {
         "type": "prometheus",
@@ -779,7 +779,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 23
       },
       "datasource": {
         "type": "prometheus",
@@ -828,9 +828,9 @@
       "description": "按 provider 與結果顯示每秒平均事件數。失敗按嘗試次數計數，重試可能讓同一任務出現多次失敗。",
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 12,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "datasource": {
         "type": "prometheus",
@@ -938,7 +938,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "collapsed": false,
       "panels": []
@@ -952,7 +952,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 40
       },
       "datasource": {
         "type": "prometheus",
@@ -1008,7 +1008,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 40
       },
       "datasource": {
         "type": "prometheus",

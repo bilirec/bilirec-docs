@@ -1149,12 +1149,23 @@
       "type": "timeseries",
       "title": "时间内丢弃日志",
       "description": "选定时间范围内，每个时间桶因 VictoriaLogs 发送队列已满而被丢弃的日志行数；图例的总和可查看整段范围的总量。",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${metricsDatasource}"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${metricsDatasource}"
+          },
           "expr": "sum(increase(bilirec_victorialogs_logs_dropped_total[$__interval])) or vector(0)",
           "legendFormat": "丢弃日志",
           "instant": false,
@@ -1175,25 +1186,42 @@
             "drawStyle": "bars",
             "fillOpacity": 80,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 0,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "丢弃日志" },
+            "matcher": {
+              "id": "byName",
+              "options": "丢弃日志"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "red", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1201,14 +1229,22 @@
       },
       "options": {
         "legend": {
-          "calcs": ["sum", "max", "last"],
+          "calcs": [
+            "sum",
+            "max",
+            "last"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
           "sortBy": "Total",
           "sortDesc": true
         },
-        "tooltip": { "hideZeros": true, "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
       }
     },
     {
@@ -1216,12 +1252,23 @@
       "type": "timeseries",
       "title": "时间内失败请求",
       "description": "选定时间范围内，每个时间桶推送到 VictoriaLogs 但最终失败的 HTTP 请求数；图例的总和可查看整段范围的总量。",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${metricsDatasource}"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${metricsDatasource}"
+          },
           "expr": "sum(increase(bilirec_victorialogs_requests_failed_total[$__interval])) or vector(0)",
           "legendFormat": "失败请求",
           "instant": false,
@@ -1242,25 +1289,42 @@
             "drawStyle": "bars",
             "fillOpacity": 80,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 0,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "失败请求" },
+            "matcher": {
+              "id": "byName",
+              "options": "失败请求"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "red", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1268,14 +1332,22 @@
       },
       "options": {
         "legend": {
-          "calcs": ["sum", "max", "last"],
+          "calcs": [
+            "sum",
+            "max",
+            "last"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
           "sortBy": "Total",
           "sortDesc": true
         },
-        "tooltip": { "hideZeros": true, "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
       }
     },
     {
@@ -1283,12 +1355,23 @@
       "type": "timeseries",
       "title": "时间内重试",
       "description": "选定时间范围内，每个时间桶 VictoriaLogs 批次发送额外重试的次数；图例的总和可查看整段范围的总量。",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 30 },
-      "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${metricsDatasource}"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${metricsDatasource}"
+          },
           "expr": "sum(increase(bilirec_victorialogs_retries_total[$__interval])) or vector(0)",
           "legendFormat": "重试",
           "instant": false,
@@ -1309,25 +1392,42 @@
             "drawStyle": "bars",
             "fillOpacity": 80,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 0,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "重试" },
+            "matcher": {
+              "id": "byName",
+              "options": "重试"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "yellow", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1335,14 +1435,22 @@
       },
       "options": {
         "legend": {
-          "calcs": ["sum", "max", "last"],
+          "calcs": [
+            "sum",
+            "max",
+            "last"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
           "sortBy": "Total",
           "sortDesc": true
         },
-        "tooltip": { "hideZeros": true, "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
       }
     },
     {
@@ -1350,12 +1458,23 @@
       "type": "timeseries",
       "title": "发送队列趋势",
       "description": "VictoriaLogs 远程日志发送队列 bytes 的时间序列。",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 30 },
-      "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${metricsDatasource}"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "${metricsDatasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${metricsDatasource}"
+          },
           "expr": "sum(bilirec_victorialogs_queue_bytes) or vector(0)",
           "legendFormat": "发送队列",
           "instant": false,
@@ -1376,25 +1495,42 @@
             "drawStyle": "line",
             "fillOpacity": 25,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "发送队列" },
+            "matcher": {
+              "id": "byName",
+              "options": "发送队列"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "blue", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1402,14 +1538,21 @@
       },
       "options": {
         "legend": {
-          "calcs": ["last", "max"],
+          "calcs": [
+            "last",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
           "sortBy": "Last",
           "sortDesc": true
         },
-        "tooltip": { "hideZeros": true, "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
       }
     }
   ]

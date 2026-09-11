@@ -287,7 +287,7 @@
       "description": "集中显示 error、warn 与 warning 日志；应用顶栏房间、模块、主机与 LogsQL 过滤条件。",
       "gridPos": {
         "h": 14,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 20
       },
@@ -334,9 +334,9 @@
       "description": "显示 recorder 模块的实际日志内容，用于追查开录、分段轮转、停止与直播流恢复；应用顶栏房间、级别、主机与 LogsQL 过滤条件。",
       "gridPos": {
         "h": 14,
-        "w": 12,
-        "x": 12,
-        "y": 20
+        "w": 24,
+        "x": 0,
+        "y": 34
       },
       "datasource": {
         "type": "victoriametrics-logs-datasource",
@@ -381,9 +381,9 @@
       "description": "显示 convert 模块的任务提交、处理、完成、延后与失败内容；可展开 task_id 等结构化字段，并应用顶栏房间、级别、主机与 LogsQL 过滤条件。",
       "gridPos": {
         "h": 14,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 34
+        "y": 48
       },
       "datasource": {
         "type": "victoriametrics-logs-datasource",
@@ -428,9 +428,9 @@
       "description": "只显示带有 file 结构化字段的日志，便于追查创建、写入、flush、sync、页面缓存与文件路径问题；应用所有顶栏过滤条件。",
       "gridPos": {
         "h": 14,
-        "w": 12,
-        "x": 12,
-        "y": 34
+        "w": 24,
+        "x": 0,
+        "y": 62
       },
       "datasource": {
         "type": "victoriametrics-logs-datasource",
