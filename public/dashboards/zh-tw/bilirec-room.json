@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "單一房間的開播/錄製時間線、讀取速率，以及 Grafana 時間範圍內的彈幕、寫入量、錄製時長與次數。房間下拉顯示主播名，實際值仍是 room_id。",
+    "description": "單一房間的開播/錄製時間線、讀入與落盤速率，以及 Grafana 時間範圍內的彈幕、落盤量、錄製時長與次數。寫入管線可看佇列等待、慢 flush/fsync 與 FLV 時間戳跳變。房間下拉顯示主播名，實際值仍是 room_id。",
     "time": { "from": "now-24h", "to": "now" },
     "templating": {
       "list": [
@@ -152,14 +152,22 @@
       {
         "id": 4,
         "type": "stat",
-        "title": "串流寫入量",
+        "title": "讀入 / 落盤",
+        "description": "這段時間 TCP 讀入與寫入器實際寫出的位元組。落盤通常略小於讀入。",
         "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
             "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
-            "legendFormat": "寫入",
+            "legendFormat": "讀入",
+            "instant": true,
+            "range": false
+          },
+          {
+            "refId": "B",
+            "expr": "sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "落盤",
             "instant": true,
             "range": false
           }
@@ -352,14 +360,20 @@
       {
         "id": 11,
         "type": "timeseries",
-        "title": "直播流讀取速率",
+        "title": "直播流讀取 / 落盤速率",
+        "description": "讀入是 TCP 收到的位元組；落盤是寫入器實際寫出。落盤持續低於讀入，表示寫入佇列在積壓。",
         "gridPos": { "h": 8, "w": 16, "x": 0, "y": 15 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
             "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
-            "legendFormat": "讀取"
+            "legendFormat": "讀入"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "落盤"
           }
         ],
         "fieldConfig": {
@@ -398,10 +412,129 @@
         }
       },
       {
+        "id": 15,
+        "type": "row",
+        "title": "寫入管線",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 16,
+        "type": "timeseries",
+        "title": "寫入佇列等待",
+        "description": "寫入佇列已滿時發送端等待的次數與累計秒數。持續出現表示磁碟或寫入跟不上碼率。",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_enqueue_waits_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "等待次數"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_enqueue_wait_seconds_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "等待秒數"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never", "axisSoftMin": 0 }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "等待次數" },
+              "properties": [{ "id": "unit", "value": "ops" }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "等待秒數" },
+              "properties": [{ "id": "unit", "value": "ops" }]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 17,
+        "type": "timeseries",
+        "title": "慢 flush / fsync",
+        "description": "週期性或關閉時 flush 超過 3 秒、fsync 超過 1.2 秒的次數。切檔關閉大檔時也可能短暫出現。",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_slow_flushes_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "慢 flush"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_slow_syncs_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "慢 fsync"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never", "axisSoftMin": 0 }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 18,
+        "type": "timeseries",
+        "title": "FLV 時間戳跳變",
+        "description": "正跳變次數，以及摺疊掉的媒體時間。常見於源流斷續或畫質切換。",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_timestamp_jumps_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "跳變次數"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_timestamp_jump_collapsed_seconds_total{job=~\"$job\", instance=~\"$instance\", room_id=\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "摺疊秒數"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "spanNulls": false, "showPoints": "never", "axisSoftMin": 0 }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "跳變次數" },
+              "properties": [{ "id": "unit", "value": "ops" }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "摺疊秒數" },
+              "properties": [{ "id": "unit", "value": "ops" }]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
         "id": 13,
         "type": "row",
         "title": "場次與恢復",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
         "collapsed": false,
         "panels": []
       },
@@ -409,7 +542,7 @@
         "id": 14,
         "type": "timeseries",
         "title": "開播場次 / 錄製次數 / 斷線恢復",
-        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 33 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {

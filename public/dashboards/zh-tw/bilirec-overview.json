@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "bilirec 錄製總覽。資料源選 VictoriaMetrics（Prometheus 類型）。KPI 含本地 FFmpeg 轉碼待處理數；斷線恢復的成功 / 失敗 / 放棄趨勢在「趨勢」區。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
+    "description": "bilirec 錄製總覽。資料源選 VictoriaMetrics（Prometheus 類型）。「落盤量」是當天寫入器實際寫出的位元組；讀取速率仍是 TCP 讀入。KPI 含本地 FFmpeg 轉碼待處理數；斷線恢復的成功 / 失敗 / 放棄趨勢在「趨勢」區。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
     "time": { "from": "now-6h", "to": "now" },
     "templating": {
       "list": [
@@ -139,16 +139,16 @@
       {
         "id": 4,
         "type": "stat",
-        "title": "寫入量",
-        "description": "從當天 0 點到現在的錄製寫入量，按時區（瀏覽器）。不受盤頂時間範圍影響。可用來判斷今天還要不要繼續錄。不含彈幕檔和其他程式。",
+        "title": "落盤量",
+        "description": "從當天 0 點到現在寫入器實際落到磁碟的位元組數，按時區（瀏覽器）。不受盤頂時間範圍影響。可用來判斷今天還要不要繼續錄。不含彈幕檔和其他程式。讀入量見下方讀取速率。",
         "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "timeFrom": "now/d",
         "targets": [
           {
             "refId": "A",
-            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__range])) or vector(0)",
-            "legendFormat": "寫入",
+            "expr": "sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\"}[$__range])) or vector(0)",
+            "legendFormat": "落盤",
             "instant": true,
             "range": false
           }
@@ -478,14 +478,20 @@
       {
         "id": 11,
         "type": "timeseries",
-        "title": "全站直播流讀取速率",
+        "title": "全站直播流讀取 / 落盤速率",
+        "description": "讀入是 TCP 收到的位元組；落盤是寫入器 Write() 實際寫出的位元組。落盤明顯低於讀入時，寫入佇列可能在積壓。",
         "gridPos": { "h": 7, "w": 16, "x": 0, "y": 40 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
             "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-            "legendFormat": "全站"
+            "legendFormat": "讀入"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
+            "legendFormat": "落盤"
           }
         ],
         "fieldConfig": {

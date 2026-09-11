@@ -71,6 +71,9 @@ const termFixes = [
 // Dashboard UI terms — must run before OpenCC; order matters for multi-char phrases.
 const dashboardTermFixes = [
 	[/直播流写入/g, '串流寫入'],
+	[/落盘/g, '落盤'],
+	[/读入/g, '讀入'],
+	[/跳变/g, '跳變'],
 	[/数据源/g, '資料源'],
 	[/进程/g, '行程'],
 	[/连接/g, '連線'],

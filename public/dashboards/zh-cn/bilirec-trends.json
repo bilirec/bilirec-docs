@@ -259,14 +259,14 @@
       {
         "id": 4,
         "type": "stat",
-        "title": "录制写入",
-        "description": "这段总写入再换成平均每${per:text}，约等于落盘。",
+        "title": "录制落盘",
+        "description": "这段总落盘再换成平均每${per:text}，是写入器 Write() 实际写出的字节。",
         "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "(sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
+            "expr": "(sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * $per / $__range_s) or vector(0)",
             "legendFormat": "录制",
             "instant": true,
             "range": false
@@ -396,7 +396,7 @@
         "id": 9,
         "type": "timeseries",
         "title": "每日写入",
-        "description": "每个点是该时刻往回 24 小时的增量，不是日历日 0:00–24:00。左缘第一个点可能含时间范围开始之前。和上方 KPI 比时请用「这段总量 ÷ 天数」，不要把几个点当几个自然日再平均。时间范围请至少 7 天。",
+        "description": "每个点是该时刻往回 24 小时的增量，不是日历日 0:00–24:00。落盘是写入器实际写出；读入是 TCP 收到。合计 = 落盘 + 弹幕文件。时间范围请至少 7 天。",
         "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
         "interval": "1d",
         "maxDataPoints": 400,
@@ -404,8 +404,8 @@
         "targets": [
           {
             "refId": "A",
-            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
-            "legendFormat": "录制",
+            "expr": "sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
+            "legendFormat": "落盘",
             "interval": "1d"
           },
           {
@@ -416,8 +416,14 @@
           },
           {
             "refId": "C",
-            "expr": "(sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0))) or vector(0)",
+            "expr": "(sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0))) or vector(0)",
             "legendFormat": "合计",
+            "interval": "1d"
+          },
+          {
+            "refId": "D",
+            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1d])) or vector(0)",
+            "legendFormat": "读入",
             "interval": "1d"
           }
         ],
@@ -540,7 +546,7 @@
         "id": 15,
         "type": "stat",
         "title": "录制中平均码率",
-        "description": "区间录制写入 ÷ 录制秒数。没人在录时接近 0。",
+        "description": "区间 TCP 读入 ÷ 录制秒数。没人在录时接近 0。",
         "gridPos": { "h": 4, "w": 8, "x": 8, "y": 23 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
@@ -747,14 +753,14 @@
       {
         "id": 23,
         "type": "stat",
-        "title": "每日平均写入",
-        "description": "这段总写入（录制 + 弹幕）÷ 天数。不是「每日写入」图各点的平均；那些点是往回 24 小时，不是日历日。时间范围太短会晃，建议至少 7 天。不含系统或其他程序。",
+        "title": "每日平均落盘",
+        "description": "这段总落盘（录制 Write() + 弹幕）÷ 天数。不是「每日写入」图各点的平均；那些点是往回 24 小时，不是日历日。时间范围太短会晃，建议至少 7 天。不含系统或其他程序。",
         "gridPos": { "h": 4, "w": 6, "x": 6, "y": 44 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "((sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0))) * 86400 / $__range_s) or vector(0)",
+            "expr": "((sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0))) * 86400 / $__range_s) or vector(0)",
             "legendFormat": "每天",
             "instant": true,
             "range": false
@@ -779,14 +785,14 @@
       {
         "id": 24,
         "type": "stat",
-        "title": "按录制写入预估",
-        "description": "可用空间 ÷（这段总写入 ÷ 时间）。只算录制与弹幕，没算系统、快照或其他程序，实际通常会更快用完。没在录时会是 Inf。",
+        "title": "按录制落盘预估",
+        "description": "可用空间 ÷（这段总落盘 ÷ 时间）。只算录制 Write() 与弹幕，没算系统、快照或其他程序，实际通常会更快用完。没在录时会是 Inf。",
         "gridPos": { "h": 4, "w": 6, "x": 12, "y": 44 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "(max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})) / clamp_min((sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0))) / $__range_s, 1e-9)",
+            "expr": "(max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", fstype=~\"zfs|fuse.zfs\"}) or max(zfs_dataset_available_bytes) or max(zfs_available_bytes) or max(node_filesystem_avail_bytes{job=~\"$node_job\", instance=~\"$node_instance\", mountpoint=~\"$mountpoint\", fstype!~\"tmpfs|overlay|squashfs|nsfs|ramfs|devtmpfs|cgroup.*|proc|sysfs|vfat|iso9660\"})) / clamp_min((sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) + (sum(increase(bilirec_danmaku_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0))) / $__range_s, 1e-9)",
             "legendFormat": "剩余",
             "instant": true,
             "range": false

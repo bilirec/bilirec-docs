@@ -7,11 +7,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 bilirec 可以在**獨立端口**暴露 Prometheus 格式的指標，供 VictoriaMetrics（或任何兼容 Prometheus 抓取協議的採集器）抓取。之後可以在 Grafana 裡畫圖、做每日合計。**預設關閉**，開啟不影響主 API 端口、路由與認證。
 
-適用場景：在 NAS / 樹莓派上長時間錄製時，想看資源佔用、每房間寫入量、錄製時長和開播情況。
+適用場景：在 NAS / 樹莓派上長時間錄製時，想看資源佔用、每房間讀入與落盤量、錄製時長和開播情況。
 
 bilirec 只負責把當前指標公開出來，不會自己保存歷史，也不會畫圖。要把數字留下來，需要另外安裝 [VictoriaMetrics](https://docs.victoriametrics.com/quick-start/) 或 [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)，讓它們定期來抓 `/metrics`。要用圖形介面時，再裝 [Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/installation/)；也可以先用 VictoriaMetrics / Prometheus 自帶的查詢頁。安裝步驟以各項目文檔為準，本頁說明如何讓它們抓到 bilirec。
 
-已經接好 Grafana 時，也可以導入一組現成面板，見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。自己按下文查詢做圖同樣可行。
+已經接好 Grafana 時，也可以導入一組現成面板，見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。房間異常時不想一直盯盤，還可以導入同頁的 [告警規則](/zh-tw/configuration/grafana-dashboards/#告警規則)。自己按下文查詢做圖同樣可行。
 
 ## 前置知識
 
@@ -106,7 +106,14 @@ Go 運行時與行程資源指標由 [VictoriaMetrics/metrics](https://github.co
 
 | 指標 | 類型 | 說明 |
 |------|------|------|
-| `bilirec_room_stream_bytes_total` | counter | 串流寫入字節數（≈ 落盤量）。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
+| `bilirec_room_stream_bytes_total` | counter | 從直播 TCP 讀入的字節數（進入寫入管線之前）。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
+| `bilirec_room_stream_bytes_written_total` | counter | 寫入器 `Write()` 實際落盤的字節數（含切檔）。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
+| `bilirec_room_stream_timestamp_jumps_total` | counter | FLV 時間戳正跳變次數（`delta > 0`） |
+| `bilirec_room_stream_timestamp_jump_collapsed_seconds_total` | counter | 正跳變摺疊掉的媒體時間（秒，`delta_ms / 1000` 累加） |
+| `bilirec_room_stream_enqueue_waits_total` | counter | 寫入隊列已滿、發送方等待的次數 |
+| `bilirec_room_stream_enqueue_wait_seconds_total` | counter | 寫入隊列等待累計秒數 |
+| `bilirec_room_stream_slow_flushes_total` | counter | 週期性或關閉時 flush 超過 3 秒的次數 |
+| `bilirec_room_stream_slow_syncs_total` | counter | 週期性或關閉時 fsync 超過 1.2 秒的次數 |
 | `bilirec_room_recording_sessions_total` | counter | 錄製場次數。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
 | `bilirec_room_recording_active` | gauge 1/0 | 是否正在錄製（積分得每日錄製時長）。恢復中仍為 1。停錄後會從 `/metrics` 消失，歷史仍在時序數據庫 |
 | `bilirec_room_recording_recovering` | gauge 1/0 | 是否正在恢復循環（斷線後重試連流，含正常下播後的重試）。開錄時建為 0；進入恢復為 1；恢復成功或停錄歸 0。停錄後會從 `/metrics` 消失 |
@@ -176,7 +183,7 @@ unless on(room_id)
 | `bilirec_danmaku_messages_total` | counter | 收到的彈幕、醒目留言、禮物和艦長事件數量 |
 | `bilirec_danmaku_messages_dropped_total` | counter | 因寫入隊列已滿而丟棄的事件數量 |
 | `bilirec_danmaku_parse_errors_total` | counter | 普通彈幕解析失敗次數 |
-| `bilirec_danmaku_bytes_total` | counter | 已交給彈幕檔案寫入器的字節數 |
+| `bilirec_danmaku_bytes_total` | counter | 彈幕寫入器 `Write()` 實際落盤的字節數 |
 | `bilirec_danmaku_rotations_total` | counter | 成功切換彈幕檔案的次數 |
 | `bilirec_danmaku_rotation_dropped_total` | counter | 因切換隊列已滿而丟棄切換通知的次數 |
 
@@ -209,8 +216,16 @@ bilirec 只暴露**累積 counter** 與**即時 gauge**，每日 / 總量統計�
 
 | 需求 | 查詢（MetricsQL） |
 |------|------------------|
-| 每房間每日寫入量 | `sum by (room_id) (increase(bilirec_room_stream_bytes_total[1d]))` |
-| 所有房間總量 | `sum(increase(bilirec_room_stream_bytes_total[$__range]))` |
+| 每房間每日讀入量 | `sum by (room_id) (increase(bilirec_room_stream_bytes_total[1d]))` |
+| 所有房間讀入總量 | `sum(increase(bilirec_room_stream_bytes_total[$__range]))` |
+| 每房間每日落盤寫入量 | `sum by (room_id) (increase(bilirec_room_stream_bytes_written_total[1d]))` |
+| 所有房間落盤總量 | `sum(increase(bilirec_room_stream_bytes_written_total[$__range]))` |
+| 每房間寫入隊列等待次數 | `sum by (room_id) (increase(bilirec_room_stream_enqueue_waits_total[$__range]))` |
+| 每房間寫入隊列等待秒數 | `sum by (room_id) (increase(bilirec_room_stream_enqueue_wait_seconds_total[$__range]))` |
+| 每房間慢 flush 次數 | `increase(bilirec_room_stream_slow_flushes_total[$__range])` |
+| 每房間慢 fsync 次數 | `increase(bilirec_room_stream_slow_syncs_total[$__range])` |
+| 每房間 FLV 時間戳跳變次數 | `increase(bilirec_room_stream_timestamp_jumps_total[$__range])` |
+| 每房間折掉的媒體時間 | `increase(bilirec_room_stream_timestamp_jump_collapsed_seconds_total[$__range])` |
 | 當前同時錄製 | `sum(bilirec_active_recordings) or vector(0)` |
 | 整段平均同時錄製 | `avg_over_time((sum(bilirec_room_recording_active) or vector(0))[$__range:5m])` |
 | 每天平均同時錄製 | `avg_over_time((sum(bilirec_room_recording_active) or vector(0))[1d:5m])` |

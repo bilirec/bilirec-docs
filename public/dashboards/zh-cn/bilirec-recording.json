@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "录制场次是否真的连上流、开录失败、恢复成败与管线中断。码率与开播未录请看「录制总览」；写入量请看「用量趋势」或「累计用量」。没人在恢复时「录制中但流没连上」会是空表，这是预期行为。",
+    "description": "录制场次是否真的连上流、开录失败、恢复成败、管线中断，以及写入队列等待、慢 flush/fsync、FLV 时间戳跳变。码率与开播未录请看「录制总览」；落盘量请看「用量趋势」或「累计用量」。没人在恢复时「录制中但流没连上」会是空表，这是预期行为。写入管线区块在没人在录、或磁盘跟得上时也可能是空的。",
     "time": { "from": "now-6h", "to": "now" },
     "templating": {
       "list": [
@@ -541,10 +541,313 @@
         }
       },
       {
+        "id": 20,
+        "type": "row",
+        "title": "写入管线",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": 21,
+        "type": "stat",
+        "title": "近 1 小时队列等待",
+        "description": "写入队列已满、发送端等待的次数。持续大于 0 表示磁盘或写入跟不上码率。",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_enqueue_waits_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "等待",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 20 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 22,
+        "type": "stat",
+        "title": "近 1 小时慢 flush",
+        "description": "周期性或关闭时 flush 超过 3 秒的次数。切档关闭大档时也可能短暂出现。",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_slow_flushes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "慢 flush",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 23,
+        "type": "stat",
+        "title": "近 1 小时慢 fsync",
+        "description": "周期性或关闭时 fsync 超过 1.2 秒的次数。NAS / HDD 忙碌时容易升高。",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_slow_syncs_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "慢 fsync",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 24,
+        "type": "stat",
+        "title": "近 1 小时时间戳跳变",
+        "description": "FLV 正跳变次数。常见于源流断续或画质切换；折叠掉的媒体时间见下方趋势。",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 32 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(bilirec_room_stream_timestamp_jumps_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+            "legendFormat": "跳变",
+            "instant": true,
+            "range": false
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "orange", "value": 5 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        }
+      },
+      {
+        "id": 25,
+        "type": "timeseries",
+        "title": "读入 vs 落盘速率",
+        "description": "读入是 TCP 收到的字节；落盘是写入器 Write() 实际写出。落盘持续低于读入，表示写入队列在积压。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "读入"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "落盘"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 26,
+        "type": "timeseries",
+        "title": "写入队列等待",
+        "description": "各房间写入队列已满时的等待次数。按主播名显示。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (room_id) (rate(bilirec_room_stream_enqueue_waits_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 27,
+        "type": "timeseries",
+        "title": "慢 flush / fsync",
+        "description": "flush 超过 3 秒或 fsync 超过 1.2 秒。NAS / HDD 忙碌或切档关闭大档时可能升高。",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_slow_flushes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "慢 flush"
+          },
+          {
+            "refId": "B",
+            "expr": "sum(rate(bilirec_room_stream_slow_syncs_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "慢 fsync"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "unit": "ops",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          }
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
+        "id": 28,
+        "type": "timeseries",
+        "title": "FLV 时间戳跳变",
+        "description": "正跳变次数与折叠掉的媒体时间。按房间显示折叠秒数，便于找出时间轴不连续的场次。",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(rate(bilirec_room_stream_timestamp_jumps_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval]))",
+            "legendFormat": "跳变次数"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (room_id) (rate(bilirec_room_stream_timestamp_jump_collapsed_seconds_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "legendFormat": "{{uname}} ({{room_id}})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "smooth",
+              "spanNulls": false,
+              "showPoints": "never",
+              "axisSoftMin": 0
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "跳变次数" },
+              "properties": [{ "id": "unit", "value": "ops" }]
+            }
+          ]
+        },
+        "options": {
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        }
+      },
+      {
         "id": 17,
         "type": "row",
         "title": "切档与尝试",
-        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 52 },
         "collapsed": false,
         "panels": []
       },
@@ -553,7 +856,7 @@
         "type": "timeseries",
         "title": "切档",
         "description": "画质变化切档、恢复后开的新档。使用者开录的第一档不算。",
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 53 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
@@ -586,7 +889,7 @@
         "type": "timeseries",
         "title": "各房间连接尝试",
         "description": "每次真正去连流算 1 次（含恢复），不是每条备用网址各算 1 次。",
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 53 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {

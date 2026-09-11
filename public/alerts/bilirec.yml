@@ -60,7 +60,7 @@ groups:
           severity: warning
         annotations:
           summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}連著但讀取速率為 0'
-          description: 可能卡流或上游無資料
+          description: TCP 讀入速率為 0，可能卡流或上游無資料。此告警看的是讀入，不是落盤。
 
       - alert: BilirecGaveUpRecording
         # 必須按 reason 聚合，否則通知裡 reason 會變成 [no value]。
@@ -80,6 +80,64 @@ groups:
         annotations:
           summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}停止恢復：{{ if eq $labels.reason "banned" }}直播間已被封禁{{ else if eq $labels.reason "encrypted" }}付費／加密直播{{ else if eq $labels.reason "max_attempts" }}斷線重試次數用盡{{ else if eq $labels.reason "concurrent" }}同時錄製數已滿{{ else }}{{ $labels.reason }}{{ end }}'
           description: '{{ if eq $labels.reason "banned" }}B 站回傳此直播間已被封禁，因此停止恢復連流。這不是錄製程式故障。已經錄下的檔案會照常收尾轉碼。{{ else if eq $labels.reason "encrypted" }}直播間已改為付費／加密，無法繼續錄製。這不是斷流重試失敗。已經錄下的檔案會照常收尾。{{ else if eq $labels.reason "max_attempts" }}斷線後已依設定次數重試，仍連不上，因此結束這場錄製。請檢查網路、畫質或直播間狀態。後半段可能沒錄到。{{ else if eq $labels.reason "concurrent" }}同時錄製路數已滿，無法為這間房恢復。可稍後再錄，或提高同時錄製上限。{{ else }}恢復失敗後已停止這場錄製（reason={{ $labels.reason }}）。正常下播逾時（not_live_timeout）不會觸發此告警。{{ end }}'
+
+      - alert: BilirecWriterBackpressure
+        # 寫入佇列已滿時發送端會阻塞；短促尖峰常見，持續等待才告警。
+        expr: |
+          (
+            sum by (room_id) (
+              increase(bilirec_room_stream_enqueue_wait_seconds_total[5m])
+            ) > 2
+          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
+        for: 5m
+        labels:
+          team: bilirec
+          component: recording
+          severity: warning
+        annotations:
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}寫入佇列持續堵塞'
+          description: 近 5 分鐘累計等待超過 2 秒，且已持續 5 分鐘。磁碟或寫入跟不上碼率時，錄製可能卡頓或缺幀。可到「錄製健康」看佇列等待與讀入/落盤速率。
+
+      - alert: BilirecSlowDiskIO
+        # 指標本身只在 flush > 3s 或 fsync > 1.2s 時累加；切檔關閉大檔也可能短暫出現。
+        expr: |
+          (
+            (
+              sum by (room_id) (increase(bilirec_room_stream_slow_flushes_total[15m]))
+              +
+              sum by (room_id) (increase(bilirec_room_stream_slow_syncs_total[15m]))
+            ) > 2
+          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
+        for: 10m
+        labels:
+          team: bilirec
+          component: recording
+          severity: warning
+        annotations:
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}flush / fsync 過慢'
+          description: 近 15 分鐘慢 flush（>3s）與慢 fsync（>1.2s）合計超過 2 次，且已持續 10 分鐘。可能是磁碟忙碌、NAS 延遲或儲存故障。切檔關閉大檔時也可能短暫出現。
+
+      - alert: BilirecTimestampJump
+        expr: |
+          (
+            sum by (room_id) (
+              increase(bilirec_room_stream_timestamp_jump_collapsed_seconds_total[15m])
+            ) > 30
+          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
+        for: 5m
+        labels:
+          team: bilirec
+          component: recording
+          severity: warning
+        annotations:
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}FLV 時間戳大幅跳變'
+          description: 近 15 分鐘折疊掉超過 30 秒媒體時間。常見於源流斷續或畫質切換；檔案時間軸可能不連續。偶發小跳變不會告警。
 
       - alert: BilirecConvertBacklog
         # 有錄製進行時，PK 切檔 / 多房間收播會正常堆佇列，不算故障。

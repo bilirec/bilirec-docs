@@ -39,6 +39,8 @@ export LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0
 
 `LIVE_STREAM_WRITER_BUFFER_SIZE` 預設 **8 MB**，1080p 約每 14 秒攢滿寫一次，對機械盤通常已夠用。磁碟仍明顯週期性卡頓時，可在確認容器記憶體有餘量後再酌情調大；每加大 4～8 MB，每路程式緩衝隨之上升。
 
+開啟了監控時，可到 [錄製健康](/zh-tw/configuration/grafana-dashboards/#錄製健康) 看「寫入管線」：隊列等待或慢 flush / fsync 變多，通常就是磁碟跟不上。判斷方法見 [I/O 調優 · 怎麼判斷寫盤跟不上](/zh-tw/configuration/io-tuning/#怎麼判斷寫盤跟不上)。
+
 ## 記憶體與頁緩存
 
 NAS 往往比樹莓派有更多記憶體，可根據 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 與容器 limit，**按自身情況酌情調大**路數、合併緩衝或頁緩存策略。本節各項都會**明顯增加記憶體佔用**：前幾項抬的是程式緩衝，後幾項還會讓系統**長期保留檔案頁緩存**，容器監控曲線可能遠高於程式本身佔用。

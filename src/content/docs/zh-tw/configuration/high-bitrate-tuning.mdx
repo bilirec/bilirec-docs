@@ -33,6 +33,7 @@ bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套緩�
 | 1080p 原畫 | 否 | 保持預設 |
 | 首次錄 4K / 杜比 | 通常否 | API 傳 `qn=20000`（或 `30000`）即可 |
 | 4K 網路經常卡一下 | 是 | 加大 `READ_STREAM_CHAN_BUFFER_SIZE_HIGH`（預設 48） |
+| 4K 錄著但畫面卡、落盤比讀入慢 | 先看再改 | 到 [錄製健康](/zh-tw/configuration/grafana-dashboards/#錄製健康) 看寫入隊列等待與讀入 / 落盤速率；持續等待再加大 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`，或減少同時路數 |
 | 4K HLS 分片很大 | 是 | 主要加大 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` |
 | 4GB 設備多路 4K | 視情況 | 優先減小 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`（如 `48`）或 `MAX_CONCURRENT_RECORDINGS` |
 

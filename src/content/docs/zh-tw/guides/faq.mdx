@@ -240,7 +240,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 可能來源 | 你怎麼分辨 | 相關環境變數 | 建議方向 |
 | -------- | ---------- | ------------ | -------- |
-| **寫盤 / flush 尖峰** | 正在錄製時週期性衝高；microSD、機械盤更明顯 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 適當加大合併緩衝、拉長 flush 間隔；**保持** `SYNC_PERIOD=0`（開週期性整檔案落盤會更吃 CPU） |
+| **寫盤 / flush 尖峰** | 正在錄製時週期性衝高；microSD、機械盤更明顯。也可到 [錄製健康](/zh-tw/configuration/grafana-dashboards/#錄製健康) 看慢 flush / 隊列等待 | `LIVE_STREAM_WRITER_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`<br />`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS` | 適當加大合併緩衝、拉長 flush 間隔；**保持** `SYNC_PERIOD=0`（開週期性整檔案落盤會更吃 CPU） |
 | **Go 頻繁 GC（Docker）** | 容器記憶體很空但 CPU 仍週期性抖；多發生在 limit 很大卻未改 `GOMEMLIMIT` | `GOMEMLIMIT` | 把 `GOMEMLIMIT` 調到約為容器 limit 的 75%～85%；見 [Docker 指南](/zh-tw/guides/docker/#go-記憶體上限gomemlimit) |
 | **多路搶同一張盤** | 多路同時錄到同一張 SD / HDD 時尖峰疊加 | `SEQUENTIAL_WRITE` | 同一張卡上多路錄製時保持 `true`（Android 輸出到 microSD 時在 App 開啟 **microSD 卡磨損保護**） |
 | **訂閱開播輪詢** | **閒置**時大約每隔固定秒數有小尖峰 | `SUBCHECK_ROOMS_PER_SHARD`<br />`SUBCHECK_MIN_INTERVAL_SECS` | 預設已按訂閱規模自動調度；仍偏高可略增大每組房間數或週期下限 |
@@ -248,8 +248,9 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你可以：**
 1. 樹莓派 + microSD：從 [I/O 調優](/zh-tw/configuration/io-tuning/) 與 [樹莓派預設設定](/zh-tw/configuration/pi5-defaults/) 調整寫盤相關項。
-2. 訂閱房間特別多：見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)（預設自動調度，一般無需隨訂閱改環境變數）。
-3. 轉碼與錄製錯峰：見 [轉換設定](/zh-tw/configuration/conversion/)。
+2. 開啟了監控時，到 [錄製健康](/zh-tw/configuration/grafana-dashboards/#錄製健康) 看「寫入管線」：慢 flush / 隊列等待變多，更可能是磁碟跟不上，而不是單純 CPU 尖峰。
+3. 訂閱房間特別多：見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)（預設自動調度，一般無需隨訂閱改環境變數）。
+4. 轉碼與錄製錯峰：見 [轉換設定](/zh-tw/configuration/conversion/)。
 
 ### HDD NAS 用 ZFS，CPU 比平時高一點？
 
@@ -410,6 +411,6 @@ import { Aside } from '@astrojs/starlight/components';
 
 **你會看到：** 某一整張盤或某幾塊表沒有數據，但 `/metrics` 或其它面板正常。
 
-**為什麼：** 空表不一定是壞了。例如沒人在恢復時「錄製中但流沒連上」為空；沒開彈幕錄製時「彈幕健康」整張會空；沒有 node_exporter 時「用量趨勢」的磁碟預估為空。選錯盤也會覺得「沒數」——想看當下狀態請用總覽，想看合計請用累計用量。
+**為什麼：** 空表不一定是壞了。例如沒人在恢復時「錄製中但流沒連上」為空；沒開彈幕錄製時「彈幕健康」整張會空；沒有 node_exporter 時「用量趨勢」的磁碟預估為空。程式還沒有讀寫分離與寫入管線指標時，「寫入管線」會空，其它面板仍可用；磁碟跟得上時這些數字接近 0 也是正常的。選錯盤也會覺得「沒數」——想看當下狀態請用總覽，想看合計請用累計用量。
 
 **你可以：** 對照 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/) 裡每張盤的「注意」與「該選哪一張」；仍異常時再查 [監控指標](/zh-tw/configuration/metrics/) 的查詢注意與抓取設定。

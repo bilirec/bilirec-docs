@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "選定時間範圍內的合計：彈幕、串流寫入量、錄製時長、錄製次數。房間多選，All 看全站。寫入量約等於落盤，不是主機 df。錄製時長使用 VictoriaMetrics integrate()。",
+    "description": "選定時間範圍內的合計：彈幕、直播流落盤量、錄製時長、錄製次數。房間多選，All 看全站。落盤量是寫入器 Write() 實際寫出的位元組，不是主機 df。明細表另有讀入量（TCP）。錄製時長使用 VictoriaMetrics integrate()。",
     "time": { "from": "now-7d", "to": "now" },
     "templating": {
       "list": [
@@ -106,14 +106,15 @@
       {
         "id": 2,
         "type": "stat",
-        "title": "總寫入量",
+        "title": "總落盤量",
+        "description": "寫入器 Write() 實際寫出的位元組合計（含切檔）。通常略小於或接近最終檔案大小。",
         "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum(increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0)",
-            "legendFormat": "寫入",
+            "expr": "sum(increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) or vector(0)",
+            "legendFormat": "落盤",
             "instant": true,
             "range": false
           }
@@ -337,13 +338,14 @@
       {
         "id": 11,
         "type": "bargauge",
-        "title": "各房寫入量（Top N）",
+        "title": "各房落盤量（Top N）",
+        "description": "按寫入器實際寫出的位元組排名，接近各房間占用的磁碟空間。",
         "gridPos": { "h": 10, "w": 24, "x": 0, "y": 11 },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "targets": [
           {
             "refId": "A",
-            "expr": "topk($topk, sum by (room_id) (increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
+            "expr": "topk($topk, sum by (room_id) (increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"}))",
             "legendFormat": "{{uname}} ({{room_id}})",
             "instant": true,
             "range": false
@@ -489,7 +491,7 @@
           },
           {
             "refId": "B",
-            "expr": "sum by (room_id) (increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "expr": "sum by (room_id) (increase(bilirec_room_stream_bytes_written_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
             "format": "table",
             "instant": true,
             "range": false
@@ -521,13 +523,27 @@
             "format": "table",
             "instant": true,
             "range": false
+          },
+          {
+            "refId": "G",
+            "expr": "sum by (room_id) (increase(bilirec_room_stream_bytes_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__range])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+            "format": "table",
+            "instant": true,
+            "range": false
           }
         ],
         "fieldConfig": {
           "defaults": {},
           "overrides": [
             {
-              "matcher": { "id": "byName", "options": "寫入量" },
+              "matcher": { "id": "byName", "options": "落盤量" },
+              "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "decimals", "value": 1 }
+              ]
+            },
+            {
+              "matcher": { "id": "byName", "options": "讀入量" },
               "properties": [
                 { "id": "unit", "value": "bytes" },
                 { "id": "decimals", "value": 1 }
@@ -565,17 +581,18 @@
                 "uname": "主播",
                 "room_id": "房間",
                 "Value #A": "彈幕",
-                "Value #B": "寫入量",
+                "Value #B": "落盤量",
                 "Value #C": "錄製時長",
                 "Value #D": "錄製次數",
                 "Value #E": "實寫彈幕",
-                "Value #F": "開播時長"
+                "Value #F": "開播時長",
+                "Value #G": "讀入量"
               }
             }
           },
           {
             "id": "sortBy",
-            "options": { "sort": [{ "field": "寫入量", "desc": true }] }
+            "options": { "sort": [{ "field": "落盤量", "desc": true }] }
           }
         ],
         "options": { "showHeader": true, "cellHeight": "sm" }

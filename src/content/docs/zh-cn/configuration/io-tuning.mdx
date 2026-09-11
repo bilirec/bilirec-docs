@@ -5,7 +5,7 @@ description: 磁盘写入频率、多路录制与缓冲相关参数
 
 import { Aside } from '@astrojs/starlight/components';
 
-这些参数影响**写盘有多勤**、**多路同时录会不会抢磁盘**，对 microSD 寿命和多路稳定性影响最大。写盘过勤也会造成 **CPU 周期性尖峰**——来源对照与调参见 [常见问题 · CPU 突然飙高](/zh-cn/guides/faq/#cpu-突然飙高怎么办)。
+这些参数影响**写盘有多勤**、**多路同时录会不会抢磁盘**，对 microSD 寿命和多路稳定性影响最大。写盘过勤也会造成 **CPU 周期性尖峰**——来源对照与调参见 [常见问题 · CPU 突然飙高](/zh-cn/guides/faq/#cpu-突然飙高怎么办)。不确定是磁盘跟不上还是网络卡时，可先看 [怎么判断写盘跟不上](#怎么判断写盘跟不上)。
 
 ## 通用缓冲区
 
@@ -79,6 +79,17 @@ import { Aside } from '@astrojs/starlight/components';
 | 10           | `45`（可视为常用上限）                      |
 
 计算式：`15 × 路数 ÷ 3`，结果夹在 `15`～`45` 秒之间。`SEQUENTIAL_WRITE=false`（常见于 SSD 调优）时各路独立写盘，一般不必按上表联动。
+
+### 怎么判断写盘跟不上
+
+开启 [监控指标](/zh-cn/configuration/metrics/) 并导入 [录制健康](/zh-cn/configuration/grafana-dashboards/#录制健康) 后，可以看「写入管线」：
+
+- **写入队列等待**持续大于 0：磁盘或写入速度跟不上直播码率。录制可能卡顿，文件可能缺帧。
+- **慢 flush**（单次超过 3 秒）或 **慢 fsync**（超过 1.2 秒）变多：储存设备忙、NAS 延迟高，或正在关掉一个很大的档。
+- **读入速率明显高于落盘速率**、同时队列在等：数据还堆在内存里，还没写出去。
+- 这些数字在磁盘跟得上时接近 0，一般不必改配置。
+
+对应调参见上文缓冲与 flush 周期，以及 [HDD/NAS 调优](/zh-cn/configuration/hdd-nas-tuning/)、[高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/)。持续堵塞也可以导入 [告警规则](/zh-cn/configuration/grafana-dashboards/#告警规则)。
 
 ### 录制文件缓存释放（Linux / Android）
 

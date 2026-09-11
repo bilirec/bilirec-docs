@@ -122,6 +122,7 @@ Content-Type: application/json
 ```json
 {
   "123": {
+    "bytes_read": 1100000,
     "bytes_written": 1048576,
     "danmaku_bytes_written": 4096,
     "record_danmaku": true,
@@ -136,6 +137,8 @@ Content-Type: application/json
   }
 }
 ```
+
+`bytes_read` 為從直播 TCP 連接讀入的字節累計（進入寫入管線之前）。`bytes_written` 為寫入器 `Write()` 實際落盤的字節累計（含切檔），通常略小於或接近最終檔案大小。`danmaku_bytes_written` 同樣按彈幕寫入器 `Write()` 累計，而不是僅進入寫入隊列時計數。
 
 `room_title` 為**開始錄製時**固定的房間標題（用於輸出檔案名），與房間信息接口返回的當前標題可能不同。
 
