@@ -335,7 +335,7 @@
       "id": 5,
       "type": "stat",
       "title": "近 1 小时解析失败",
-      "description": "普通弹幕 DANMU_MSG 解不开。不算进 messages_total。",
+      "description": "弹幕、醒目留言、礼物与舰长事件解析失败。不算进 messages_total。受顶栏「事件」过滤。",
       "gridPos": {
         "h": 4,
         "w": 5,
@@ -349,7 +349,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[1h])) or vector(0)",
+          "expr": "sum(increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[1h])) or vector(0)",
           "legendFormat": "解析失败",
           "range": true
         }
@@ -935,7 +935,7 @@
     {
       "id": 16,
       "type": "timeseries",
-      "title": "各房间解析失败",
+      "title": "解析失败（按事件）",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -949,8 +949,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (room_id) (increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\"}[$__rate_interval])) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
-          "legendFormat": "{{uname}} ({{room_id}})"
+          "expr": "sum by (event_type) (increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__rate_interval]))",
+          "legendFormat": "{{event_type}}"
         }
       ],
       "fieldConfig": {
@@ -981,6 +981,85 @@
           "mode": "multi",
           "sort": "desc"
         }
+      }
+    },
+    {
+      "id": 17,
+      "type": "table",
+      "title": "各房解析失败（本区间）",
+      "description": "Grafana 时间范围内解析失败大于 0 的房间。没人失败时这张表是空的。",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum by (room_id) (increase(bilirec_danmaku_parse_errors_total{job=~\"$job\", instance=~\"$instance\", room_id=~\"$room_id\", event_type=~\"$event_type\"}[$__range])) > 0) * on(room_id) group_left(uname) max by (room_id, uname) (bilirec_room_info{job=~\"$job\", instance=~\"$instance\"})",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "解析失败"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true
+            },
+            "renameByName": {
+              "uname": "主播",
+              "room_id": "房间",
+              "Value": "解析失败"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "解析失败",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
       }
     }
   ]

@@ -171,7 +171,7 @@ unless on(room_id)
 ```
 ### 弹幕指标
 
-开启房间的弹幕录制后，还会产生带 `room_id` 标签的弹幕相关指标。消息数量指标另外带有 `event_type` 标签，值为 `danmaku`、`super_chat`、`gift` 或 `guard`。
+开启房间的弹幕录制后，还会产生带 `room_id` 标签的弹幕相关指标。消息数量、丢弃与解析失败指标另外带有 `event_type` 标签，值为 `danmaku`、`super_chat`、`gift` 或 `guard`。
 
 | 指标 | 类型 | 说明 |
 |------|------|------|
@@ -182,7 +182,7 @@ unless on(room_id)
 | `bilirec_danmaku_reconnects_total` | counter | 弹幕连接重连次数 |
 | `bilirec_danmaku_messages_total` | counter | 收到的弹幕、醒目留言、礼物和舰长事件数量 |
 | `bilirec_danmaku_messages_dropped_total` | counter | 因写入队列已满而丢弃的事件数量 |
-| `bilirec_danmaku_parse_errors_total` | counter | 普通弹幕解析失败次数 |
+| `bilirec_danmaku_parse_errors_total` | counter | 弹幕、醒目留言、礼物或舰长事件解析失败次数。失败的事件不会计入 `messages_total` |
 | `bilirec_danmaku_bytes_total` | counter | 弹幕写入器 `Write()` 实际落盘的字节数 |
 | `bilirec_danmaku_rotations_total` | counter | 成功切换弹幕文件的次数 |
 | `bilirec_danmaku_rotation_dropped_total` | counter | 因切换队列已满而丢弃切换通知的次数 |
@@ -239,6 +239,8 @@ bilirec 只暴露**累积 counter** 与**即时 gauge**，每日 / 总量统计�
 | 每房间开录失败 | `sum by (reason) (increase(bilirec_room_recording_start_failures_total[$__range]))` |
 | 录制中但流没连上（排除恢复中 / 已下播） | `(bilirec_room_recording_active == 1 and on(room_id) bilirec_room_live_status == 1) unless on(room_id) (bilirec_room_stream_connection_active == 1 or bilirec_room_recording_recovering == 1)` |
 | 每房间丢弃的弹幕事件 | `sum by (room_id) (increase(bilirec_danmaku_messages_dropped_total[$__range]))` |
+| 每房间弹幕解析失败 | `sum by (room_id) (increase(bilirec_danmaku_parse_errors_total[$__range]))` |
+| 按事件类型的弹幕解析失败 | `sum by (event_type) (increase(bilirec_danmaku_parse_errors_total[$__range]))` |
 | 每房间弹幕重连次数 | `increase(bilirec_danmaku_reconnects_total[$__range])` |
 | 各 provider 转码入队数 | `sum by (provider) (increase(bilirec_convert_tasks_queued_total[$__range]))` |
 | 当前待处理转码任务 | `sum by (provider) (bilirec_convert_tasks_pending)` |

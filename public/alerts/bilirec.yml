@@ -139,6 +139,45 @@ groups:
           summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}FLV 時間戳大幅跳變'
           description: 近 15 分鐘折疊掉超過 30 秒媒體時間。常見於源流斷續或畫質切換；檔案時間軸可能不連續。偶發小跳變不會告警。
 
+      - alert: BilirecDanmakuParseErrors
+        expr: |
+          (
+            (
+              sum by (room_id, event_type) (
+                increase(bilirec_danmaku_parse_errors_total[15m])
+              ) > 10
+            )
+            and
+            (
+              (
+                sum by (room_id, event_type) (
+                  increase(bilirec_danmaku_parse_errors_total[15m])
+                )
+                /
+                clamp_min(
+                  sum by (room_id, event_type) (
+                    increase(bilirec_danmaku_messages_total[15m])
+                  )
+                  +
+                  sum by (room_id, event_type) (
+                    increase(bilirec_danmaku_parse_errors_total[15m])
+                  ),
+                  1
+                )
+              ) > 0.05
+            )
+          )
+          * on(room_id) group_left(uname)
+          max by (room_id, uname) (bilirec_room_info)
+        for: 10m
+        labels:
+          team: bilirec
+          component: danmaku
+          severity: warning
+        annotations:
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}彈幕 {{ $labels.event_type }} 解析失敗偏高'
+          description: 近 15 分鐘該事件解析失敗超過 10 次，且佔成功+失敗的 5% 以上，已持續 10 分鐘。常見於 B 站該類消息格式變更。可到「彈幕健康」看按事件拆開的解析失敗，並查該房間 danmaku 模組 warn 日誌。
+
       - alert: BilirecConvertBacklog
         # 有錄製進行時，PK 切檔 / 多房間收播會正常堆佇列，不算故障。
         # 無錄製且 pending 長期 > 1：多半是轉碼失敗反覆回 pending 重試。
