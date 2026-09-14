@@ -358,6 +358,16 @@
   .stats-chart.in .chart-row:nth-child(2) .chart-fill { animation-delay: 0.1s; }
   .stats-chart.in .chart-row:nth-child(3) .chart-fill { animation-delay: 0.2s; }
   .stats-chart.in .chart-row:nth-child(4) .chart-fill { animation-delay: 0.3s; }
+  .stats-chart.in .chart-v {
+    animation: stat-value-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stats-chart.in .chart-row:nth-child(2) .chart-v { animation-delay: 0.08s; }
+  .stats-chart.in .chart-row:nth-child(3) .chart-v { animation-delay: 0.16s; }
+  .stats-chart.in .chart-row:nth-child(4) .chart-v { animation-delay: 0.24s; }
+  @keyframes stat-value-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
   @keyframes bar-grow {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
@@ -745,6 +755,39 @@
   }
   .rv.in { opacity: 1; transform: none; }
 
+  /* ————— Hero entrance (on load, staggered) ————— */
+  .hero-eyebrow,
+  .hero h1,
+  .hero-lead,
+  .hero-cta .hero-actions,
+  .hero-meta,
+  .install {
+    animation: hero-in 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .hero-eyebrow { animation-delay: 0.05s; }
+  .hero h1 { animation-delay: 0.14s; }
+  .hero-lead { animation-delay: 0.24s; }
+  .hero-cta .hero-actions { animation-delay: 0.34s; }
+  .hero-meta { animation-delay: 0.42s; }
+  .install { animation-delay: 0.52s; }
+  .hero-figure {
+    animation: hero-figure-in 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) 0.22s both;
+  }
+  .caps { animation: hero-in 0.7s ease 0.62s both; }
+  .nav { animation: nav-in 0.5s ease both; }
+  @keyframes hero-in {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes hero-figure-in {
+    from { opacity: 0; transform: translateY(26px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes nav-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: none; }
+  }
+
   /* ————— Responsive ————— */
   @media (max-width: 1080px) {
     .nav-links { display: none; }
@@ -802,7 +845,53 @@
     .hero-actions .btn { width: 100%; }
     .android-phones { flex-direction: column; align-items: center; }
     .android-phones figure { max-width: 272px; }
-    .install-bar { font-size: 0.7rem; }
+    .install { display: none; }
+    /* Only hide desktop frames when a mobile counterpart exists in the same block. */
+    .pwa-grid .desk { display: none; }
+    .replay-main { display: none; }
+    .pwa-grid { justify-items: center; }
+    #pwa .tabs { justify-content: center; }
+    .stats-chart { padding: 28px 22px 24px; }
+    .chart-row {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+      padding: 26px 0;
+    }
+    .chart-row + .chart-row { border-top-color: rgba(125, 179, 232, 0.1); }
+    .chart-row:first-child { padding-top: 4px; }
+    .chart-row:last-child { padding-bottom: 4px; }
+    .chart-bar { display: none; }
+    .chart-k {
+      order: 1;
+      align-self: flex-start;
+      text-align: left;
+      white-space: nowrap;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+    }
+    .chart-v {
+      order: 2;
+      align-self: flex-start;
+      text-align: left;
+      white-space: nowrap;
+      font-size: 2.1rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin: 0;
+    }
+    .chart-v .lim {
+      display: block;
+      margin-top: 5px;
+      margin-left: 0;
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: var(--muted);
+      opacity: 0.85;
+      letter-spacing: 0.03em;
+    }
+    .chart-d { display: none; }
     .brand .tag { display: none; }
     footer {
       flex-direction: column;
@@ -819,11 +908,21 @@
     html { scroll-behavior: auto; }
     .rec-dot::before { animation: none; content: none; }
     .chart-fill { animation: none; transform: none; }
+    .stats-chart.in .chart-v { animation: none; }
     .deploy-arch.in .arch-node { animation: none; }
     .edge-item { transition-delay: 0s; }
     .rv { opacity: 1; transform: none; transition: none; }
     .pipe-pulse { animation: none; opacity: 0; }
     .stage .pane { transition: opacity 0.15s ease; }
+    .nav,
+    .hero-eyebrow,
+    .hero h1,
+    .hero-lead,
+    .hero-cta .hero-actions,
+    .hero-meta,
+    .hero-figure,
+    .install,
+    .caps { animation: none; }
   }
 </style>
 </head>
@@ -864,7 +963,7 @@
       <p class="hero-eyebrow"><span class="hero-eyebrow-en">REC · </span>Bilibili 直播录制后端<span class="rec-dot" aria-hidden="true"></span></p>
       <h1>高性能、低功耗、<span class="u">边缘设备优先</span></h1>
       <p class="hero-lead">
-        开源、自托管。支持手动开始录制，或订阅直播间后开播自动录制；可同时保存<b>弹幕、礼物、醒目留言</b>等互动记录。适合<b>树莓派、NAS、旧笔记本与 Android</b> 挂机等场景。
+        Bilirec 是一款可自托管的 B 站直播录制后端，为树莓派、NAS 等低配设备优化，让个人设备和闲置硬件也能变成强大的录播服务器。
       </p>
     </div>
 
@@ -872,7 +971,7 @@
       <div class="desk">
         <div class="desk-bar" aria-hidden="true">
           <i></i><i></i><i></i>
-          <span class="url">app.bilirec.org → http://pi.local:8080</span>
+          <span class="url">app.bilirec.org → http://localhost:8080</span>
         </div>
         <div class="desk-screen">
           <img
@@ -933,25 +1032,25 @@
       <div class="chart-row">
         <p class="chart-k">闲置内存</p>
         <div class="chart-bar"><div class="chart-fill" style="--w: 1.17%"></div></div>
-        <p class="chart-v">~12<em>MB</em><span class="lim">/ 1GB</span></p>
+        <p class="chart-v">~<span class="chart-n" data-value="12">12</span><em>MB</em><span class="lim">/ 1GB</span></p>
         <p class="chart-d">初始闲置状态下的内存占用（相对 1GB 容器限制）</p>
       </div>
       <div class="chart-row">
         <p class="chart-k">5 路 1080p · 内存峰值</p>
         <div class="chart-bar"><div class="chart-fill" style="--w: 18.85%"></div></div>
-        <p class="chart-v">~193<em>MB</em><span class="lim">/ 1GB</span></p>
+        <p class="chart-v">~<span class="chart-n" data-value="193">193</span><em>MB</em><span class="lim">/ 1GB</span></p>
         <p class="chart-d">五路同时录制时的内存峰值（相对 1GB 容器限制）</p>
       </div>
       <div class="chart-row">
         <p class="chart-k">5 路 1080p · CPU 峰值</p>
         <div class="chart-bar"><div class="chart-fill" style="--w: 1.33%"></div></div>
-        <p class="chart-v">~5.3<em>%</em><span class="lim">/ 400%</span></p>
+        <p class="chart-v">~<span class="chart-n" data-value="5.3" data-decimals="1">5.3</span><em>%</em><span class="lim">/ 400%</span></p>
         <p class="chart-d">docker stats 口径，相对 4 核上限 400%</p>
       </div>
       <div class="chart-row">
         <p class="chart-k">单路 4K · 内存估算</p>
         <div class="chart-bar"><div class="chart-fill" style="--w: 16.8%"></div></div>
-        <p class="chart-v">~172<em>MB</em><span class="lim">/ 1GB</span></p>
+        <p class="chart-v">~<span class="chart-n" data-value="172">172</span><em>MB</em><span class="lim">/ 1GB</span></p>
         <p class="chart-d">按默认配置的估算公式（相对 1GB 容器限制）</p>
       </div>
     </div>
@@ -1433,15 +1532,53 @@
     }
   });
 
+  /* —— Stats count-up —— */
+  function formatStatValue(value, decimals) {
+    return decimals > 0 ? value.toFixed(decimals) : String(Math.round(value));
+  }
+  function runStatsCountUp(chart) {
+    if (!chart || chart.dataset.counted) return;
+    chart.dataset.counted = "1";
+    chart.querySelectorAll(".chart-n").forEach(function (el, i) {
+      var target = parseFloat(el.getAttribute("data-value"));
+      var decimals = parseInt(el.getAttribute("data-decimals") || "0", 10);
+      if (!Number.isFinite(target)) return;
+      if (reduce) {
+        el.textContent = formatStatValue(target, decimals);
+        return;
+      }
+      var duration = 850;
+      var delay = i * 90;
+      var startAt = 0;
+      el.textContent = formatStatValue(0, decimals);
+      function tick(now) {
+        if (!startAt) startAt = now + delay;
+        if (now < startAt) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        var t = Math.min((now - startAt) / duration, 1);
+        var eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = formatStatValue(target * eased, decimals);
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = formatStatValue(target, decimals);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
   /* —— Reveal on scroll —— */
+  var statsChart = document.querySelector(".stats-chart");
   var rvEls = document.querySelectorAll(".rv");
   if (reduce || !("IntersectionObserver" in window)) {
     rvEls.forEach(function (el) { el.classList.add("in"); });
+    if (statsChart) runStatsCountUp(statsChart);
   } else {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (en.isIntersecting) {
           en.target.classList.add("in");
+          if (en.target.classList.contains("stats-chart")) runStatsCountUp(en.target);
           io.unobserve(en.target);
         }
       });
