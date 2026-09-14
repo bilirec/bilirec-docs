@@ -16,9 +16,11 @@ description: 環境變數載入順序與 .env 檔案機制
 
 **二進制模式：**
 
-編輯 `.env.local` 或 `.env` 檔案，或直接設定環境變數：
+編輯 `.env.local` 或 `.env` 檔案，或直接設定環境變數。
 
-**Linux / macOS：**
+`.env` / `.env.local` 請使用 `KEY=VALUE` 格式，**不要**加 `export`（bilirec 用 godotenv 載入，帶 `export` 的行無法正確解析）。`export` 僅用於在終端臨時設定變數後啟動程式。
+
+**Linux / macOS（臨時在終端設定後啟動）：**
 
 ```bash
 export MAX_CONCURRENT_RECORDINGS=5

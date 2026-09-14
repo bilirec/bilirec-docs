@@ -34,12 +34,12 @@ tableOfContents: false
 | `LOCAL_LOGS_BATCH_BYTES` | 本地日志异步批量写入阈值（字节） | `65536` |
 | `LOCAL_LOGS_FLUSH_INTERVAL` | 本地日志定时刷盘间隔 | `1s` |
 | `LOCAL_LOGS_BUFFER_SIZE` | 本地日志内存队列槽位数 | `4096` |
-| `LOCAL_LOGS_OVERFLOW` | 本地日志队列满时：`drop`（丢弃当前行，不阻塞）或 `block`（等待空位，可能拖慢打 log 的 goroutine，见 [本地日志文件](/zh-cn/configuration/local-logs/)） | `drop` |
+| `LOCAL_LOGS_OVERFLOW` | 本地日志队列满时：`drop`（丢弃当前行，不阻塞）或 `block`（等待空位，可能拖慢写日志的流程，见 [本地日志文件](/zh-cn/configuration/local-logs/)） | `drop` |
 | `DANMAKU_OUTPUT_FORMAT` | 弹幕文件格式：`jsonl` 或 `xml`；`jsonl` 可用于 Web 回放弹幕与互动特效，详见 [弹幕录制](/zh-cn/configuration/danmaku/) | `jsonl` |
 | `DANMAKU_OVERFLOW_POLICY` | 弹幕写入队列已满时的处理方式：`drop`（丢弃新消息）或 `block`（等待空位） | `drop` |
 | `DANMAKU_WRITER_BUFFER_SIZE` | 弹幕写入前的合并缓冲区大小（字节） | `262144` (256 KB) |
 | `DANMAKU_WRITER_MIN_PERIODIC_FLUSH_BYTES` | 定期写入时跳过的小数据量阈值（字节） | `16384` (16 KB) |
-| `DANMAKU_WRITER_FLUSH_PERIOD_SECS` | 弹幕数据定期推进储存设备的间隔（秒） | `15` |
+| `DANMAKU_WRITER_FLUSH_PERIOD_SECS` | 弹幕数据定期推进磁盘的间隔（秒） | `15` |
 | `DANMAKU_WRITER_SYNC_PERIOD_SECS` | 弹幕文件定期强制落盘的间隔（秒）；`0`=录制中关闭 | `0` |
 | `DANMAKU_CHAN_BUFFER_SIZE` | 弹幕接收与写入过程可暂存的消息槽位数量 | `256` |
 | `DANMAKU_BYTES_POOL_SIZE` | 弹幕片段缓冲的基础大小（字节） | `4096` (4 KB) |

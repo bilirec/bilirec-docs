@@ -5,9 +5,11 @@ description: 將 bilirec 結構化日誌推送到 VictoriaLogs，便於集中查
 
 import { Aside } from '@astrojs/starlight/components';
 
+## 概述
+
 bilirec 預設把日誌寫到**標準錯誤**（終端或 Docker 日誌），格式為人類可讀的彩色文本。**預設不向任何遠端系統發送日誌**。
 
-開啟本功能後，會在保留本地可讀日誌的同時，把同一份日誌以 **JSON Line** 格式異步推送到 [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/)。適合在 NAS / 樹莓派上長期錄製時，用 Grafana 或 VMUI 按房間、模塊、級別檢索歷史日誌。
+開啟本功能後，會在保留本地可讀日誌的同時，把同一份日誌以 **JSON Line** 格式異步推送到 [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/)。適合在 NAS、樹莓派或伺服器上長期錄製、並希望在 Grafana 或 VMUI 裡按房間、模塊、級別檢索歷史日誌的用戶。
 
 ## 前置知識
 
@@ -23,8 +25,8 @@ bilirec **只負責推送**；儲存、保留策略與可視化由 VictoriaLogs 
 2. 在 `.env` 中設定：
 
 ```bash
-export VICTORIALOGS_ENABLED=true
-export VICTORIALOGS_URL=http://127.0.0.1:9428
+VICTORIALOGS_ENABLED=true
+VICTORIALOGS_URL=http://127.0.0.1:9428
 ```
 
 3. 重啟 bilirec。啟動日誌中會出現 `VictoriaLogs 遠端日誌已啟用：...`
@@ -62,7 +64,7 @@ app:bilirec AND logger:recorder
 | `_time` | RFC3339 時間戳 |
 | `_msg` | 日誌正文 |
 | `level` | 級別（`debug` / `info` / `warn` / `error` 等） |
-| `logger` | 模塊名（與代碼中 `logger.Named("...")` 一致，如 `recorder`、`danmaku`） |
+| `logger` | 模塊名（如 `recorder` 表示錄製、`danmaku` 表示彈幕） |
 | `app` | 固定為 `bilirec` |
 | `instance` | 主機名（便於區分多臺設備） |
 | 其它 | 結構化字段（如 `room`、`file`、`processor`、`task_id`、`error`） |
@@ -74,8 +76,8 @@ app:bilirec AND logger:recorder
 - **標準錯誤**：始終為人類可讀彩色文本（Docker / 終端日誌）
 - **本地檔案**（可選，`LOCAL_LOGS_ENABLED=true`）：異步寫入磁碟，格式可選 `pretty` / `jsonline`；隊列滿時預設 **丟棄新行、不阻塞**，詳見 [本地日誌檔案](/zh-tw/configuration/local-logs/)
 - **遠端**：JSON Line，異步批量推送（約 1 秒或 64 KiB 一批）
-- 遠端緩衝區滿時**丟棄**新日誌行，不阻塞錄製線程
-- 進程退出時（含 `fx` 優雅停止）會盡量 flush 剩餘批次
+- 遠端緩衝區滿時**丟棄**新日誌行，不阻塞錄製
+- 進程正常退出時會盡量把仍在排隊中的日誌推送出去
 
 ## Grafana 接入簡述
 

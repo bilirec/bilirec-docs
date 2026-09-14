@@ -5,11 +5,13 @@ description: 通過獨立端口暴露 Prometheus 指標，接入 VictoriaMetrics
 
 import { Aside } from '@astrojs/starlight/components';
 
-bilirec 可以在**獨立端口**暴露 Prometheus 格式的指標，供 VictoriaMetrics（或任何兼容 Prometheus 抓取協議的採集器）抓取。之後可以在 Grafana 裡畫圖、做每日合計。**預設關閉**，開啟不影響主 API 端口、路由與認證。
+## 概述
 
-適用場景：在 NAS / 樹莓派上長時間錄製時，想看資源佔用、每房間讀入與落盤量、錄製時長和開播情況。
+bilirec 可以在**獨立端口**暴露 Prometheus 格式的指標，供 VictoriaMetrics（或任何兼容 Prometheus 抓取協議的採集器）定期抓取。之後可以在 Grafana 裡畫圖、做每日合計。**預設關閉**，開啟不影響主 API 端口、路由與認證。
 
-bilirec 只負責把當前指標公開出來，不會自己保存歷史，也不會畫圖。要把數字留下來，需要另外安裝 [VictoriaMetrics](https://docs.victoriametrics.com/quick-start/) 或 [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)，讓它們定期來抓 `/metrics`。要用圖形介面時，再裝 [Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/installation/)；也可以先用 VictoriaMetrics / Prometheus 自帶的查詢頁。安裝步驟以各項目文檔為準，本頁說明如何讓它們抓到 bilirec。
+適合在 NAS、樹莓派或伺服器上長時間錄製，並希望觀察資源佔用、每房間讀入與落盤量、錄製時長和開播情況的用戶。
+
+bilirec 只負責把**當前**指標公開出來，不會自己保存歷史，也不會畫圖。要把數字留下來，需要另外安裝 [VictoriaMetrics](https://docs.victoriametrics.com/quick-start/) 或 [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)，讓它們定期來抓 `/metrics`。要用圖形介面時，再裝 [Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/installation/)；也可以先用 VictoriaMetrics / Prometheus 自帶的查詢頁。安裝步驟以各項目文檔為準，本頁說明如何讓它們抓到 bilirec。
 
 已經接好 Grafana 時，也可以導入一組現成面板，見 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)。房間異常時不想一直盯盤，還可以導入同頁的 [告警規則](/zh-tw/configuration/grafana-dashboards/#告警規則)。自己按下文查詢做圖同樣可行。
 
@@ -32,9 +34,9 @@ bilirec 只負責暴露指標，採集與可視化由上述工具完成。下面
 5. 在 Grafana 添加 Prometheus 類型資料源後，可用下文查詢做圖，也可以導入 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)
 
 ```bash
-export METRICS_ENABLED=true
-export METRICS_HOST=          # 留空監聽所有網卡，便於跨機器抓取
-export METRICS_PORT=9090
+METRICS_ENABLED=true
+METRICS_HOST=          # 留空監聽所有網卡，便於跨機器抓取
+METRICS_PORT=9090
 ```
 
 <Aside type="caution">
@@ -51,7 +53,7 @@ export METRICS_PORT=9090
 
 ### `METRICS_ENABLED`
 
-**作用：** 開關整個指標功能。關閉時 bilirec 不會監聽 metrics 端口，也不會註冊任何指標 series，不會增加可察覺的運行開銷。
+**作用：** 開關整個指標功能。關閉時 bilirec 不會監聽 metrics 端口，也不會註冊任何指標時間序列，不會增加可察覺的運行開銷。
 
 **預設值：** `false`（關閉）。
 
@@ -83,7 +85,7 @@ export METRICS_PORT=9090
 
 | 指標 | 類型 | 說明 |
 |------|------|------|
-| `go_goroutines` | gauge | Goroutine 數量 |
+| `go_goroutines` | gauge | 並發任務數（協程） |
 | `go_memstats_heap_inuse_bytes` | gauge | 堆記憶體使用量 |
 | `go_memstats_stack_inuse_bytes` | gauge | 棧記憶體使用量 |
 | `go_memstats_sys_bytes` | gauge | Go runtime 已向 OS 申請的記憶體 |
@@ -97,17 +99,17 @@ export METRICS_PORT=9090
 | `bilirec_active_recordings` | gauge | 當前正在錄製的房間數 |
 
 <Aside type="note">
-Go 運行時與行程資源指標由 [VictoriaMetrics/metrics](https://github.com/VictoriaMetrics/metrics) 在抓取時寫出（掛在同一套 `/metrics` 上，與房間級指標一起返回）。**沒有後台 goroutine** 持續採樣。Anon / File 只在 Linux 出現。房間級指標仍由 bilirec 自己註冊。
+Go 運行時與行程資源指標由 [VictoriaMetrics/metrics](https://github.com/VictoriaMetrics/metrics) 在抓取時寫出（掛在同一套 `/metrics` 上，與房間級指標一起返回）。**沒有後台任務**持續採樣。匿名記憶體與檔案緩存兩項只在 Linux 出現。房間級指標仍由 bilirec 自己註冊。
 </Aside>
 
 ### 房間級指標
 
-所有房間級指標都帶 `room_id` label（房間號永不變更，不會因主播改名產生 series 抖動）。
+所有房間級指標都帶 `room_id` 標籤（房間號永不變更，不會因主播改名產生多餘的時間序列）。
 
 | 指標 | 類型 | 說明 |
 |------|------|------|
 | `bilirec_room_stream_bytes_total` | counter | 從直播 TCP 讀入的字節數（進入寫入管線之前）。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
-| `bilirec_room_stream_bytes_written_total` | counter | 寫入器 `Write()` 實際落盤的字節數（含切檔）。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
+| `bilirec_room_stream_bytes_written_total` | counter | 實際寫入磁碟的字節數（含切檔）。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
 | `bilirec_room_stream_timestamp_jumps_total` | counter | FLV 時間戳正跳變次數（`delta > 0`） |
 | `bilirec_room_stream_timestamp_jump_collapsed_seconds_total` | counter | 正跳變摺疊掉的媒體時間（秒，`delta_ms / 1000` 累加） |
 | `bilirec_room_stream_enqueue_waits_total` | counter | 寫入隊列已滿、發送方等待的次數 |
@@ -131,7 +133,7 @@ Go 運行時與行程資源指標由 [VictoriaMetrics/metrics](https://github.co
 | `bilirec_room_info` | gauge=1 | 房間元信息，label `room_id`、`uname`，用於 Grafana join 顯示主播名 |
 
 <Aside type="note">
-`bilirec_room_info` 是「info metric」：值恆為 1，作用是把 `room_id` 映射到 `uname`（主播名）。Grafana 查詢時用 `* on(room_id) group_left(uname)` join 回數據 series，即可在圖例顯示主播名。主播改名時只重建這一條小 series，數據 series 不受影響；歷史區間會 join 出當時的名字，符合當時的狀態。
+`bilirec_room_info` 是「信息型指標」：值恆為 1，作用是把 `room_id` 映射到 `uname`（主播名）。Grafana 查詢時用 `* on(room_id) group_left(uname)` 關聯回數據序列，即可在圖例顯示主播名。主播改名時只重建這一條小序列，數據序列不受影響；歷史區間會顯示當時的名字，符合當時的狀態。
 </Aside>
 
 <Aside type="note">
@@ -183,12 +185,12 @@ unless on(room_id)
 | `bilirec_danmaku_messages_total` | counter | 收到的彈幕、醒目留言、禮物和艦長事件數量 |
 | `bilirec_danmaku_messages_dropped_total` | counter | 因寫入隊列已滿而丟棄的事件數量 |
 | `bilirec_danmaku_parse_errors_total` | counter | 彈幕、醒目留言、禮物或艦長事件解析失敗次數。失敗的事件不會計入 `messages_total` |
-| `bilirec_danmaku_bytes_total` | counter | 彈幕寫入器 `Write()` 實際落盤的字節數 |
+| `bilirec_danmaku_bytes_total` | counter | 彈幕檔案實際寫入磁碟的字節數 |
 | `bilirec_danmaku_rotations_total` | counter | 成功切換彈幕檔案的次數 |
 | `bilirec_danmaku_rotation_dropped_total` | counter | 因切換隊列已滿而丟棄切換通知的次數 |
 
 <Aside type="note">
-彈幕 **counter** 在該房間第一次開始錄彈幕時創建，停錄後仍留在 `/metrics`。狀態 gauge（`danmaku_recording_active`、`danmaku_connection_active`）只在會話進行時出現。`messages_dropped_total` 大於 0 通常表示消息高峰超過了寫入速度，可以結合 [彈幕錄製](/zh-tw/configuration/danmaku/) 檢查 `DANMAKU_OVERFLOW_POLICY`、儲存設備和並發錄製數。
+彈幕 **counter** 在該房間第一次開始錄彈幕時創建，停錄後仍留在 `/metrics`。狀態 gauge（`danmaku_recording_active`、`danmaku_connection_active`）只在會話進行時出現。`messages_dropped_total` 大於 0 通常表示消息高峰超過了寫入速度，可以結合 [彈幕錄製](/zh-tw/configuration/danmaku/) 檢查 `DANMAKU_OVERFLOW_POLICY`、磁碟寫入速度和並發錄製數。
 </Aside>
 
 ### 轉碼指標

@@ -13,8 +13,8 @@ import { Aside } from '@astrojs/starlight/components';
 | `PORT` | API 服務端口 | `8080` |
 
 ```bash
-export HOST=0.0.0.0    # 監聽所有網卡
-export PORT=8080
+HOST=0.0.0.0    # 監聽所有網卡
+PORT=8080
 ```
 
 ## HTTPS
@@ -22,8 +22,8 @@ export PORT=8080
 同時設定證書和私鑰時，Fiber 預設啟用 HTTPS：
 
 ```bash
-export SERVER_CRT=/path/to/server.crt
-export SERVER_KEY=/path/to/server.key
+SERVER_CRT=/path/to/server.crt
+SERVER_KEY=/path/to/server.key
 ```
 
 <Aside type="caution">

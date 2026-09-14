@@ -12,10 +12,10 @@ bilirec 内置 FRP 客户端，无需公网 IP 即可在外网安全访问后端
 最简单的方式——使用官方免费公共服务：
 
 ```bash
-export FRP_ENABLED=true
+FRP_ENABLED=true
 ```
 
-仅设置 `FRP_ENABLED=true` 即可，程序会自动使用 bilirec.org 官方 FRP 服务。
+在 `.env` 中设置 `FRP_ENABLED=true` 即可，程序会自动使用 bilirec.org 官方 FRP 服务。
 
 若要通过 [app.bilirec.org](https://app.bilirec.org/) 登录并管理后端，还需同时开启生产模式并设置账号密码（见下文）。
 
@@ -52,14 +52,14 @@ export FRP_ENABLED=true
 **推荐配置（通过 app.bilirec.org 连接远程 HTTPS 后端时）：**
 
 ```bash
-export PRODUCTION_MODE=true
-export USERNAME=你的用户名
-export PASSWORD=你的密码
-export JWT_SECRET=一个固定的长随机字符串
-export FRONTEND_URL=https://app.bilirec.org
+PRODUCTION_MODE=true
+USERNAME=你的用户名
+PASSWORD=你的密码
+JWT_SECRET=一个固定的长随机字符串
+FRONTEND_URL=https://app.bilirec.org
 ```
 
-若使用 FRP，再加上 `export FRP_ENABLED=true`。改完后**重启 bilirec**，在登录页填入**当前**的后端地址再登录（FRP 每次重启子域名可能变化）。
+若使用 FRP，再加上 `FRP_ENABLED=true`。写入 `.env` 后**重启 bilirec**，在登录页填入**当前**的后端地址再登录（FRP 每次重启子域名可能变化）。
 
 ### 根域名是否相同
 
@@ -87,10 +87,10 @@ export FRONTEND_URL=https://app.bilirec.org
 若你有自己的 FRP 服务，可自定义配置：
 
 ```bash
-export FRP_ENABLED=true
-export FRP_SERVER=your-frp-ip:7000
-export FRP_TOKEN=your-token
-export FRP_BASE_DOMAIN=your-domain.com
+FRP_ENABLED=true
+FRP_SERVER=your-frp-ip:7000
+FRP_TOKEN=your-token
+FRP_BASE_DOMAIN=your-domain.com
 ```
 
 启动日志会显示 `FRP enabled in custom-selfhost mode`。

@@ -5,8 +5,17 @@ description: DEBUG 模式與 pprof 性能分析
 
 ## 啟用除錯
 
+寫入 `.env`：
+
+```bash
+DEBUG=true
+```
+
+或臨時在終端設定後啟動：
+
 ```bash
 export DEBUG=true
+./bilirec-linux-amd64
 ```
 
 伺服器啟動時會在日誌中打印一個臨時十六進制令牌。

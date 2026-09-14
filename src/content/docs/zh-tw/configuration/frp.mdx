@@ -42,7 +42,7 @@ import { Aside } from '@astrojs/starlight/components';
 **官方公共服務（推薦）：**
 
 ```bash
-export FRP_ENABLED=true
+FRP_ENABLED=true
 ```
 
 通過 [app.bilirec.org](https://app.bilirec.org/) 遠端登入時（**不限於 FRP**，自架 HTTPS API 也一樣），建議開啟 `PRODUCTION_MODE=true` 並設定帳號密碼；未設定時可能出現會話過期提示。見 [認證與安全 — 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
@@ -50,23 +50,23 @@ export FRP_ENABLED=true
 **app.bilirec.org + 官方 FRP（完整示例）：**
 
 ```bash
-export FRP_ENABLED=true
-export PRODUCTION_MODE=true
-export FRONTEND_URL=https://app.bilirec.org
-export USERNAME=admin
-export PASSWORD=你的強密碼
-export JWT_SECRET=一個固定的長隨機字符串
+FRP_ENABLED=true
+PRODUCTION_MODE=true
+FRONTEND_URL=https://app.bilirec.org
+USERNAME=admin
+PASSWORD=你的強密碼
+JWT_SECRET=一個固定的長隨機字符串
 ```
 
 **自定義 FRP：**
 
 ```bash
-export FRP_ENABLED=true
-export FRP_SERVER=your-frp-ip:7000
-export FRP_TOKEN=your-token
-export FRP_BASE_DOMAIN=your-domain.com
-export FRP_HTTPS=false
-export FRP_SCHEME_HTTPS=true
+FRP_ENABLED=true
+FRP_SERVER=your-frp-ip:7000
+FRP_TOKEN=your-token
+FRP_BASE_DOMAIN=your-domain.com
+FRP_HTTPS=false
+FRP_SCHEME_HTTPS=true
 ```
 
 ## 啟動日誌

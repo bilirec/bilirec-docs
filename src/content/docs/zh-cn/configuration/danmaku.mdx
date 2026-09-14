@@ -42,7 +42,7 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?record_danmaku=true"
 默认格式为 `jsonl`，适合 bilirec-web 回放。若需要与其他录播工具交换互动记录，可以改用 `xml`：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=jsonl
+DANMAKU_OUTPUT_FORMAT=jsonl
 ```
 
 <Aside type="note">
@@ -74,7 +74,7 @@ Web 回放完整读取 `jsonl`。`xml` 仍会保存弹幕与互动记录，但 b
 - `drop`：队列满时丢弃新消息，优先保持录制和弹幕连接的响应。
 - `block`：等待队列出现空位，尽量保留消息；如果磁盘写入很慢，弹幕连接处理也可能被拖慢，弹幕处理时间可能落后于视频进度。
 
-**建议：** 树莓派、microSD 或同时录制多个房间时，通常保持 `drop`。如果互动记录完整性比连接响应更重要，并且储存设备写入稳定，可以考虑 `block`。
+**建议：** 树莓派、microSD 或同时录制多个房间时，通常保持 `drop`。如果互动记录完整性比连接响应更重要，并且磁盘写入稳定，可以考虑 `block`。
 
 **注意：** 使用 `drop` 时，直播互动特别密集或磁盘暂时变慢，回放中可能少一些弹幕或礼物记录。使用 `block` 时，写入压力高的设备可能更容易出现弹幕连接延迟或重连；在较慢的设备上，回放中的弹幕还可能晚于对应画面，出现不同步。
 
@@ -92,15 +92,15 @@ Web 回放完整读取 `jsonl`。`xml` 仍会保存弹幕与互动记录，但 b
 
 **默认：** `16384` 字节（16 KB）。
 
-**建议：** 使用 microSD 或机械硬盘时保持默认，可以减少很小的写入操作。若需要更快地把少量弹幕推进储存设备，可以适当减小，但写入次数会增加。
+**建议：** 使用 microSD 或机械硬盘时保持默认，可以减少很小的写入操作。若需要更快地把少量弹幕推进磁盘，可以适当减小，但写入次数会增加。
 
 ### `DANMAKU_WRITER_FLUSH_PERIOD_SECS`
 
-**作用：** 定期把已接收的弹幕数据推进储存设备的间隔。
+**作用：** 定期把已接收的弹幕数据推进磁盘的间隔。
 
 **默认：** `15` 秒。
 
-**建议：** 与视频写入的默认周期一致，适合作为一般起点。储存设备写入较慢时可以适当增大，以减少写入频率；更重视异常中断时少丢最近数据时可以适当减小。
+**建议：** 与视频写入的默认周期一致，适合作为一般起点。磁盘写入较慢时可以适当增大，以减少写入频率；更重视异常中断时少丢最近数据时可以适当减小。
 
 **代价：** 间隔越大，内存中等待写入的数据和异常中断时尚未推进的数据窗口可能越大；间隔越小，写入次数和设备压力会增加。
 
@@ -112,7 +112,7 @@ Web 回放完整读取 `jsonl`。`xml` 仍会保存弹幕与互动记录，但 b
 
 **建议：** microSD 和低功耗设备通常保持 `0`，减少额外写入。若设备经常突然断电，并且更重视减少最近数据丢失，可以设置为大于 `0` 的秒数。
 
-**代价：** 设置为大于 `0` 会更频繁地处理整个弹幕文件，可能增加储存设备写入压力。它主要改善异常断电时的数据安全，不会让 Web 播放器获得更多弹幕。
+**代价：** 设置为大于 `0` 会更频繁地处理整个弹幕文件，可能增加磁盘写入压力。它主要改善异常断电时的数据安全，不会让 Web 播放器获得更多弹幕。
 
 ### `DANMAKU_CHAN_BUFFER_SIZE`
 
@@ -120,13 +120,13 @@ Web 回放完整读取 `jsonl`。`xml` 仍会保存弹幕与互动记录，但 b
 
 **默认：** `256`。
 
-**建议：** 弹幕密集、储存设备偶尔出现短暂写入延迟时，可以适当增大。内存紧张或录制路数较多时，可以保持默认或适当减小。
+**建议：** 弹幕密集、磁盘偶尔出现短暂写入延迟时，可以适当增大。内存紧张或录制路数较多时，可以保持默认或适当减小。
 
 **注意：** 队列较大时可以吸收更短的消息高峰，但内存占用也会增加；它不能解决持续的写入速度不足。
 
 ### `DANMAKU_BYTES_POOL_SIZE`
 
-**作用：** 设置弹幕片段缓冲的基础大小，供程序重复利用内存。
+**作用：** 设置弹幕片段缓冲的基础大小，用于在内存中复用小块数据，减少反复申请内存的开销。
 
 **默认：** `4096` 字节（4 KB）。
 
@@ -136,26 +136,28 @@ Web 回放完整读取 `jsonl`。`xml` 仍会保存弹幕与互动记录，但 b
 
 ## 推荐设置
 
+以下示例为 `.env` 格式（`KEY=VALUE`，不要加 `export`）。若只在当前终端会话临时生效，可在启动前改用 `export KEY=VALUE`。
+
 ### 保守
 
 适合树莓派、Android 或 microSD：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=jsonl
-export DANMAKU_OVERFLOW_POLICY=drop
-export DANMAKU_WRITER_FLUSH_PERIOD_SECS=15
-export DANMAKU_WRITER_SYNC_PERIOD_SECS=0
+DANMAKU_OUTPUT_FORMAT=jsonl
+DANMAKU_OVERFLOW_POLICY=drop
+DANMAKU_WRITER_FLUSH_PERIOD_SECS=15
+DANMAKU_WRITER_SYNC_PERIOD_SECS=0
 ```
 
-优先保持录制响应与储存设备寿命，极端拥堵时允许少量互动记录缺失。
+优先保持录制响应与磁盘寿命，极端拥堵时允许少量互动记录缺失。
 
 ### 完整记录优先
 
 适合写入性能稳定、且更重视互动记录完整性的设备：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=jsonl
-export DANMAKU_OVERFLOW_POLICY=block
+DANMAKU_OUTPUT_FORMAT=jsonl
+DANMAKU_OVERFLOW_POLICY=block
 ```
 
 队列满时尽量等待写入，但磁盘拥堵可能影响弹幕连接处理。若出现频繁重连或整体录制压力升高，可以改回 `drop`。
@@ -169,8 +171,8 @@ export DANMAKU_OVERFLOW_POLICY=block
 需要把记录交给支持 XML 的外部工具时：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=xml
-export DANMAKU_OVERFLOW_POLICY=drop
+DANMAKU_OUTPUT_FORMAT=xml
+DANMAKU_OVERFLOW_POLICY=drop
 ```
 
 这种设置仍会保存互动记录，但 bilirec-web 回放不会显示弹幕滚动和礼物特效。
@@ -182,11 +184,11 @@ export DANMAKU_OVERFLOW_POLICY=drop
 如果出现以下症状，可以按顺序处理：
 
 - **回放中弹幕明显变少：** 先确认 `DANMAKU_OUTPUT_FORMAT` 为 `jsonl`，再检查是否使用了 `drop`，以及磁盘是否在同时处理多路录制或转码。
-- **弹幕连接频繁重连：** 先保持 `DANMAKU_OVERFLOW_POLICY=drop`，再检查网络和储存设备写入延迟。不要只通过增大队列掩盖持续的写入瓶颈。
+- **弹幕连接频繁重连：** 先保持 `DANMAKU_OVERFLOW_POLICY=drop`，再检查网络和磁盘写入延迟。不要只通过增大队列掩盖持续的写入瓶颈。
 - **内存逐渐升高：** 优先检查视频录制路数和视频缓冲配置；只有确认弹幕队列排满时，才考虑减小 `DANMAKU_CHAN_BUFFER_SIZE` 或 `DANMAKU_WRITER_BUFFER_SIZE`。
 - **microSD 写入压力高：** 保持 `DANMAKU_WRITER_SYNC_PERIOD_SECS=0`，并避免把 `DANMAKU_WRITER_FLUSH_PERIOD_SECS` 调得过小。
 
-## 文件与储存行为
+## 文件与存储行为
 
 - 弹幕文件与对应视频使用相同的基础文件名，只改变扩展名。
 - HTTP-FLV 发生分段、HLS-fMP4 的媒体初始化信息发生变化，或断流恢复后开始新视频文件时，弹幕记录也会切换到对应的新文件。
@@ -198,7 +200,7 @@ export DANMAKU_OVERFLOW_POLICY=drop
 
 弹幕通过 Bilibili 的实时连接接收。连接中断后程序会自动重试；连接持续成功一段时间后，重试等待会重新从较短间隔开始。
 
-如果获取弹幕连接信息失败，程序会尝试使用备用连接地址。网络不稳定、Bilibili 临时限制请求或储存设备写入变慢，都可能造成部分互动记录缺失或延迟。
+如果获取弹幕连接信息失败，程序会尝试使用备用连接地址。网络不稳定、Bilibili 临时限制请求或磁盘写入变慢，都可能造成部分互动记录缺失或延迟。
 
 弹幕连接与视频录制分开处理。弹幕暂时不可用时，视频录制通常仍会继续；恢复连接后会继续记录，但断开期间无法补回已经错过的互动。
 
@@ -222,7 +224,7 @@ export DANMAKU_OVERFLOW_POLICY=drop
 
 ### 弹幕消息丢失
 
-如果使用 `DANMAKU_OVERFLOW_POLICY=drop`，队列排满时会主动丢弃新消息，这是为了避免弹幕处理拖住录制。可以检查磁盘写入延迟和并发录制数；在储存设备性能足够时，再考虑使用 `block`。
+如果使用 `DANMAKU_OVERFLOW_POLICY=drop`，队列排满时会主动丢弃新消息，这是为了避免弹幕处理拖住录制。可以检查磁盘写入延迟和并发录制数；在磁盘性能足够时，再考虑使用 `block`。
 
 ## 进阶说明
 

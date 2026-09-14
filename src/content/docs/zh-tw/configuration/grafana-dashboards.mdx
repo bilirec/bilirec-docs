@@ -5,7 +5,11 @@ description: 現成的 Grafana JSON 與告警規則，導入後可查看錄製�
 
 import { Aside } from '@astrojs/starlight/components';
 
-如果你已經用 Grafana 接上 VictoriaMetrics（在 Grafana 裡添加資料源時選 Prometheus 這一類），可以把指標儀表盤的 JSON 導入進去，省去從零寫查詢。日誌分析儀表盤則使用 VictoriaLogs datasource plugin，兩者是不同資料源。各張盤對應不同問題，按需要下載即可。指標如何開啟、如何被抓取，見 [監控指標](/zh-tw/configuration/metrics/)。時序庫和 Grafana 的安裝見各項目官方文檔。
+## 概述
+
+bilirec 提供一組現成的 Grafana 儀表盤與告警規則，導入後即可查看錄製狀態、資源佔用、彈幕與轉碼健康、日誌趨勢等，不必從零編寫查詢。
+
+適合已經部署 Grafana，並希望長期觀察 NAS、樹莓派或伺服器上錄製情況的用戶。指標盤需要 VictoriaMetrics 或 Prometheus；日誌盤需要 VictoriaLogs。開啟指標與抓取方式見 [監控指標](/zh-tw/configuration/metrics/)；時序庫與 Grafana 本身的安裝見各項目官方文檔。
 
 請下載**與當前文檔語言相同**的 JSON。簡繁兩套盤共用同一 `uid`，後導入的會覆蓋先導入的。
 
@@ -104,7 +108,7 @@ import { Aside } from '@astrojs/starlight/components';
 - 失敗是磁碟滿、達到同時路數、房間加密/封禁，還是流地址連不上？
 - 恢復是成功多還是放棄多？
 - 有沒有過短分段被丟掉？
-- 寫入隊列是不是經常在等？flush / fsync 是否經常超過幾秒？
+- 寫入隊列是不是經常在等？把數據推進磁碟（flush）或強制落盤（fsync）是否經常超過幾秒？
 - FLV 時間戳有沒有大幅跳變，把媒體時間折掉？
 
 **下載：** [bilirec-recording.json](/dashboards/zh-tw/bilirec-recording.json)

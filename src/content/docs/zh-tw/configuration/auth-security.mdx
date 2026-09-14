@@ -51,11 +51,11 @@ import { Aside } from '@astrojs/starlight/components';
 **推薦（app.bilirec.org + 遠端 HTTPS 後端）：**
 
 ```bash
-export PRODUCTION_MODE=true
-export USERNAME=admin
-export PASSWORD=你的強密碼
-export JWT_SECRET=一個固定的長隨機字符串
-export FRONTEND_URL=https://app.bilirec.org
+PRODUCTION_MODE=true
+USERNAME=admin
+PASSWORD=你的強密碼
+JWT_SECRET=一個固定的長隨機字符串
+FRONTEND_URL=https://app.bilirec.org
 ```
 
 `JWT_SECRET` 建議在首次部署時設定並長期保持不變；若重啟後改了密鑰，需要重新登入。

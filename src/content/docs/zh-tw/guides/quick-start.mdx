@@ -114,7 +114,7 @@ docker run -d \
 桌面端使用 Bilibili App 掃描二維碼。手機請點擊「使用 Bilibili App 登入」，確認後**手動切回本頁**；切回後頁面會自動完成登入。
 
 ```bash
-export BILIBILI_LOGIN_MODE=controller # 默認已經是
+BILIBILI_LOGIN_MODE=controller  # 預設已是；寫入 .env 後重啟生效
 ```
 
 <Tabs>
@@ -136,20 +136,22 @@ export BILIBILI_LOGIN_MODE=controller # 默認已經是
 
 <TabItem label="startup">
 
-啟動時在終端顯示二維碼，用手機 B 站 App 掃碼登入：
+啟動時在終端顯示二維碼，用手機 B 站 App 掃碼登入。需在**啟動前**於終端設定（或寫入 `.env` 後重啟）：
 
 ```bash
 export BILIBILI_LOGIN_MODE=startup
+./bilirec-linux-amd64
 ```
 
 </TabItem>
 
 <TabItem label="anonymous">
 
-直接匿名登入，無需掃碼。未登入可能無法錄製 1080p 及以上畫質：
+直接匿名登入，無需掃碼。未登入可能無法錄製 1080p 及以上畫質。寫入 `.env` 後重啟，或臨時在終端設定後啟動：
 
 ```bash
 export BILIBILI_LOGIN_MODE=anonymous
+./bilirec-linux-amd64
 ```
 
 </TabItem>

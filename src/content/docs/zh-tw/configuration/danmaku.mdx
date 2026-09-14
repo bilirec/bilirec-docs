@@ -42,7 +42,7 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?record_danmaku=true"
 預設格式為 `jsonl`，適合 bilirec-web 回放。若需要與其他錄播工具交換互動記錄，可以改用 `xml`：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=jsonl
+DANMAKU_OUTPUT_FORMAT=jsonl
 ```
 
 <Aside type="note">
@@ -74,7 +74,7 @@ Web 回放完整讀取 `jsonl`。`xml` 仍會保存彈幕與互動記錄，但 b
 - `drop`：隊列滿時丟棄新消息，優先保持錄製和彈幕連接的響應。
 - `block`：等待隊列出現空位，儘量保留消息；如果磁碟寫入很慢，彈幕連接處理也可能被拖慢，彈幕處理時間可能落後於影片進度。
 
-**建議：** 樹莓派、microSD 或同時錄製多個房間時，通常保持 `drop`。如果互動記錄完整性比連接響應更重要，並且儲存設備寫入穩定，可以考慮 `block`。
+**建議：** 樹莓派、microSD 或同時錄製多個房間時，通常保持 `drop`。如果互動記錄完整性比連接響應更重要，並且磁碟寫入穩定，可以考慮 `block`。
 
 **注意：** 使用 `drop` 時，直播互動特別密集或磁碟暫時變慢，回放中可能少一些彈幕或禮物記錄。使用 `block` 時，寫入壓力高的設備可能更容易出現彈幕連接延遲或重連；在較慢的設備上，回放中的彈幕還可能晚於對應畫面，出現不同步。
 
@@ -92,15 +92,15 @@ Web 回放完整讀取 `jsonl`。`xml` 仍會保存彈幕與互動記錄，但 b
 
 **預設：** `16384` 字節（16 KB）。
 
-**建議：** 使用 microSD 或機械硬碟時保持預設，可以減少很小的寫入操作。若需要更快地把少量彈幕推進儲存設備，可以適當減小，但寫入次數會增加。
+**建議：** 使用 microSD 或機械硬碟時保持預設，可以減少很小的寫入操作。若需要更快地把少量彈幕推進磁碟，可以適當減小，但寫入次數會增加。
 
 ### `DANMAKU_WRITER_FLUSH_PERIOD_SECS`
 
-**作用：** 定期把已接收的彈幕數據推進儲存設備的間隔。
+**作用：** 定期把已接收的彈幕數據推進磁碟的間隔。
 
 **預設：** `15` 秒。
 
-**建議：** 與影片寫入的預設週期一致，適合作為一般起點。儲存設備寫入較慢時可以適當增大，以減少寫入頻率；更重視異常中斷時少丟最近數據時可以適當減小。
+**建議：** 與影片寫入的預設週期一致，適合作為一般起點。磁碟寫入較慢時可以適當增大，以減少寫入頻率；更重視異常中斷時少丟最近數據時可以適當減小。
 
 **代價：** 間隔越大，記憶體中等待寫入的數據和異常中斷時尚未推進的數據窗口可能越大；間隔越小，寫入次數和設備壓力會增加。
 
@@ -112,7 +112,7 @@ Web 回放完整讀取 `jsonl`。`xml` 仍會保存彈幕與互動記錄，但 b
 
 **建議：** microSD 和低功耗設備通常保持 `0`，減少額外寫入。若設備經常突然斷電，並且更重視減少最近數據丟失，可以設定為大於 `0` 的秒數。
 
-**代價：** 設定為大於 `0` 會更頻繁地處理整個彈幕檔案，可能增加儲存設備寫入壓力。它主要改善異常斷電時的數據安全，不會讓 Web 播放器獲得更多彈幕。
+**代價：** 設定為大於 `0` 會更頻繁地處理整個彈幕檔案，可能增加磁碟寫入壓力。它主要改善異常斷電時的數據安全，不會讓 Web 播放器獲得更多彈幕。
 
 ### `DANMAKU_CHAN_BUFFER_SIZE`
 
@@ -120,13 +120,13 @@ Web 回放完整讀取 `jsonl`。`xml` 仍會保存彈幕與互動記錄，但 b
 
 **預設：** `256`。
 
-**建議：** 彈幕密集、儲存設備偶爾出現短暫寫入延遲時，可以適當增大。記憶體緊張或錄製路數較多時，可以保持預設或適當減小。
+**建議：** 彈幕密集、磁碟偶爾出現短暫寫入延遲時，可以適當增大。記憶體緊張或錄製路數較多時，可以保持預設或適當減小。
 
 **注意：** 隊列較大時可以吸收更短的消息高峰，但記憶體佔用也會增加；它不能解決持續的寫入速度不足。
 
 ### `DANMAKU_BYTES_POOL_SIZE`
 
-**作用：** 設定彈幕片段緩衝的基礎大小，供程式重複利用記憶體。
+**作用：** 設定彈幕片段緩衝的基礎大小，用於在記憶體中複用小塊數據，減少反覆申請記憶體的開銷。
 
 **預設：** `4096` 字節（4 KB）。
 
@@ -136,26 +136,28 @@ Web 回放完整讀取 `jsonl`。`xml` 仍會保存彈幕與互動記錄，但 b
 
 ## 推薦設定
 
+以下示例為 `.env` 格式（`KEY=VALUE`，不要加 `export`）。若只在當前終端會話臨時生效，可在啟動前改用 `export KEY=VALUE`。
+
 ### 保守
 
 適合樹莓派、Android 或 microSD：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=jsonl
-export DANMAKU_OVERFLOW_POLICY=drop
-export DANMAKU_WRITER_FLUSH_PERIOD_SECS=15
-export DANMAKU_WRITER_SYNC_PERIOD_SECS=0
+DANMAKU_OUTPUT_FORMAT=jsonl
+DANMAKU_OVERFLOW_POLICY=drop
+DANMAKU_WRITER_FLUSH_PERIOD_SECS=15
+DANMAKU_WRITER_SYNC_PERIOD_SECS=0
 ```
 
-優先保持錄製響應與儲存設備壽命，極端擁堵時允許少量互動記錄缺失。
+優先保持錄製響應與磁碟壽命，極端擁堵時允許少量互動記錄缺失。
 
 ### 完整記錄優先
 
 適合寫入性能穩定、且更重視互動記錄完整性的設備：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=jsonl
-export DANMAKU_OVERFLOW_POLICY=block
+DANMAKU_OUTPUT_FORMAT=jsonl
+DANMAKU_OVERFLOW_POLICY=block
 ```
 
 隊列滿時儘量等待寫入，但磁碟擁堵可能影響彈幕連接處理。若出現頻繁重連或整體錄製壓力升高，可以改回 `drop`。
@@ -169,8 +171,8 @@ export DANMAKU_OVERFLOW_POLICY=block
 需要把記錄交給支持 XML 的外部工具時：
 
 ```bash
-export DANMAKU_OUTPUT_FORMAT=xml
-export DANMAKU_OVERFLOW_POLICY=drop
+DANMAKU_OUTPUT_FORMAT=xml
+DANMAKU_OVERFLOW_POLICY=drop
 ```
 
 這種設定仍會保存互動記錄，但 bilirec-web 回放不會顯示彈幕滾動和禮物特效。
@@ -182,7 +184,7 @@ export DANMAKU_OVERFLOW_POLICY=drop
 如果出現以下症狀，可以按順序處理：
 
 - **回放中彈幕明顯變少：** 先確認 `DANMAKU_OUTPUT_FORMAT` 為 `jsonl`，再檢查是否使用了 `drop`，以及磁碟是否在同時處理多路錄製或轉碼。
-- **彈幕連接頻繁重連：** 先保持 `DANMAKU_OVERFLOW_POLICY=drop`，再檢查網路和儲存設備寫入延遲。不要只通過增大隊列掩蓋持續的寫入瓶頸。
+- **彈幕連接頻繁重連：** 先保持 `DANMAKU_OVERFLOW_POLICY=drop`，再檢查網路和磁碟寫入延遲。不要只通過增大隊列掩蓋持續的寫入瓶頸。
 - **記憶體逐漸升高：** 優先檢查影片錄製路數和影片緩衝設定；只有確認彈幕隊列排滿時，才考慮減小 `DANMAKU_CHAN_BUFFER_SIZE` 或 `DANMAKU_WRITER_BUFFER_SIZE`。
 - **microSD 寫入壓力高：** 保持 `DANMAKU_WRITER_SYNC_PERIOD_SECS=0`，並避免把 `DANMAKU_WRITER_FLUSH_PERIOD_SECS` 調得過小。
 
@@ -198,7 +200,7 @@ export DANMAKU_OVERFLOW_POLICY=drop
 
 彈幕通過 Bilibili 的實時連接接收。連接中斷後程式會自動重試；連接持續成功一段時間後，重試等待會重新從較短間隔開始。
 
-如果獲取彈幕連接信息失敗，程式會嘗試使用備用連接地址。網路不穩定、Bilibili 臨時限制請求或儲存設備寫入變慢，都可能造成部分互動記錄缺失或延遲。
+如果獲取彈幕連接信息失敗，程式會嘗試使用備用連接地址。網路不穩定、Bilibili 臨時限制請求或磁碟寫入變慢，都可能造成部分互動記錄缺失或延遲。
 
 彈幕連接與影片錄製分開處理。彈幕暫時不可用時，影片錄製通常仍會繼續；恢復連接後會繼續記錄，但斷開期間無法補回已經錯過的互動。
 
@@ -222,7 +224,7 @@ export DANMAKU_OVERFLOW_POLICY=drop
 
 ### 彈幕消息丟失
 
-如果使用 `DANMAKU_OVERFLOW_POLICY=drop`，隊列排滿時會主動丟棄新消息，這是為了避免彈幕處理拖住錄製。可以檢查磁碟寫入延遲和並發錄製數；在儲存設備性能足夠時，再考慮使用 `block`。
+如果使用 `DANMAKU_OVERFLOW_POLICY=drop`，隊列排滿時會主動丟棄新消息，這是為了避免彈幕處理拖住錄製。可以檢查磁碟寫入延遲和並發錄製數；在磁碟性能足夠時，再考慮使用 `block`。
 
 ## 進階說明
 

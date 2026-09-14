@@ -16,9 +16,11 @@ description: 环境变量加载顺序与 .env 文件机制
 
 **二进制模式：**
 
-编辑 `.env.local` 或 `.env` 文件，或直接设置环境变量：
+编辑 `.env.local` 或 `.env` 文件，或直接设置环境变量。
 
-**Linux / macOS：**
+`.env` / `.env.local` 请使用 `KEY=VALUE` 格式，**不要**加 `export`（bilirec 用 godotenv 加载，带 `export` 的行无法正确解析）。`export` 仅用于在终端临时设置变量后启动程序。
+
+**Linux / macOS（临时在终端设置后启动）：**
 
 ```bash
 export MAX_CONCURRENT_RECORDINGS=5

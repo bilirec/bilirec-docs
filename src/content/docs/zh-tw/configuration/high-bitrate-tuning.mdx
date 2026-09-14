@@ -54,10 +54,10 @@ bilirec 為 **1080p** 與 **高畫質（2K/4K/杜比）** 各準備了一套緩�
 ## 示例（4K 預設仍不夠用時）
 
 ```bash
-export READ_STREAM_BYTES_POOL_SIZE_HIGH=2097152       # 2 MB，與寫側保持一致
-export READ_STREAM_CHAN_BUFFER_SIZE_HIGH=48
-export LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH=2097152
-export LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64       # 多路 4K 可降到 48
+READ_STREAM_BYTES_POOL_SIZE_HIGH=2097152       # 2 MB，與寫側保持一致
+READ_STREAM_CHAN_BUFFER_SIZE_HIGH=48
+LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH=2097152
+LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE=64       # 多路 4K 可降到 48
 ```
 
 **記憶體粗算（單路上限）：** 見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)；預設 4K 單路約 165~172 MB。

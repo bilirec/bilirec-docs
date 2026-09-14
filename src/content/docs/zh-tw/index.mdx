@@ -73,6 +73,12 @@ import QqCommunity from '../../../components/QqCommunity.astro';
       description: '用手機跑後端並錄製。',
     },
     {
+      icon: '🔋',
+      title: '國產手機後台',
+      href: '/zh-tw/guides/android-mainland/',
+      description: '華為、小米、OPPO、vivo 等後台保活設定。',
+    },
+    {
       icon: '🐳',
       title: 'Docker',
       href: '/zh-tw/guides/docker/',
@@ -113,6 +119,12 @@ import QqCommunity from '../../../components/QqCommunity.astro';
       description: '完整參數一覽與預設值。',
     },
     {
+      icon: '📝',
+      title: '設定示例',
+      href: '/zh-tw/configuration/examples/',
+      description: '常見場景的可複製 .env 片段。',
+    },
+    {
       icon: '💾',
       title: 'I/O 與儲存調優',
       href: '/zh-tw/configuration/io-tuning/',
@@ -123,6 +135,40 @@ import QqCommunity from '../../../components/QqCommunity.astro';
       title: '記憶體佔用估算',
       href: '/zh-tw/configuration/memory-estimation/',
       description: '按路數與畫質估算容器記憶體上限。',
+    },
+  ]}
+  columnsClass="md:grid-cols-2"
+  titleClass="text-base"
+  cardClass="shadow-none"
+/>
+
+## 監控與日誌
+
+<IconLinkCardGrid
+  items={[
+    {
+      icon: '📈',
+      title: '監控指標',
+      href: '/zh-tw/configuration/metrics/',
+      description: 'Prometheus 指標端口與 VictoriaMetrics 抓取。',
+    },
+    {
+      icon: '📄',
+      title: '本地日誌檔案',
+      href: '/zh-tw/configuration/local-logs/',
+      description: '寫入本地檔案、按大小與天數輪轉。',
+    },
+    {
+      icon: '☁️',
+      title: '遠端日誌',
+      href: '/zh-tw/configuration/victorialogs/',
+      description: '推送結構化日誌到 VictoriaLogs。',
+    },
+    {
+      icon: '📊',
+      title: 'Grafana 儀表盤',
+      href: '/zh-tw/configuration/grafana-dashboards/',
+      description: '現成面板 JSON 與告警規則導入。',
     },
   ]}
   columnsClass="md:grid-cols-2"

@@ -59,10 +59,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 ### 弹幕写入
 
-弹幕文件默认也按 `15` 秒周期推进写入，与视频写入周期保持一致。若你调整了 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 来适应储存设备，可以同时检查 `DANMAKU_WRITER_FLUSH_PERIOD_SECS`：
+弹幕文件默认也按 `15` 秒周期推进写入，与视频写入周期保持一致。若你调整了 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 来适应磁盘写入速度，可以同时检查 `DANMAKU_WRITER_FLUSH_PERIOD_SECS`：
 
 - microSD、机械盘或多路录制时，适当增大弹幕周期可以减少小块写入和设备竞争，但内存中等待写入的时间会变长。
-- 更重视异常中断时少丢最近的弹幕时，可以适当减小周期；写入次数和储存设备压力也会增加。
+- 更重视异常中断时少丢最近的弹幕时，可以适当减小周期；写入次数和磁盘压力也会增加。
 - `DANMAKU_WRITER_SYNC_PERIOD_SECS=0` 默认不在录制过程中反复强制整份弹幕文件落盘，通常更适合 microSD。完整说明见[弹幕录制](/zh-cn/configuration/danmaku/)。
 
 ### 多路录制与 flush 周期
@@ -85,7 +85,7 @@ import { Aside } from '@astrojs/starlight/components';
 开启 [监控指标](/zh-cn/configuration/metrics/) 并导入 [录制健康](/zh-cn/configuration/grafana-dashboards/#录制健康) 后，可以看「写入管线」：
 
 - **写入队列等待**持续大于 0：磁盘或写入速度跟不上直播码率。录制可能卡顿，文件可能缺帧。
-- **慢 flush**（单次超过 3 秒）或 **慢 fsync**（超过 1.2 秒）变多：储存设备忙、NAS 延迟高，或正在关掉一个很大的档。
+- **慢 flush**（单次超过 3 秒）或 **慢 fsync**（超过 1.2 秒）变多：磁盘忙、NAS 延迟高，或正在关掉一个很大的档。
 - **读入速率明显高于落盘速率**、同时队列在等：数据还堆在内存里，还没写出去。
 - 这些数字在磁盘跟得上时接近 0，一般不必改配置。
 

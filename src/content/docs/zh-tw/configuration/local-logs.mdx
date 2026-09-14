@@ -5,9 +5,11 @@ description: 將 bilirec 日誌異步寫入本地檔案，可按大小與天數�
 
 import { Aside } from '@astrojs/starlight/components';
 
-bilirec 預設把日誌寫到**標準錯誤**（終端或 Docker 日誌）。開啟本功能後，會在保留 stderr 的同時，把同一份日誌**異步寫入本地檔案**，並可按大小、天數自動輪轉。
+## 概述
 
-也可與 [遠端日誌（VictoriaLogs）](/zh-tw/configuration/victorialogs/) 同時開啟。
+bilirec 預設把日誌寫到**標準錯誤**（終端或 Docker 日誌）。開啟本功能後，會在保留終端輸出的同時，把同一份日誌**異步寫入本地檔案**，並可按大小、天數自動輪轉。
+
+適合需要在本機長期留存日誌、便於事後翻查的用戶。也可與 [遠端日誌（VictoriaLogs）](/zh-tw/configuration/victorialogs/) 同時開啟；三者互不影響。
 
 ## 快速開始
 
