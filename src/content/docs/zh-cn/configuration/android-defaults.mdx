@@ -19,7 +19,7 @@ App 里每一项怎么设、对应哪些环境变量，见 [Android App](/zh-cn/
 | `SKIP_SMALL_FLUSH` | `false` | `true` | 优先保证录制完整性，不延迟建文件 |
 | `CHECK_UPDATE` | `false` | 未设置视为 `true` | 启动时检查 GitHub 更新；Android 默认关闭 |
 
-`READ_STREAM_BYTES_POOL_SIZE_HIGH` 与 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 仍为 1 MB，与服务器相同。其余 I/O 与页缓存相关项（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷释放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）亦与服务器相同。开启 **microSD 卡磨损保护** 时，App 会同时传入 `SEQUENTIAL_WRITE=true` 与按「同时录制上限」计算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路约 15 秒，6 路约 30 秒）。
+`READ_STREAM_BYTES_POOL_SIZE_HIGH` 与 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 仍为 1 MB，与服务器相同。其余 I/O 与页缓存相关项（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷释放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）亦与服务器相同。开启 **microSD 卡磨损保护** 时，App 会同时传入 `SEQUENTIAL_WRITE=true` 与按「同时录制上限」计算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路约 15 秒，6 路约 30 秒，15 路约 75 秒）。
 
 ## 移动端专用默认
 

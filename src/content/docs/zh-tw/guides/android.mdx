@@ -152,7 +152,7 @@ Android 後端預設監聽 `http://127.0.0.1:8080`（登入頁填 `localhost` �
 | **啟動前最低可用空間** | `MIN_DISK_SPACE_BYTES` | `2` / `5` / `10` GB |
 | **下線後服務重試時長** | `MAX_RETRY_MINUTES` | `5`～`30` 分鐘（步進 5） |
 | **重試成功後的時長計算** | `RECORDING_RECOVERY_DURATION` | **保留**（`preserve`）或 **重置**（`reset`）；斷流後若重試成功並恢復錄製，可選擇沿用開始錄製時的總時長，或從重試成功時重新計算錄製時長 |
-| **同時錄製上限** | `MAX_CONCURRENT_RECORDINGS` | `3`～`6` 路；提高會明顯增加發熱與耗電 |
+| **同時錄製上限** | `MAX_CONCURRENT_RECORDINGS` | `3`～`15` 路（預設 `3`）；提高會明顯增加發熱與耗電，7 路以上與 11 路以上會顯示更強警告 |
 
 <Aside type="note">
 **啟動前最低可用空間** 滑塊預設顯示 5 GB，但僅在你拖動並鬆手後才會寫入環境變數。若從未調整過，後端仍使用 [Android 預設設定](/zh-tw/configuration/android-defaults/) 中的 `2 GB` 門檻。

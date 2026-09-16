@@ -19,7 +19,7 @@ App 裡每一項怎麼設、對應哪些環境變數，見 [Android App](/zh-tw/
 | `SKIP_SMALL_FLUSH` | `false` | `true` | 優先保證錄製完整性，不延遲建檔案 |
 | `CHECK_UPDATE` | `false` | 未設定視為 `true` | 啟動時檢查 GitHub 更新；Android 預設關閉 |
 
-`READ_STREAM_BYTES_POOL_SIZE_HIGH` 與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 仍為 1 MB，與伺服器相同。其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）亦與伺服器相同。開啟 **microSD 卡磨損保護** 時，App 會同時傳入 `SEQUENTIAL_WRITE=true` 與按「同時錄製上限」計算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路約 15 秒，6 路約 30 秒）。
+`READ_STREAM_BYTES_POOL_SIZE_HIGH` 與 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH` 仍為 1 MB，與伺服器相同。其餘 I/O 與頁緩存相關項（`LIVE_STREAM_WRITER_SYNC_PERIOD_SECS=0`、冷釋放 60 秒、`DROP_FILE_PAGE_CACHE=true` 等）亦與伺服器相同。開啟 **microSD 卡磨損保護** 時，App 會同時傳入 `SEQUENTIAL_WRITE=true` 與按「同時錄製上限」計算的 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS`（3 路約 15 秒，6 路約 30 秒，15 路約 75 秒）。
 
 ## 移動端專用預設
 
