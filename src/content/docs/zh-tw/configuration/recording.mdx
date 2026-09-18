@@ -12,7 +12,7 @@ import { Aside } from '@astrojs/starlight/components';
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
 | `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `15` |
-| `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘）；下線期間持續重試，超時後結束錄製 | `10` |
+| `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘）；下線期間持續重試，超時後結束錄製。`0` 表示不等待重試，直播下線後直接結束此次錄製 | `10` |
 | `RECORDING_RECOVERY_DURATION` | 斷流重試**成功並恢復錄製**後，錄製時長如何計算：`preserve`（沿用開始錄製時的總時長，不延長）或 `reset`（從重試成功時重新計算） | `preserve` |
 
 `RECORDING_RECOVERY_DURATION` 只影響流仍在線、重連恢復成功的情況，不改變 `MAX_RETRY_MINUTES` 的下線重試邏輯。若你設定了單次錄製時長上限（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示錄製時長從**第一次開始錄製**起算、不延長；`reset` 表示每次重連成功後重新享有完整錄製時長，適合擔心管理員強切新場次時漏錄的場景。
@@ -53,7 +53,7 @@ Docker 部署時建議掛載為卷：
 
 | 變數 | 說明 | 預設值 |
 |------|------|--------|
-| `MIN_DISK_SPACE_BYTES` | 錄製所需最小磁碟空間（字節） | `5368709120` (5 GB) |
+| `MIN_DISK_SPACE_BYTES` | 錄製所需最小磁碟空間（字節）；`0` 或負數表示不檢查可用空間 | `5368709120` (5 GB) |
 
 低於此值將拒絕新錄製任務。Android 預設使用更低的閾值。
 
