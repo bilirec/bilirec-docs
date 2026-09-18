@@ -16,6 +16,7 @@ const sidebar = [
 			{ slug: 'guides/installation' },
 			{ slug: 'guides/quick-start' },
 			{ slug: 'guides/faq' },
+			{ slug: 'guides/ai-docs' },
 		],
 	},
 	{
@@ -110,6 +111,10 @@ export default defineConfig({
 		'/zh-tw/guides/android-library': '/zh-tw/development/android-library',
 		'/zh-cn/guides/android-huawei': '/zh-cn/guides/android-mainland',
 		'/zh-tw/guides/android-huawei': '/zh-tw/guides/android-mainland',
+		'/zh-cn/guides/mcp': '/zh-cn/guides/ai-docs',
+		'/zh-tw/guides/mcp': '/zh-tw/guides/ai-docs',
+		'/zh-cn/guides/llms-txt': '/zh-cn/guides/ai-docs',
+		'/zh-tw/guides/llms-txt': '/zh-tw/guides/ai-docs',
 	},
 	integrations: [
 		starlight({
@@ -152,7 +157,7 @@ export default defineConfig({
 					description:
 						'Bilirec 是专为低配设备优化的高性能 Bilibili 直播录制后端。本文件只包含简体中文（zh-cn）文档；繁体页面由同一份简体源转换，请勿重复索引。',
 					details:
-						'优先阅读 /llms-full.txt 获取完整正文。站内问答额度用完时，把 https://www.bilirec.org/llms.txt 或 https://www.bilirec.org/llms-full.txt 交给 Cursor、ChatGPT 或 Claude 自行提问。',
+						'优先阅读 /llms-full.txt 获取完整正文。文档 MCP：https://llm.bilirec.org/mcp。静态导出见 /llms.txt、/llms-small.txt、/llms-full.txt。用法见 zh-cn/guides/ai-docs。',
 					optionalLinks: [
 						{
 							label: 'GitHub',
@@ -165,6 +170,7 @@ export default defineConfig({
 						'zh-cn/guides/installation*',
 						'zh-cn/guides/quick-start*',
 						'zh-cn/guides/faq*',
+						'zh-cn/guides/ai-docs*',
 					],
 					customSelectors: {
 						all: ['.qq-community'],
