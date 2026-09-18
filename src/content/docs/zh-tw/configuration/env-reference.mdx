@@ -52,7 +52,7 @@ tableOfContents: false
 | `MAX_CONCURRENT_RECORDINGS` | 最大同時錄製數 | `3` |
 | `MAX_RECORDING_HOURS` | 單次錄製最長時間（小時） | `5` |
 | `MAX_RECOVERY_ATTEMPTS` | 單次錄製的最大重連嘗試次數 | `15` |
-| `MAX_RETRY_MINUTES` | 直播中斷後判斷是否仍在直播的最長容忍時間（分鐘） | `10` |
+| `MAX_RETRY_MINUTES` | 直播中斷後判斷是否仍在直播的最長容忍時間（分鐘）；`0` 表示不等待重試，直播下線後直接結束此次錄製 | `10` |
 | `RECORDING_RECOVERY_DURATION` | 斷流重試成功後錄製時長計算：`preserve`（保留，從開始錄製起算）/ `reset`（重置，從重試成功時重新計算）；兩種模式都會用新時間戳開新檔案，不覆蓋舊錄製 | `preserve` |
 | `OUTPUT_DIR` | 錄製檔案保存目錄 | `records` |
 | `SECRET_DIR` | Cookie 和 Token 保存目錄 | `secrets` |
@@ -107,6 +107,6 @@ tableOfContents: false
 | `SKIP_SMALL_FLUSH` | 啟用 microSD 磨損保護：在達到 `SKIP_SMALL_FLUSH_THRESHOLD` 之前僅緩存記憶體，不創建檔案 | `true` |
 | `DROP_FILE_PAGE_CACHE` | 錄製分段結束、本地 ffmpeg 轉碼成功、或在線播放/下載最後一次請求結束後（會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒，如果數值為0則預設為 60 秒），讓系統釋放對應**整份檔案**的緩存（僅 Linux/Android 有效）。**代價：** 下次播放/下載同一檔案需重新從磁碟讀取，可能變慢。預設 `true`；顯式 `false` 可關。與錄製中冷緩存釋放（`LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`）獨立 | `true` |
 | `SEQUENTIAL_WRITE` | 多路錄製時輪流寫盤，降低同一張盤上的寫入峰值；多路寫入同一物理磁碟時建議開啟。SSD 可關閉以提升並發。啟用之後 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS` 會成為一個完整寫盤週期，每路寫盤間隔按 `LIVE_STREAM_WRITER_FLUSH_PERIOD_SECS / 同時錄製路數` 計算 | `true` |
-| `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁碟空間（字節），低於此值將拒絕新錄製任務 | `5368709120` (5 GB) |
+| `MIN_DISK_SPACE_BYTES` | 錄製所需的最小磁碟空間（字節），低於此值將拒絕新錄製任務；`0` 或負數表示不檢查可用空間 | `5368709120` (5 GB) |
 
 各分類的詳細說明可參考對應專題頁面。訂閱檢查調度邏輯見 [錄製設定 · 訂閱房間狀態檢查](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
