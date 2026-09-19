@@ -9,11 +9,15 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `CONVERT_TO_MP4` | 录制完成后转为 MP4 | `false` |
+| `CONVERT_TO_MP4` | 录制完成后将可转换源文件转为可回放格式；普通录制输出 MP4，实际为仅音频的录制输出 M4A | `false` |
 | `DELETE_SOURCE_AFTER_CONVERT` | 转换后删除原始源文件 | `false` |
 | `NO_CONVERT_IF_INVALID` | 源文件缺少音视频流时是否停止转码；若系统未安装 `ffprobe`，检查会自动放行 | `false` |
 
-启用 `CONVERT_TO_MP4` 后，录制完成的 FLV/TS 文件自动加入转换队列，由后台异步转换为 MP4。
+启用 `CONVERT_TO_MP4` 后，录制完成的 FLV/TS 文件自动加入转换队列，由后台异步转换为可回放格式。普通录制输出 `.mp4`；如果录制连接到的实际流标记为仅音频，则输出 `.m4a`。M4A 使用 AAC 音频直接封装，不需要重新编码。
+
+转换格式以录制调用方传入的格式为准。`ffprobe` 只用于检查源文件并记录缺少音视频流的警告，不会把调用方选择的 M4A 改回 MP4。若系统未安装 `ffprobe`，转换仍会继续执行。
+
+当前仅音频流主要由 HTTP-FLV 录制提供；HLS-fMP4 和 HLS-TS 可能无法取得仅音频流。如果用户请求仅音频但实际连接到带画面的流，录制仍按实际流输出 MP4。
 
 启用 `DELETE_SOURCE_AFTER_CONVERT` 时，源文件删除与转码任务解耦：仅在转换**成功**后异步删除源文件（FFmpeg 与 CloudConvert 共用同一删除器）。删除失败时会指数退避重试，最多 5 次；仍失败则将源文件重命名为在原文件名与扩展名之间插入 `_轉換完成可刪除` 标记，便于手动清理。同一路径不会重复入队删除。
 
