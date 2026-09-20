@@ -94,3 +94,22 @@ curl -s -b cookies.txt -X POST http://127.0.0.1:8080/version/check
 启动时若 `CHECK_UPDATE=true` 且为 release 构建，程序会自动检查一次；发现新版本时会在**终端 stdout** 打印醒目提示框。检查失败时写入 **Warn**（中文说明）与 **Debug**（原始错误），不打印 stdout 提示框。
 
 相关环境变量见 [环境变量参考 · CHECK_UPDATE](/zh-cn/configuration/env-reference/)。
+
+## 无法直连 GitHub 时（`GITHUB_API_URL`）
+
+若检查更新时访问 GitHub 不稳定，可在桌面或 Docker 的 `.env` 中设置：
+
+```bash
+GITHUB_API_URL=https://gh-proxy.com/https://api.github.com/
+```
+
+留空则使用官方默认地址。影响启动时自动检查与 `POST /version/check`。Android 用户可在 **服务启动前设置 → 更新策略** 中配置 GitHub API 反代。
+
+公益反代由第三方运营，不保证可用与隐私。下列地址在文档编写时抽测可用，**随时可能失效**：
+
+| 可选用地址 |
+|------------|
+| `https://gh-proxy.com/https://api.github.com/` |
+| `https://gh-proxy.org/https://api.github.com/` |
+
+详见 [环境变量参考 · GITHUB_API_URL](/zh-cn/configuration/env-reference/)。
