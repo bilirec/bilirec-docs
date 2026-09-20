@@ -32,7 +32,7 @@ GET /files/download/*
 
 直接返回存储的文件。
 
-若要将源文件（FLV/TS/fMP4）自动转为 MP4，可启用 `CONVERT_TO_MP4`。录制结束后可转换文件会被加入转换队列：
+若要将源文件（FLV/TS/fMP4）自动转为 MP4 或 M4A，可启用 `CONVERT_TO_MP4`。录制结束后可转换文件会被加入转换队列：
 
 - 同时设置 `CLOUDCONVERT_API_KEY` 且文件大小 `>= CLOUDCONVERT_THRESHOLD`（默认 1 GB）时，优先走 CloudConvert
 - 否则走本地 FFmpeg 后台任务
@@ -73,9 +73,9 @@ DELETE /files/{path}
 GET /files/playback/{path}
 ```
 
-返回 MP4 视频流，浏览器直接播放。支持 Range 请求（快进/快退）。
+返回 MP4 或 M4A 媒体流，浏览器可直接播放。支持 Range 请求（快进/快退）。
 
-- 仅支持 MP4 格式
+- 支持 MP4 与 M4A
 - 无法播放进行中的录制文件
 
 ```html
