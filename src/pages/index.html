@@ -7,6 +7,7 @@
 <meta name="description" content="开源、自托管的 Bilibili 直播录制后端，为树莓派 / NAS / Android 等低配设备优化。订阅后开播自动录制，弹幕、礼物、醒目留言同步存档，5 路 1080p 并发仅约 193MB 内存。" />
 <meta name="theme-color" content="#05070b" />
 <link rel="icon" href="/images/web-ui/logo.svg" type="image/svg+xml" />
+<script defer src="https://analytics.bilirec.org/script.js" data-website-id="d54cefd9-e899-4fc8-a73d-65d143827ef3" data-tag="docs-landing" data-performance="true" data-domains="www.bilirec.org,bilirec.org"></script>
 <style>
   /* Inter self-hosted (latin subset only): zero third-party requests,
      no render-blocking risk in mainland China. Chinese text falls through
@@ -1396,6 +1397,120 @@
   "use strict";
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* —— Umami (custom events; pageview + outbound links handled by script.js) —— */
+  var UMAMI_SCROLL_DEPTHS = [25, 50, 75, 90, 100];
+  var umamiScrollSent = Object.create(null);
+  var umamiSectionSent = Object.create(null);
+
+  function umamiTrack(name, data) {
+    if (!window.umami || typeof window.umami.track !== "function") return;
+    try {
+      window.umami.track(name, data || {});
+    } catch (e) {}
+  }
+
+  function umamiWhenReady(fn) {
+    if (window.umami) {
+      fn();
+      return;
+    }
+    var tries = 0;
+    var timer = window.setInterval(function () {
+      if (window.umami || ++tries > 120) {
+        window.clearInterval(timer);
+        if (window.umami) fn();
+      }
+    }, 50);
+  }
+
+  function umamiLinkKind(a) {
+    var href = a.getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#") return "anchor";
+    if (href.indexOf("mailto:") === 0) return "email";
+    if (href.charAt(0) === "/") return "internal";
+    try {
+      var u = new URL(href, window.location.href);
+      if (u.origin === window.location.origin) return "internal";
+      if (u.hostname === "bilirec.org" || u.hostname.slice(-12) === ".bilirec.org") return "bilirec";
+      return "external";
+    } catch (e) {
+      return "unknown";
+    }
+  }
+
+  function umamiLinkLabel(a) {
+    var text = (a.textContent || "").replace(/\s+/g, " ").trim();
+    if (text) return text.slice(0, 80);
+    return (
+      a.getAttribute("aria-label") ||
+      a.getAttribute("title") ||
+      a.getAttribute("href") ||
+      "link"
+    ).slice(0, 80);
+  }
+
+  function umamiTrackLink(a) {
+    var href = a.href || a.getAttribute("href") || "";
+    umamiTrack("link-click", {
+      kind: umamiLinkKind(a),
+      label: umamiLinkLabel(a),
+      href: href.slice(0, 200),
+    });
+  }
+
+  function umamiTrackScrollDepth() {
+    var doc = document.documentElement;
+    var max = Math.max(doc.scrollHeight - window.innerHeight, 1);
+    var pct = Math.round((100 * window.scrollY) / max);
+    UMAMI_SCROLL_DEPTHS.forEach(function (d) {
+      if (pct >= d && !umamiScrollSent[d]) {
+        umamiScrollSent[d] = 1;
+        umamiTrack("scroll-depth", { percent: String(d) });
+      }
+    });
+  }
+
+  function umamiInitSectionViews() {
+    if (!("IntersectionObserver" in window)) return;
+    document.querySelectorAll("section[id]").forEach(function (sec) {
+      var id = sec.id;
+      if (!id || umamiSectionSent[id]) return;
+      var io = new IntersectionObserver(
+        function (entries) {
+          if (!entries[0] || !entries[0].isIntersecting) return;
+          umamiSectionSent[id] = 1;
+          umamiTrack("section-view", { section: id });
+          io.disconnect();
+        },
+        { threshold: 0.35, rootMargin: "0px 0px -8% 0px" }
+      );
+      io.observe(sec);
+    });
+  }
+
+  umamiWhenReady(function () {
+    try {
+      window.umami.identify({ surface: "docs-landing" });
+    } catch (e) {}
+    umamiInitSectionViews();
+    umamiTrackScrollDepth();
+  });
+
+  document.addEventListener(
+    "click",
+    function (e) {
+      var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+      if (a) umamiTrackLink(a);
+    },
+    true
+  );
+
+  window.addEventListener("hashchange", function () {
+    umamiTrack("section-nav", { hash: (window.location.hash || "#top").slice(1) || "top" });
+  });
+
+  window.addEventListener("scroll", umamiTrackScrollDepth, { passive: true });
+
   /* —— Nav —— */
   var nav = document.getElementById("nav");
   var toggle = document.getElementById("navToggle");
@@ -1409,6 +1524,7 @@
     toggle.addEventListener("click", function () {
       var open = links.classList.toggle("open");
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      umamiTrack("nav-menu", { open: open ? "true" : "false" });
     });
     links.querySelectorAll("a").forEach(function (a) {
       a.addEventListener("click", function () {
@@ -1441,6 +1557,7 @@
         }
       }
       function done() {
+        umamiTrack("copy", { target: (btn.getAttribute("data-copy-from") || "inline").slice(0, 120) });
         btn.classList.add("ok");
         btn.textContent = "已复制";
         window.setTimeout(function () {
@@ -1498,6 +1615,12 @@
         idx = i;
         activateTab(btns, stages, idx);
         schedule();
+        var group = wrap.getAttribute("data-tabs") || "tabs";
+        umamiTrack("tab-select", {
+          group: group,
+          label: (b.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60),
+          index: String(i),
+        });
       });
     });
 

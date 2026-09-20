@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import { bilirecMarkdownTables } from './src/integrations/markdown-tables.mjs';
 
+const UMAMI_WEBSITE_ID = 'd54cefd9-e899-4fc8-a73d-65d143827ef3';
+const UMAMI_SCRIPT_SRC = 'https://analytics.bilirec.org/script.js';
+
 const sidebar = [
 	{
 		label: '开始使用',
@@ -120,6 +123,19 @@ export default defineConfig({
 		starlight({
 			title: 'Bilirec',
 			description: '专为低配设备优化的高性能 Bilibili 直播录制后端',
+			head: [
+				{
+					tag: 'script',
+					attrs: {
+						src: UMAMI_SCRIPT_SRC,
+						'data-website-id': UMAMI_WEBSITE_ID,
+						'data-tag': 'docs',
+						'data-performance': true,
+						'data-domains': 'www.bilirec.org,bilirec.org',
+						defer: true,
+					},
+				},
+			],
 			defaultLocale: 'zh-cn',
 			locales: {
 				'zh-cn': {
