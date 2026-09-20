@@ -9,11 +9,11 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `CONVERT_TO_MP4` | 录制完成后转为 MP4 | `false` |
+| `CONVERT_TO_MP4` | 录制完成后将可转换源文件（如 FLV/TS/fMP4）转为 MP4 或 M4A；普通录制为 MP4，仅录制音频为 M4A | `false` |
 | `DELETE_SOURCE_AFTER_CONVERT` | 转换后删除原始源文件 | `false` |
 | `NO_CONVERT_IF_INVALID` | 源文件缺少音视频流时是否停止转码；若系统未安装 `ffprobe`，检查会自动放行 | `false` |
 
-启用 `CONVERT_TO_MP4` 后，录制完成的 FLV/TS/fMP4 文件自动加入转换队列，由后台异步转换为 MP4。
+启用 `CONVERT_TO_MP4` 后，录制完成的 FLV/TS/fMP4 文件自动加入转换队列，由后台异步转换。普通录制转为 MP4，仅录制音频转为 M4A。
 
 启用 `DELETE_SOURCE_AFTER_CONVERT` 时，源文件删除与转码任务解耦：仅在转换**成功**后异步删除源文件（FFmpeg 与 CloudConvert 共用同一删除器）。删除失败时会指数退避重试，最多 5 次；仍失败则将源文件重命名为在原文件名与扩展名之间插入 `_轉換完成可刪除` 标记，便于手动清理。同一路径不会重复入队删除。
 

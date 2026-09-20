@@ -70,7 +70,7 @@ curl "http://127.0.0.1:8080/files/playback/username-roomID/20250101.mp4"
 </Tabs>
 
 <Aside type="note">
-在線回放僅支持 MP4 格式。啟用 `CONVERT_TO_MP4` 後，錄製完成會自動加入轉換隊列。無法回放正在進行中的錄製檔案。存在同名 `.jsonl` 彈幕檔案時，播放器還可以顯示彈幕滾動和禮物特效。
+在線回放支持 MP4 與 M4A。啟用 `CONVERT_TO_MP4` 後，錄製完成會自動加入轉換隊列。無法回放正在進行中的錄製檔案。存在同名 `.jsonl` 彈幕檔案時，播放器還可以顯示彈幕滾動和禮物特效。
 </Aside>
 
 ## 預簽名下載
@@ -100,7 +100,7 @@ curl -X DELETE http://127.0.0.1:8080/files/batch \
   -d '["room123/20250101.flv","room456/20250102.flv"]'
 ```
 
-## MP4 轉換
+## 媒體轉換
 
 啟用 `CONVERT_TO_MP4=true` 後，錄製完成的 FLV/TS/fMP4 檔案會自動加入轉換隊列。大檔案（≥ `CLOUDCONVERT_THRESHOLD`，預設 1 GB）優先使用 CloudConvert 雲端轉換。
 
