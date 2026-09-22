@@ -31,6 +31,7 @@ const sidebar = [
 			{ slug: 'guides/performance-benchmark' },
 			{ slug: 'guides/file-management' },
 			{ slug: 'guides/danmaku-xml' },
+			{ slug: 'guides/webhook-integration' },
 			{ slug: 'guides/frp' },
 			{ slug: 'guides/android' },
 			{ slug: 'guides/android-mainland' },

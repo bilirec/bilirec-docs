@@ -1,0 +1,52 @@
+---
+title: Webhook 对接
+description: 用 WEBHOOK_URLS 向外部工具发送 Webhook v2 事件（与录播姬兼容）。
+sidebar:
+  label: Webhook 对接
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+bilirec 可在录制与转码流程中，向外部服务 POST **Webhook v2** 格式的 JSON。事件与字段约定见[Webhook v2 公开说明](https://rec.danmuji.org/reference/webhook/)。已按该格式对接的 **biliLive-tools** 或自建脚本（例如依赖 `FileClosed`）一般无需改解析逻辑。
+
+## 启用
+
+在 `.env` 中设置 `WEBHOOK_URLS`，**每行一个**完整 URL（与录播姬设置里换行填写多个地址的方式相同）。留空则不发送任何 webhook。
+
+保存后**重启 bilirec**。Docker 镜像中对应环境变量同名，默认空。
+
+## 对接 biliLive-tools
+
+[biliLive-tools](https://github.com/renmu123/biliLive-tools) 在 webhook 设置里选择「录播姬」，地址形如：
+
+`http://你的主机:端口/webhook/bililiverecorder`
+
+把该地址写入 bilirec 的 `WEBHOOK_URLS`（可多行添加多个工具）。
+
+在 biliLive-tools 里：
+
+1. 开启 webhook，类型选「录播姬」，地址填上文的 URL。
+2. 把**录播目录**（`recoderFolder`）设成与 bilirec 的 **`OUTPUT_DIR` 完全一致**（本机部署务必填写；用 Docker 时请与 bilirec 使用同一磁盘挂载路径）。
+3. 若要用工具压制弹幕或自动上传，除下文弹幕格式外，请确认 bilirec 的成片路径就在该录播目录下（与平时录制保存位置相同）。
+
+<Aside type="note">
+若要用 biliLive-tools 压制弹幕或上传，请把 `DANMAKU_OUTPUT_FORMAT` 设为 **xml**，以便生成与视频同名的 `.xml` sidecar。默认 **jsonl** 适合 bilirec-web 回放，外部压制工具通常只认 xml。详见 [弹幕 XML 的后续使用](/zh-cn/guides/danmaku-xml/)。
+</Aside>
+
+## 会发送哪些事件
+
+与[录播姬 Webhook 说明](https://rec.danmuji.org/reference/webhook/)一致，包括：
+
+- `StreamStarted` / `StreamEnded`：已订阅房间开播、下播（未开录制也会发）
+- `SessionStarted` / `SessionEnded`：一次录制任务的开始与结束（结束与停止录制同时发出，可能早于最后一个 `FileClosed`）
+- `FileOpening` / `FileClosed`：每个分段文件打开与写完（对接 biliLive-tools 等工具时主要依赖这一对）
+
+开启 `CONVERT_TO_MP4` 时，`FileClosed` 会在**转码成功**后针对最终的 mp4/m4a 发送，避免工具去打开即将被删除的原始流文件。转码失败会重试，不会在单次失败时误发 `FileClosed`。
+
+失败或非 2xx 时最多重试 3 次，同一事件的 `EventId` 不变，便于接收方去重。
+
+## 路径与文件名
+
+bilirec 的目录结构为 `{主播名}-{房间号}/文件名`，与录播姬默认模板不同，只要 **`OUTPUT_DIR` 与工具里配置的录播根目录一致**即可，不必改 bilirec 的文件名规则。
+
+完整参数说明见 [环境变量参考](/zh-cn/configuration/env-reference/) 中的 `WEBHOOK_URLS`。
