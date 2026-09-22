@@ -1,6 +1,6 @@
 ---
 title: 彈幕錄製
-description: 錄製彈幕、禮物與其他直播互動記錄
+description: 錄製彈幕、禮物與其他直播互動記錄；可選輸出給錄播姬生態的 XML 工具用
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -39,7 +39,7 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start?record_danmaku=true"
 
 ### 選擇輸出格式
 
-預設格式為 `jsonl`，適合 bilirec-web 回放。若需要與其他錄播工具交換互動記錄，可以改用 `xml`：
+預設格式為 `jsonl`，適合 bilirec-web 回放。若要把 sidecar 交給 **錄播姬**、**DanmakuFactory（彈幕工廠）**、彈彈play 等工具鏈，可改用 `xml`（見 [彈幕 XML 的後續使用](/zh-tw/guides/danmaku-xml/)）：
 
 ```bash
 DANMAKU_OUTPUT_FORMAT=jsonl
@@ -59,7 +59,7 @@ Web 回放完整讀取 `jsonl`。`xml` 仍會保存彈幕與互動記錄，但 b
 
 **可選值：** `jsonl`、`xml`。
 
-**建議：** 大多數用戶保持 `jsonl`，這樣可以在 Web 播放器中回放彈幕和互動特效。需要兼容其他工具時再選擇 `xml`。
+**建議：** 多數場景保持 `jsonl`，在 Web 播放器中回放彈幕與互動特效。待工作流接到錄播姬生態的 XML 工具時再選 `xml`，步驟見 [彈幕 XML 的後續使用](/zh-tw/guides/danmaku-xml/)。
 
 **影響：** 只影響新錄製的彈幕檔案格式，不影響影片格式。選擇 `xml` 後，Web 播放器仍可播放影片，但不會疊加彈幕滾動和禮物特效。
 
@@ -166,16 +166,16 @@ DANMAKU_OVERFLOW_POLICY=block
 在 microSD、機械硬碟或其他寫入較慢的環境中使用 `block` 時，隊列滿會讓彈幕接收處理等待寫入。影片錄製通常仍會繼續，但彈幕處理可能落後於影片進度，回放時可能出現彈幕延遲或與影片不同步；遇到這種情況，優先改回 `drop`。
 </Aside>
 
-### 外部工具
+### 外部工具（錄播姬 / DanmakuFactory）
 
-需要把記錄交給支持 XML 的外部工具時：
+需要把記錄交給支持錄播姬風格 XML 的工具時：
 
 ```bash
 DANMAKU_OUTPUT_FORMAT=xml
 DANMAKU_OVERFLOW_POLICY=drop
 ```
 
-這種設定仍會保存互動記錄，但 bilirec-web 回放不會顯示彈幕滾動和禮物特效。
+這種設定仍會保存互動記錄，但 bilirec-web 回放不會顯示彈幕滾動和禮物特效。轉 ASS、合併分段、彈彈play 同播等，見 [彈幕 XML 的後續使用](/zh-tw/guides/danmaku-xml/)。
 
 ## 性能調節
 

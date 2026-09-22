@@ -92,7 +92,15 @@ import { Aside } from '@astrojs/starlight/components';
 
 **为什么：** bilirec-web 的互动回放读取 `jsonl` 格式。`xml` 文件可以保存互动记录，但不会被 Web 播放器用来显示弹幕滚动和礼物特效。
 
-**你可以：** 将 `DANMAKU_OUTPUT_FORMAT` 设为 `jsonl` 后重新录制。已经生成的 XML 文件仍可下载并交给支持 XML 的其他工具。
+**你可以：** 将 `DANMAKU_OUTPUT_FORMAT` 设为 `jsonl` 后重新录制。已生成的 XML 仍可下载，并按 [弹幕 XML 的后续使用](/zh-cn/guides/danmaku-xml/) 接入相应工具链。
+
+### XML 能给录播姬或 DanmakuFactory（弹幕工厂）用吗？
+
+**你会看到：** 目录里已有 `.xml`，打算送进录播姬工具箱、DanmakuFactory 或弹弹play。
+
+**为什么：** Bilirec 的 xml 按录播姬侧惯用结构写出，便于这些工具辨认；Web 播放器仍只读 jsonl。
+
+**你可以：** 依 [弹幕 XML 的后续使用](/zh-cn/guides/danmaku-xml/) 操作。合并工具若拒收 Bilirec 的 xml，以软件内提示为准，可改试 CLI 或分段转 ASS。
 
 ### 开了「录完转 MP4」，却一直不转？
 

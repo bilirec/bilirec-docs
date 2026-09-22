@@ -30,6 +30,7 @@ const sidebar = [
 			{ slug: 'guides/recording' },
 			{ slug: 'guides/performance-benchmark' },
 			{ slug: 'guides/file-management' },
+			{ slug: 'guides/danmaku-xml' },
 			{ slug: 'guides/frp' },
 			{ slug: 'guides/android' },
 			{ slug: 'guides/android-mainland' },
@@ -186,6 +187,7 @@ export default defineConfig({
 						'zh-cn/guides/installation*',
 						'zh-cn/guides/quick-start*',
 						'zh-cn/guides/faq*',
+						'zh-cn/guides/danmaku-xml*',
 						'zh-cn/guides/ai-docs*',
 					],
 					customSelectors: {

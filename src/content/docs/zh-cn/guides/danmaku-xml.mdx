@@ -1,0 +1,108 @@
+---
+title: 弹幕 XML 的后续使用
+description: 后续接驳至录播姬、DanmakuFactory（弹幕工厂）、弹弹play 等，接手 Bilirec 的 xml sidecar。
+sidebar:
+  label: 弹幕 XML 的后续使用
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+选定 **xml** 作为弹幕输出时，录制目录里会多出一类与视频同名的 sidecar 文件。本页说明录完之后，如何用 **DanmakuFactory（弹幕工厂）**、**录播姬** 工具箱里的合并功能、**弹弹play** 等，把这份 XML 转成 ASS、合并分段，或与本地视频一起播放。
+
+Bilirec 的 xml 采用许多第三方工具已支持的文件结构，便于直接导入，无需再手工改格式。
+
+要在 [bilirec-web](/zh-cn/guides/web-ui/) 里看滚动弹幕与礼物特效，请用默认 **jsonl**；若你打算走上述外部工具，再改为 **xml**。同一次录制只能选一种格式。
+
+## 先得到 XML
+
+为**当次录制**打开「录制弹幕」（单靠环境变量不会自动开弹幕，见 [弹幕录制](/zh-cn/configuration/danmaku/)）。在 `.env` 设 `DANMAKU_OUTPUT_FORMAT=xml`，保存并**重启 bilirec** 后开录。目录里会出现与视频**主文件名相同**、扩展名为 `.xml` 的 sidecar；PK、断流或画质轮转时，分段视频各带一份 XML。
+
+<Aside type="note">
+格式切换只作用于**此后新录**的文件，已有 jsonl 不会自行改写。缓冲、溢出等与写入相关的调节，一律回到 [弹幕录制](/zh-cn/configuration/danmaku/)，此处不赘述。
+</Aside>
+
+视频与弹幕并列时，可在 bilirec-web 文件列表里一并看到，与 [文件管理](/zh-cn/guides/file-management/) 中的说明相同。
+
+## DanmakuFactory（弹幕工厂）→ ASS
+
+[DanmakuFactory](https://github.com/hihkm/DanmakuFactory) 把 **xml** 收成 **ASS** 字幕，适合「先挂播放器外挂字幕、再压制进成片」一类工作流。自 1.6x 起，除滚动弹幕外，还可解析 **礼物、醒目留言、舰长** 等节点——前提是 XML 文件头能被程序认作 BililiveRecorder 兼容格式。
+
+**获取：** [GitHub Releases](https://github.com/hihkm/DanmakuFactory/releases) 或 README 所列镜像，GUI 与 CLI 任选。
+
+**图形界面：** 指定与目标视频同名的 `.xml` 为输入，输出 `.ass`，执行转换。各版本按钮文案略有出入，以软件内说明为准。
+
+**命令行：** 在可执行文件所在目录执行（路径含空格请加引号）：
+
+```bash
+DanmakuFactory -o "输出.ass" -i "输入.xml"
+```
+
+`-i` 为弹幕 XML，`-o` 为 ASS。若提示目标已存在，按程序询问是否覆盖。
+
+**之后：** **PotPlayer**、**VLC** 等可外挂 ASS 的播放器，先开视频再挂字幕。若要烧录进成片，可用 **FFmpeg**、小丸工具箱、**biliLive-tools** 等；具体压制参数此处不展开。
+
+转换结果若只剩普通弹幕、不见礼物或 SC，多半是 XML 未正常收束（强杀进程、断电），或文件头不符合上述兼容格式——见下文「故障排查」。
+
+## 录播姬工具箱：合并多段 XML
+
+一场直播拆成多段录像时，弹幕常对应**多份 XML**。桌面版 **录播姬** 工具箱里的「弹幕合并」按各段文件内时间轴收成一条（[工具说明](https://rec.danmuji.org/user/toolbox/merge-danmaku)）。
+
+**桌面版：** 录播姬 → 工具箱 → 弹幕合并 → 添加或拖入各段 `.xml` → 合并并指定保存路径。
+
+该工具面向其自产 XML 设计；Bilirec 写入兼容识别头以便导入，但**不保证**每一版桌面程序都能通过校验。若被拒，以软件内报错为准——本仓库未对每一发行版逐一实测。
+
+**命令行：** 录播姬 CLI 示例：
+
+```bash
+./BililiveRecorder.Cli tool danmaku-merge "output.xml" "input1.xml" "input2.xml"
+```
+
+首参为输出路径，其后为各段输入。可执行文件名随安装包而异。
+
+合并结果可再送 DanmakuFactory，或按下一节交给弹弹play。
+
+## 弹弹play：本地 XML
+
+**[弹弹play](http://www.dandanplay.com)** 可在本地把 xml 与视频一起播放。[官方说明](https://doc.dandanplay.com/faq/load-danmaku.html) 里，本地 xml 大致有三法：**同名同目录**（开视频即读 sidecar）、**拖入播放窗口**、或播放时从右键 / 弹幕列表**手动指定**。
+
+弹弹play 更偏滚动弹幕的本地观感；礼物、SC 在画面上的待遇，未必与 DanmakuFactory 转 ASS 后一致。若互动样式是刚需，仍宜走上一节的 ASS 路线。
+
+## 用浏览器打开 XML
+
+**Chrome**、**Firefox**、**Edge** 等现代浏览器可直接打开 `.xml`，用来**检阅**弹幕条目与时间轴，不能替代播放器。文件过大时浏览器可能拒载（常见有体积上限，以实际为准）。适合在进转换工具前确认 sidecar 是否写全。
+
+## 故障排查
+
+**礼物 / SC 在工具里缺席**  
+优先确认是新录的 **xml** 且录制已正常结束；用 DanmakuFactory 试读。仍不对，再查是否误用 jsonl 或旧档。
+
+**合并工具拒收**  
+读软件内提示；可改试 CLI，或各段分别转 ASS 后在剪辑 / 压制流程里自行衔接。
+
+**弹弹play 弹幕对不上或偏少**  
+核对同名同目录，或改用手动 / 拖拽加载。要完整互动样式，改 DanmakuFactory → ASS，再用 PotPlayer / VLC。
+
+**目录里没有 `.xml`**  
+确认当次录制已开弹幕，且 `DANMAKU_OUTPUT_FORMAT=xml` 并已重启后再录。见上文「先得到 XML」与 [弹幕录制](/zh-cn/configuration/danmaku/)。
+
+**bilirec-web 无滚动弹幕**  
+属预期：Web 播放器只吃 **jsonl** 做互动回放，不为 XML 叠层。要在 Web 看特效请 jsonl 重录；要走 XML 工作流，用本页外部工具。
+
+## 常见问题
+
+**XML 能否交给录播姬、弹幕工厂、弹弹play？**  
+可以，按上文各节操作；能力边界随软件版本而变，合并环节以工具内提示为准。
+
+**能否同时要 Web 特效与 XML？**  
+不能，一次录制只输出 **jsonl** 或 **xml** 其一。
+
+**XML 是不是视频？**  
+否，是弹幕与互动的 sidecar，须配视频或 ASS 使用。
+
+## 进阶
+
+Bilirec 的 xml 在文件头写入与 **BililiveRecorder** 兼容的识别信息，并以 `<d>`、`<sc>`、`<gift>`、`<guard>` 等节点承载内容，供 DanmakuFactory 等按同一套字段约定解析（含醒目留言金额等）。
+
+不写可选的「弹幕原始 JSON」大块，sidecar 体积相对克制。
+
+**视频**容器（FLV / TS 等）与第三方工具箱里的修复 / 转封装无必然对应；是否可用某款修 FLV 工具，须自行验证。

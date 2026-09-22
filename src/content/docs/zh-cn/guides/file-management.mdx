@@ -36,7 +36,7 @@ curl "http://127.0.0.1:8080/files/browse/?offset=0&limit=50&search=title"
 
 开启弹幕录制后，每个视频文件旁边可能会有同名的 `.jsonl` 或 `.xml` 文件。它们保存普通弹幕、醒目留言、礼物和舰长等互动记录，不是视频文件，不能直接用视频播放器打开。
 
-使用 bilirec-web 回放时，建议使用 `.jsonl` 文件，这样播放器可以显示弹幕滚动和礼物特效。`.xml` 仍可供其他工具读取，但 Web 播放器不会为它显示这些回放效果。
+使用 bilirec-web 回放时，宜选 `.jsonl`，播放器方能还原滚动弹幕与礼物特效。`.xml` 则按 [弹幕 XML 的后续使用](/zh-cn/guides/danmaku-xml/) 接入录播姬生态里的 XML 工具；Web 播放器不为 XML 叠这些效果。
 
 ## 下载文件
 
