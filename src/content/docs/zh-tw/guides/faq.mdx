@@ -104,7 +104,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 ### 開了「錄完轉 MP4」，卻一直不轉？
 
-**你會看到：** 錄製結束了，列表裡仍是 flv/ts，或轉碼任務很久不動。
+**你會看到：** 錄製結束了，列表裡仍是 flv/ts/fmp4，或轉碼任務很久不動。
 
 **為什麼：** 預設為了省 CPU，**正在錄別的房間時**不會跑本地轉碼；機器上也可能沒裝 ffmpeg，或沒配雲端轉碼。
 
@@ -119,7 +119,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 **為什麼：** 常見原因有兩類：一是轉出來的 MP4 **太小**（不到 1MB 或不到原檔案一半），程式會認為結果不可靠而重試；二是**源檔案本身不完整或已損壞**（錄製中斷、磁碟問題等），怎麼轉都難成功。
 
-**你可以：** 先確認源 flv/ts 能否正常播放；源檔案有問題時，在 bilirec 內通常只能保留原格式或重新錄製；也可另行嘗試外部檔案修復工具。詳見 [轉換設定](/zh-tw/configuration/conversion/)。
+**你可以：** 先確認源 flv/ts/fmp4 能否正常播放；源檔案有問題時，在 bilirec 內通常只能保留原格式或重新錄製；也可另行嘗試外部檔案修復工具。詳見 [轉換設定](/zh-tw/configuration/conversion/)。
 
 ### 大檔案走 CloudConvert 創建任務失敗？
 

@@ -92,7 +92,7 @@ curl -X DELETE http://127.0.0.1:8080/files/batch \
 
 ## MP4 转换
 
-启用 `CONVERT_TO_MP4=true` 后，录制完成的 FLV/TS 文件会自动加入转换队列。大文件（≥ `CLOUDCONVERT_THRESHOLD`，默认 1 GB）优先使用 CloudConvert 云端转换。
+启用 `CONVERT_TO_MP4=true` 后，录制完成的 FLV/TS/fMP4 文件会自动加入转换队列。大文件（≥ `CLOUDCONVERT_THRESHOLD`，默认 1 GB）优先使用 CloudConvert 云端转换。
 
 转换任务状态查询见 [转换任务 API](/zh-cn/api/convert/)，配置见 [转换配置](/zh-cn/configuration/conversion/)。
 

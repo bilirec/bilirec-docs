@@ -149,8 +149,8 @@ Android 後端預設監聽 `http://127.0.0.1:8080`（登入頁填 `localhost` �
 
 | App 選項 | 環境變數 | 說明 |
 |---------|---------|------|
-| **錄完自動轉為 MP4** | `CONVERT_TO_MP4` | 使用內嵌 FFmpeg 在錄製完成後轉 MP4；RAM 少於 8 GB 建議關閉 |
-| **轉檔後刪除原始檔案** | `DELETE_SOURCE_AFTER_CONVERT` | 轉碼成功後再異步刪除源檔案；刪除失敗會重試，仍失敗則重命名為帶「轉換完成可刪除」標記的檔案 |
+| **錄完自動轉為 MP4** | `CONVERT_TO_MP4` | 錄製完成的 FLV/TS/fMP4 在收尾時自動轉 MP4（內嵌 FFmpeg）；RAM 少於 8 GB 建議關閉 |
+| **轉檔後刪除原始檔案** | `DELETE_SOURCE_AFTER_CONVERT` | 轉碼成功後再異步刪除 FLV/TS/fMP4 等源檔案；刪除失敗會重試，仍失敗則重命名為帶「轉換完成可刪除」標記的檔案 |
 | **錄製中允許轉換** | `FFMPEG_ALLOW_DURING_RECORDING` | 邊錄邊轉，增加讀寫負載與發熱 |
 | **允許轉檔的「最高錄製路數」** | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`（不限）～`5` 路；超過時暫停後台轉檔以優先保證錄製 |
 
