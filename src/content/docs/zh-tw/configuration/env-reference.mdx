@@ -63,6 +63,7 @@ tableOfContents: false
 | `FRONTEND_URL` | 前端 URL（用於 CORS） | `http://localhost:8080` |
 | `WEBPUSH_SUBSCRIBER` | Web Push VAPID 的 subject（建議使用 `mailto:you@example.com`） | `mailto:webpush@example.com` |
 | `NOTIFY_SSE_TOKEN` | SSE 通知訂閱 token（用於 `/notify/sse?token=...`；為空則禁用 SSE） | (空字符串) |
+| `WEBHOOK_URLS` | Webhook v2 出站地址（與錄播姬兼容），每行一個 URL；為空則不發送。見 [Webhook 對接](/zh-tw/guides/webhook-integration/) | (空字符串) |
 | `USERNAME` | 可選：啟用用戶名/密碼認證時的用戶名 | (未設定) |
 | `PASSWORD` | 可選：啟用用戶名/密碼認證時的密碼 | (未設定) |
 | `VIEWER_USERNAME` | 可選：僅查看權限的訪客用戶名 | (未設定) |

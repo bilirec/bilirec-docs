@@ -15,7 +15,7 @@ description: bilirec 項目結構與核心實現
 │   ├── controllers/      # HTTP 控制器（auth, convert, file, notify, record, room）
 │   ├── modules/          # bilibili、config、rest、logging、metrics
 │   ├── processors/       # 錄製寫入管道（FLV / HLS-fMP4 / HLS-TS 等處理器）
-│   └── services/         # recorder、stream、danmaku、convert、subscribe、subcheck、room、notify、file、expose、janitor、path
+│   └── services/         # recorder、stream、danmaku、convert、subscribe、subcheck、room、notify、file、webhook、expose、janitor、path
 ├── pkg/                  # 可複用庫（ffmpeg、flv、hls、cloudconvert、pool、swr、sink、logger…）
 ├── utils/                # 通用工具
 ├── docs/                 # OpenAPI / Swagger 生成物（swag）
@@ -52,6 +52,7 @@ description: bilirec 項目結構與核心實現
 - **開播檢測** — `subcheck` 分組輪詢已開啟通知或自動錄製的房間，檢測新場次並觸發推送或錄製；每組觸發前帶隨機抖動（`SUBCHECK_JITTER_SECS`），避免固定間隔被識別為機器輪詢
 - **直播間信息風控切換** — 查詢是否在播時預設匿名請求；B 站返回風控類 API 碼時自動改用已登入 Cookie 重試，並在日誌中記錄切換與恢復
 - **實時通知** — Web Push + SSE
+- **Webhook 出站** — 設定 `WEBHOOK_URLS` 後，`webhook` 服務向外部 URL POST Webhook v2 JSON（與錄播姬兼容）；由 `recorder`、`subcheck`、`convert` 在分段、場次與轉碼完成時觸發。用戶向說明見 [Webhook 對接](/zh-tw/guides/webhook-integration/)
 - **FRP 暴露** — `expose` 服務在啟用 `FRP_ENABLED` 時管理 frp 客戶端隧道
 - **記憶體池** — `pool.BufferPool` 減少 GC 壓力；讀/寫 bytes pool 的空閒複用塊數量由 channel 深度自動推導（約為讀側 channel 的 1/4、寫側的 1/8），在途記憶體公式不變
 - **SWR 緩存** — 房間信息 Stale-While-Revalidate（軟 TTL 5 分鐘，硬 TTL 30 分鐘）
