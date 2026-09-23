@@ -175,6 +175,17 @@ import { Aside } from '@astrojs/starlight/components';
 
 詳見 [遠端存取（FRP）— 通過 app.bilirec.org 登入](/zh-tw/guides/frp/#通過-appbilirecorg-登入)（自架 HTTPS 後端同樣適用）與 [認證與安全](/zh-tw/configuration/auth-security/#何時需要生產模式)。
 
+### 檔案分享鏈接別人打不開？手機端能用嗎？
+
+**你會看到：** Web 裡複製了分享鏈接，對方打不開或下載失敗；或用 bilirec-mobile 時找不到合適的分享方式。
+
+**為什麼：** 分享鏈接指向你後端的預簽名下載地址。後端若只在本機或局域網、未對公網開放，外人無法存取。還需設定可從公網存取的完整 `PUBLIC_BASE_URL`；留空時鏈接往往是相對路徑，對方無法直接使用。檔案分享只在 **Web 管理介面**提供，bilirec-mobile App 沒有獨立分享功能；手機預設只在本機 `127.0.0.1` 提供 API，也未在常規設定裡暴露 `PUBLIC_BASE_URL`，因此**手機本機部署場景一般無法向他人分享可用外鏈**。
+
+**你可以：**
+1. 用公網伺服器、端口映射或 [FRP](/zh-tw/guides/frp/) 等讓 API 可從互聯網存取。
+2. 設定 `PUBLIC_BASE_URL` 為對外的 `http://` 或 `https://` 基址，見 [伺服器與網路](/zh-tw/configuration/server-network/)。
+3. 手機用戶若確有需要，在 Web/PWA 的錄製檔案頁使用分享（窄屏在檔案卡片「更多」菜單）；進階用戶可在 App 開發者選項中手動添加 `PUBLIC_BASE_URL`。詳見 [檔案管理 — 分享鏈接](/zh-tw/guides/file-management/#分享鏈接)。
+
 ### 收不到開播推送通知？
 
 **你會看到：** 瀏覽器或 PWA 裡從沒彈過通知。

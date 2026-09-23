@@ -16,7 +16,7 @@ bilirec 的 Web 管理界面由 [bilirec-web](https://github.com/bilirec/bilirec
 | 网页推送 | 通过 Service Worker 接收开播等 Web Push 通知 |
 | 文件浏览 | 浏览录制文件，支持下载与 MP4 内置回放；可显示弹幕滚动与礼物特效 |
 | 录制信息 | 显示实际画质、实际流格式、弹幕文件大小与标题变更提示 |
-| 文件共享 | 生成带过期时间的分享链接 |
+| 文件共享 | 生成带过期时间的分享链接（需公网可达的后端与 `PUBLIC_BASE_URL`；bilirec-mobile 本机部署通常不可用，见下文） |
 | 格式转换 | 提交与管理 FLV/TS/FMP4 → MP4 转换任务 |
 | 磁盘监测 | 实时磁盘占用与分项统计 |
 | 角色控制 | 管理员 / 查看者（查看者为只读界面） |
@@ -102,6 +102,19 @@ bilirec-web 需配合正在运行的 [bilirec](https://github.com/bilirec/bilire
 </Tabs>
 
 播放器会读取与视频同名的 `.jsonl` 弹幕文件；若只有 `.xml`，视频仍可播放，但不会显示弹幕滚动和礼物特效。正在录制的文件暂时不能回放。
+
+## 文件分享
+
+在 **录制文件** 页，对单个文件可生成限时分享链接并复制到剪贴板。对方在有效期内打开链接即可下载，无需登录 bilirec。
+
+使用此功能前请确认：
+
+1. 你的 bilirec **能从互联网访问**（公网服务器、端口映射、[FRP](/zh-cn/guides/frp/) 等），而不只是 `localhost` 或局域网地址。
+2. 已在环境中配置 **`PUBLIC_BASE_URL`**，且值为上述对外的完整 `http://` 或 `https://` 基址（见 [服务器与网络](/zh-cn/configuration/server-network/)）。
+
+<Aside type="note">
+通过 [bilirec-mobile](/zh-cn/guides/android/) 在手机上跑后端时，API 默认仅本机可访问，App 也未提供 `PUBLIC_BASE_URL` 的常规设置项，**一般无法**向他人分享可用的下载链接。若要在手机上使用 Web 里的分享功能，需自行完成公网暴露与 `PUBLIC_BASE_URL` 配置（进阶用户可在 App 开发者选项中添加环境变量）。更多说明见 [文件管理 — 分享链接](/zh-cn/guides/file-management/#分享链接)。
+</Aside>
 
 ## 连接自架后端
 

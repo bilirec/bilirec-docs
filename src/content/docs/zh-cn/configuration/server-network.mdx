@@ -42,4 +42,4 @@ SERVER_KEY=/path/to/server.key
 
 `FRONTEND_URL` 设为 `https://app.bilirec.org` 时，表示允许该管理页跨域访问你的 API。若通过 app.bilirec.org 管理自架 HTTPS 后端，还需开启 `PRODUCTION_MODE=true`，详见 [认证与安全](/zh-cn/configuration/auth-security/#何时需要生产模式)。
 
-`PUBLIC_BASE_URL` 建议包含 `http://` 或 `https://` 前缀，为空时预签名 URL 回退为相对地址。
+`PUBLIC_BASE_URL` 建议包含 `http://` 或 `https://` 前缀，为空时预签名 URL 回退为相对地址。Web 界面的[文件分享链接](/zh-cn/guides/file-management/#分享链接)会写入该基址；若只填内网地址、或后端未对公网开放，他人打开分享链接仍无法下载。CloudConvert 拉取大文件转码时同样依赖可从外网访问的 `PUBLIC_BASE_URL`（见 [转换配置](/zh-cn/configuration/conversion/)）。

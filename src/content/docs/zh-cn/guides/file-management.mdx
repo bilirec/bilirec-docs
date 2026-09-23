@@ -82,6 +82,16 @@ curl -X POST "http://127.0.0.1:8080/files/presigned/room123/title.mp4?ttl=3600" 
   -b cookies.txt
 ```
 
+## 分享链接
+
+在 [Web 管理界面](/zh-cn/guides/web-ui/) 的录制文件列表中，可为单个文件生成带有效期的分享链接（复制到剪贴板后发给他人）。接口与上文的预签名下载相同：对方在有效期内访问链接即可下载，无需登录。
+
+<Aside type="note">
+**需要对外可访问的后端。** 他人打开链接时会向你的 bilirec 后端发起下载请求。若服务只在本机或局域网内、未做内网穿透或反向代理，公网上的用户无法拉取文件。请先将 API 暴露到外网（例如 [FRP](/zh-cn/guides/frp/)），再配置可从公网访问的完整基址 `PUBLIC_BASE_URL`（见 [服务器与网络](/zh-cn/configuration/server-network/)）。`PUBLIC_BASE_URL` 为空或无效时，后端会回退为相对路径，对方拿到的链接通常无法直接使用。
+
+**bilirec-mobile 场景。** 原生 App 没有单独的「分享」入口，须在「打开录制管理程序」进入 Web/PWA 后操作。手机常见部署下后端仅监听本机 `127.0.0.1`，且 App 设置页未提供 `PUBLIC_BASE_URL` 开关，一般**无法**向他人提供可用的外链；若确有需要，需自行解决公网可达性，并在开发者选项的环境变量中设置 `PUBLIC_BASE_URL`。
+</Aside>
+
 ## 批量删除
 
 ```bash
