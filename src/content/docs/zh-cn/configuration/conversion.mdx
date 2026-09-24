@@ -3,7 +3,7 @@ title: 转换配置
 description: FFmpeg 本地转换与 CloudConvert 云端转换参数
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## 基本转换
 
@@ -26,7 +26,57 @@ import { Aside } from '@astrojs/starlight/components';
 | `FFMPEG_ALLOW_DURING_RECORDING` | 录制进行中是否允许 FFmpeg 转换 | `false` |
 | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | 仅当活跃录制数 `≤` 此值时才允许边录边转；`<1` 表示不设门槛（仍受 `FFMPEG_ALLOW_DURING_RECORDING` 控制） | `1` |
 
-Docker 镜像内置 FFmpeg 8.1.1。桌面环境需在 PATH 中安装 FFmpeg 和 ffprobe。
+### 安装 FFmpeg
+
+本地转换依赖 `ffmpeg` 与 `ffprobe` 在 PATH 中可用（`NO_CONVERT_IF_INVALID` 还会用到 `ffprobe`）。按运行环境选择：
+
+<Tabs>
+<TabItem label="Linux">
+
+Debian / Ubuntu：
+
+```bash
+sudo apt install ffmpeg
+```
+
+Fedora：
+
+```bash
+sudo dnf install ffmpeg
+```
+
+安装后在终端执行 `ffmpeg -version`、`ffprobe -version` 确认可用。
+
+</TabItem>
+<TabItem label="Windows">
+
+从 [ffmpeg.org](https://ffmpeg.org/) 下载并加入 PATH，或使用：
+
+```powershell
+winget install Gyan.FFmpeg
+```
+
+新开终端后执行 `ffmpeg -version` 确认。
+
+</TabItem>
+<TabItem label="macOS">
+
+```bash
+brew install ffmpeg
+```
+
+</TabItem>
+<TabItem label="Docker">
+
+官方镜像已内置 FFmpeg 8.1.1，无需额外安装。详见 [Docker 指南](/zh-cn/guides/docker/)。
+
+</TabItem>
+<TabItem label="Android">
+
+bilirec-mobile 通过应用内依赖提供 FFmpeg，无需单独安装。详见 [Android App](/zh-cn/guides/android/)。
+
+</TabItem>
+</Tabs>
 
 遗留别名 `FFMPEG_ALLOW_DURING_RECORDING_BELOW_ACTIVE_RECORDINGS` 与 `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` 等效。
 

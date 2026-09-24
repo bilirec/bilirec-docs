@@ -49,8 +49,6 @@ chmod +x bilirec-darwin-arm64
 ./bilirec-darwin-amd64
 ```
 
-本机转 MP4 需要自行安装 `ffmpeg` 与 `ffprobe`（例如用 Homebrew：`brew install ffmpeg`）。
-
 从浏览器下载的未公证二进制可能被 Gatekeeper 拦截。可到「系统设置 → 隐私与安全性」允许这次打开，或执行：
 
 ```bash
@@ -126,4 +124,8 @@ docker run -d \
 
 <Aside type="note">
 二进制档案在首次启动时，程序会在可执行文件同目录自动生成 `.env` 配置文件。Docker 环境下跳过 `.env` 加载，主要使用容器环境变量。
+</Aside>
+
+<Aside type="note">
+启用 `CONVERT_TO_MP4` 等**本地转换**时，需能在 PATH 中调用 `ffmpeg` 与 `ffprobe`；不想装本机 FFmpeg 可改用 CloudConvert。各平台安装方式见 [转换配置 — 安装 FFmpeg](/zh-cn/configuration/conversion/#安装-ffmpeg)。
 </Aside>
