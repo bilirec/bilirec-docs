@@ -6,8 +6,20 @@ description: 开始/停止录制、查询状态与统计
 ## 开始录制
 
 ```http
-POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<quality>&only_audio=<bool>&record_danmaku=<bool>&delete_oldest_on_low_disk=<bool>
+POST /record/:roomID/start
+Content-Type: application/json
+
+{
+  "duration_minutes": 30,
+  "qn": 150,
+  "only_audio": false,
+  "record_danmaku": true,
+  "stream_profiles": ["http-flv", "hls-ts"],
+  "delete_oldest_on_low_disk": false
+}
 ```
+
+也可通过 query 传参（与 JSON 字段同名，使用 snake_case）。**二者互斥**：服务端以是否声明请求体为准（无 body 时只读 query）；一旦带有 body（含空 JSON 对象 `{}`），则只走 JSON、忽略 query。query 模式请勿附带 body（例如 axios 使用 `undefined` 而非 `null`，避免发送字面量 `null`）。未在 JSON 中出现的字段按默认值处理（与 query 模式下「不传」一致）。官方 Web 通过 query 传参且不附带请求体。
 
 ### duration_minutes
 
@@ -17,9 +29,13 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 | `-1` | 无限录制 |
 | 正整数 | N 分钟后自动停止 |
 
-### stream_profile
+### stream_profile / stream_profiles
 
-允许的流格式清单（严格限制）。可传单个值，或多个值用英文逗号分隔（如 `hls-fmp4,hls-ts`）。房间配置请改用 JSON 数组字段 `stream_profiles`。
+允许的流格式清单（严格限制）。
+
+- **JSON body**：`stream_profiles` 字符串数组（推荐，与房间配置一致）。
+- **query**：`stream_profile`，单个值或英文逗号分隔（如 `hls-fmp4,hls-ts`）。
+- body 中若同时提供 `stream_profiles` 与 `stream_profile`，以 `stream_profiles` 为准。
 
 | 值 | 说明 |
 | -- | ---- |
@@ -80,6 +96,14 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 - 录 4K / 杜比建议显式传 `qn`（如 `qn=20000`、`qn=30000`）
 - `qn ≥ 20000` 时自动启用 `*_HIGH` 高画质内存池，一般无需改环境变量
 - 若遇卡顿或内存不足，参见 [高码率 / 4K 调参](/zh-cn/configuration/high-bitrate-tuning/) 与 [内存占用估算](/zh-cn/configuration/memory-estimation/)
+
+```bash
+curl -X POST "http://127.0.0.1:8080/record/12345/start" \
+  -H "Content-Type: application/json" \
+  -d '{"duration_minutes":30,"stream_profiles":["http-flv"],"qn":150,"only_audio":true,"record_danmaku":true,"delete_oldest_on_low_disk":true}'
+```
+
+仍可使用 query（例如脚本或旧版客户端）：
 
 ```bash
 curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true&record_danmaku=true&delete_oldest_on_low_disk=true"

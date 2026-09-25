@@ -144,8 +144,9 @@ Content-Type: application/json
 }
 ```
 
-`record_duration_minutes`：`0`=系统预设，`-1`=无限，正整数=N 分钟。仅在 `auto_record: true` 时生效。
+`auto_record`、`notify` 为行为开关，不参与开录参数。启用自动录制后，下列字段会在开录时**全部**生效（与 [录制管理 API](/zh-cn/api/record/) 中同名 query 参数同义）：
 
-`qn`、`stream_profiles`、`only_audio`、`record_danmaku`、`delete_oldest_on_low_disk`：自动录制启动时作为开录 query 生效（与手动开录相同）。`stream_profiles` 为空或省略表示允许全部格式；数组元素为 `http-flv` / `hls-ts` / `hls-fmp4`，作为严格允许清单。`delete_oldest_on_low_disk` 默认关闭；为 `true` 时，可用空间低于 `MIN_DISK_SPACE_BYTES` 会先删除该房间文件名时间戳最早的录像再尝试启动。
-
-若希望手动录制也使用该时长，可在 `POST /record/:roomID/start` 时显式传入 `duration_minutes`；否则手动录制仍按系统预设或本次请求参数执行。
+- `record_duration_minutes`：`0` 系统预设，`-1` 不限时，正整数为 N 分钟（**仅**自动录制读取；手动开录用请求 query `duration_minutes`）
+- `qn`、`only_audio`、`record_danmaku`
+- `stream_profiles`：空或省略=允许全部格式；数组为严格允许清单，元素为 `http-flv` / `hls-ts` / `hls-fmp4`
+- `delete_oldest_on_low_disk`：默认 `false`；为 `true` 时，可用空间低于 `MIN_DISK_SPACE_BYTES` 会先删除该房间文件名时间戳最早的录像再尝试启动
