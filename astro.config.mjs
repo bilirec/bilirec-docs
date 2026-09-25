@@ -23,6 +23,15 @@ const sidebar = [
 		],
 	},
 	{
+		label: '场景指南',
+		translations: { 'zh-tw': '場景指南' },
+		items: [
+			{ slug: 'guides/recording-station' },
+			{ slug: 'guides/auto-upload' },
+			{ slug: 'guides/personal-archive' },
+		],
+	},
+	{
 		label: '使用指南',
 		translations: { 'zh-tw': '使用指南' },
 		items: [

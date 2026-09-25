@@ -28,9 +28,15 @@ bilirec 可在錄製與轉碼流程中，向外部服務 POST **Webhook v2** 格
 1. 開啟 webhook，類型選「錄播姬」，地址填上文的 URL。
 2. 把**錄播目錄**（`recoderFolder`）設成與 bilirec 的 **`OUTPUT_DIR` 完全一致**（本機部署務必填寫；用 Docker 時請與 bilirec 使用同一磁碟掛載路徑）。
 3. 若要用工具壓制彈幕或自動上傳，除下文彈幕格式外，請確認 bilirec 的成片路徑就在該錄播目錄下（與平時錄製保存位置相同）。
+4. **不要**在 bilirec 開啟 `CONVERT_TO_MP4` 指望工具「只上傳已轉好的 MP4」。biliLive-tools 在收到成對的 `FileOpening` / `FileClosed` 後，會按 Webhook 設定對 **錄製落盤的原始流檔案**做轉封裝（`convert2Mp4` → 內部 `processConversion`），再進入壓制、上傳等步驟；這與 bilirec 本地轉碼後發事件的時序不一致。工具源碼：[WebhookHandler.processConversion](https://github.com/renmu123/biliLive-tools/blob/master/packages/http/src/services/webhook/webhook.ts)；內置錄製器與 Webhook 轉封裝的說明見 [recorder 文案 `convert2Mp4`](https://github.com/renmu123/biliLive-tools/blob/master/packages/app/src/renderer/src/enums/recorder.ts)。
+5. 在 biliLive-tools 的 Webhook **全局或房間**設定裡開啟 **轉封裝為 MP4**（`convert2Mp4`），並按需設定壓制預設、上傳帳號等。掛機上傳場景完整清單見 [全自動掛機上傳](/zh-tw/guides/auto-upload/)。
 
 <Aside type="note">
 若要用 biliLive-tools 壓制彈幕或上傳，請把 `DANMAKU_OUTPUT_FORMAT` 設為 **xml**，以便生成與影片同名的 `.xml` sidecar。預設 **jsonl** 適合 bilirec-web 回放，外部壓制工具通常只認 xml。詳見 [彈幕 XML 的後續使用](/zh-tw/guides/danmaku-xml/)。
+</Aside>
+
+<Aside type="caution">
+對接 biliLive-tools 時，bilirec 側請保持 **`CONVERT_TO_MP4=false`**（預設）。本地轉碼留給 [自用錄像庫](/zh-tw/guides/personal-archive/) 或 bilirec-web 回放等場景即可。
 </Aside>
 
 ## 會發送哪些事件
@@ -39,9 +45,12 @@ bilirec 可在錄製與轉碼流程中，向外部服務 POST **Webhook v2** 格
 
 - `StreamStarted` / `StreamEnded`：已訂閱房間開播、下播（未開錄製也會發）
 - `SessionStarted` / `SessionEnded`：一次錄製任務的開始與結束（結束與停止錄製同時發出，可能早於最後一個 `FileClosed`）
-- `FileOpening` / `FileClosed`：每個分段檔案打開與寫完（對接 biliLive-tools 等工具時主要依賴這一對）
+- `FileOpening` / `FileClosed`：每個分段檔案打開與寫完（對接 biliLive-tools 時主要依賴這一對，且應對 **原始錄製檔案**成對出現）
 
-開啟 `CONVERT_TO_MP4` 時，`FileClosed` 會在**轉碼成功**後針對最終的 mp4/m4a 發送，避免工具去打開即將被刪除的原始流檔案。轉碼失敗會重試，不會在單次失敗時誤發 `FileClosed`。
+**bilirec 本地轉碼（`CONVERT_TO_MP4`）與 Webhook 時序：**
+
+- **預設（`CONVERT_TO_MP4=false`）**：分段寫完後立即對 **flv/ts/fmp4 等錄製路徑**發送 `FileClosed`。這是對接 biliLive-tools 時應使用的模式。
+- **開啟 `CONVERT_TO_MP4` 時**：寫盤完成後**不會**立刻對原始流發 `FileClosed`，而是入隊轉碼；轉碼成功後會對 **mp4/m4a 輸出**再發送一對 `FileOpening` 與 `FileClosed`（原始流上的打開事件仍對應錄製階段）。適合只消費最終 MP4 的自建腳本，或 [自用錄像庫](/zh-tw/guides/personal-archive/) 等不經過 biliLive-tools Webhook 管線的場景。轉碼失敗會重試，單次失敗不會對成品誤發 `FileClosed`。
 
 失敗或非 2xx 時最多重試 3 次，同一事件的 `EventId` 不變，便於接收方去重。
 

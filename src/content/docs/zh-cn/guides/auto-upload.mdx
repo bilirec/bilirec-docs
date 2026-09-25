@@ -1,0 +1,72 @@
+---
+title: 全自动挂机上传
+description: 开播自动录制，关档后通过 Webhook 交给 biliLive-tools 等压制与上传
+sidebar:
+  label: 全自动挂机上传
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+本页按**目标**串起步骤：bilirec 负责**检测开播、录制、关档**；**上传到 B 站（或压制、归档）发生在你对接的外部工具里**，bilirec 本身不提供投稿 API。
+
+## 适合谁
+
+- 服务器 24 小时开着，希望**订阅房间开播即录**
+- 已使用或愿意使用 **biliLive-tools** 等支持「录播姬」Webhook 的工具做后续处理
+
+若只想自己看回放、不上传，见 [自用录像库](/zh-cn/guides/personal-archive/)。若要给访客在线看录播，见 [搭建录播站](/zh-cn/guides/recording-station/)。
+
+## 数据流（概念）
+
+```text
+B 站开播 → bilirec 自动开录 → 分段落盘（flv/ts 等）→ FileOpening / FileClosed
+    → POST Webhook v2 → biliLive-tools（转封装 MP4、压制、上传等）→ 你配置的动作
+```
+
+bilirec **只负责录制与发事件**；转 MP4、弹幕压制、投稿应在 **biliLive-tools 的 Webhook 房间设置**里完成（例如「转封装为 MP4」`convert2Mp4`），与工具内置录制器的转封装选项是两套逻辑。工具在 UI 里也提示：走 Webhook 时应使用 **Webhook 的转封装**，而不是内置录制器的「转封装为 MP4」。
+
+事件类型与字段见 [Webhook 对接](/zh-cn/guides/webhook-integration/) 与 [录播姬 Webhook 说明](https://rec.danmuji.org/reference/webhook/)。
+
+## 步骤清单
+
+1. [安装](/zh-cn/guides/installation/)并启动 bilirec，完成 B 站登录。
+2. 在 Web「订阅管理」添加房间，开启 **自动录制**，并按需设置画质、流格式、时长、`record_danmaku` 等，见 [录制直播间 · 自动录制](/zh-cn/guides/recording/#自动录制)。
+3. 将 **`DANMAKU_OUTPUT_FORMAT=xml`** 写入 `.env` 并**重启**（仅影响此后新录的文件）。外部压制 / 上传工具通常需要与视频同名的 `.xml` sidecar；Web 回放宜用 jsonl，见 [弹幕 XML 的后续使用](/zh-cn/guides/danmaku-xml/)。
+4. 对接 biliLive-tools 时，请保持 **`CONVERT_TO_MP4=false`**（默认即为关闭）。bilirec 在开启本地转码时会推迟 `FileClosed`，并在转码完成后对 mp4 **再发一对** `FileOpening` / `FileClosed`；而 biliLive-tools 是按录制文件的 **打开/关闭事件成对匹配**后再做转封装与后续流程的，与「bilirec 先转好 MP4 再通知」并不兼容。应在工具 Webhook 配置里开启 **转封装为 MP4**（`convert2Mp4`），由工具对原始流文件做 copy 转封装。详见 [Webhook 对接 · biliLive-tools](/zh-cn/guides/webhook-integration/#对接-bililive-tools)。
+5. 在 `.env` 设置 **`WEBHOOK_URLS`**（每行一个完整 URL），保存并重启。留空则不发送任何 webhook。
+6. 在 **biliLive-tools**（或其它接收方）中：
+   - Webhook 类型选「录播姬」，地址与 `WEBHOOK_URLS` 中一致（工具侧监听地址形如 `http://主机:端口/webhook/bililiverecorder`）。
+   - **录播目录**（`recoderFolder`）必须与 bilirec 的 **`OUTPUT_DIR` 完全一致**（本机路径一致；Docker 时两边挂载同一宿主机目录）。
+   - 在 Webhook 全局或房间设置里按需开启 **转封装为 MP4**、弹幕压制、上传等（以 [biliLive-tools Webhook 说明](https://github.com/renmu123/biliLive-tools/blob/master/docs/features/webhook.md) 为准）。
+7. 若使用其它接收方且希望 bilirec 本地先转 MP4 再发 `FileClosed`，可单独开启 `CONVERT_TO_MP4`；这与 biliLive-tools 推荐路径不同，见 [Webhook 对接](/zh-cn/guides/webhook-integration/#会发送哪些事件)。
+
+<Aside type="note">
+bilirec 目录为 `{主播名}-{房间号}/文件名`，与录播姬默认模板不同；只要录播根目录与 `OUTPUT_DIR` 一致即可，不必改 bilirec 命名规则。
+</Aside>
+
+Webhook 发送失败或非 2xx 时最多重试 3 次，同一事件 `EventId` 不变，便于接收方去重。
+
+## 最小配置示例
+
+```bash
+OUTPUT_DIR=/path/to/records
+
+DANMAKU_OUTPUT_FORMAT=xml
+CONVERT_TO_MP4=false
+
+WEBHOOK_URLS=http://127.0.0.1:3000/webhook/bililiverecorder
+```
+
+`WEBHOOK_URLS` 可多行。若 bilirec 与工具不在同一台机器，把 URL 改成工具可达的地址。
+
+按房间开启「空间不足时删除最旧文件」、调整 `MIN_DISK_SPACE_BYTES` 等，见 [录制配置 · 磁盘空间](/zh-cn/configuration/recording/#磁盘空间)。
+
+## 设备与稳定性
+
+树莓派、NAS、microSD 等**不是单独场景**，但挂机上传往往长时间多路录制。写盘、内存与路数见 [I/O 与存储调优](/zh-cn/configuration/io-tuning/)、[树莓派 5B 默认配置](/zh-cn/configuration/pi5-defaults/)、[内存占用估算](/zh-cn/configuration/memory-estimation/)。
+
+## 下一步
+
+- [Webhook 对接](/zh-cn/guides/webhook-integration/) — 启用方式与事件说明
+- [环境变量参考 · WEBHOOK_URLS](/zh-cn/configuration/env-reference/)
+- [录制直播间](/zh-cn/guides/recording/) — 订阅与 `delete_oldest_on_low_disk`
