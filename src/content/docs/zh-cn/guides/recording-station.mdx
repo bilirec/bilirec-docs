@@ -1,0 +1,70 @@
+---
+title: 搭建录播站
+description: 让访客在你的服务上回放或下载录制，含账号、自动录制、磁盘与公网暴露
+sidebar:
+  label: 搭建录播站
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+本页按**目标**串起步骤：成片留在你的机器（或挂载盘）上，通过 Web 给访客回放或下载。与「只提供 MP4 下载」不同，bilirec 会把**同名 `.jsonl` 弹幕**与视频一起交给 bilirec-web 播放器，访客可在浏览器里看滚动弹幕、礼物与舰长等互动回放——这是录播站场景的核心体验。参数细节见各专题链接，此处不重复 FRP 或认证全文。
+
+## 适合谁
+
+- 想给粉丝或朋友提供**在线看录播 / 下文件**，而不是只自己看
+- 愿意配置**管理员 + 只读访客**账号，并在公网暴露 API 时设密码
+
+若只想自己看档案，见 [自用录像库](/zh-cn/guides/personal-archive/)。若录完要交给工具上传 B 站，见 [全自动挂机上传](/zh-cn/guides/auto-upload/)。
+
+## 步骤清单
+
+1. [安装](/zh-cn/guides/installation/)并[启动](/zh-cn/guides/quick-start/) bilirec，完成 B 站登录。
+2. 设置**管理员** `USERNAME` / `PASSWORD`；公网暴露后未设置时 API 完全公开，见 [认证与安全](/zh-cn/configuration/auth-security/)。
+3. 设置**只读访客** `VIEWER_USERNAME` / `VIEWER_PASSWORD`：访客可浏览、回放、下载，不能改订阅或开停录。
+4. 在 Web「订阅管理」为房间开启**自动录制**（或手动开录），见 [录制直播间](/zh-cn/guides/recording/)。
+5. 规划磁盘：按需调整 `MIN_DISK_SPACE_BYTES`；某房间可在订阅配置里开启「空间不足时删除最旧文件」（`delete_oldest_on_low_disk`），只删该房间、按文件名时间戳最旧者，见 [录制配置 · 磁盘空间](/zh-cn/configuration/recording/#磁盘空间)。
+6. 弹幕保持默认 **`DANMAKU_OUTPUT_FORMAT=jsonl`**（勿改成其它格式）：录制分段旁会生成同名 `.jsonl`，访客用 bilirec-web 打开即可同步看弹幕与礼物特效，见 [Web 界面 · 录制与回放](/zh-cn/guides/web-ui/#录制与回放) 与 [文件管理 · 在线回放](/zh-cn/guides/file-management/#在线回放)。
+7. 可选：开启 `CONVERT_TO_MP4=true`，方便访客直接回放 MP4，见 [转换配置](/zh-cn/configuration/conversion/)。
+8. **暴露到公网**：官方 [FRP](/zh-cn/guides/frp/) 或自建 Nginx 等反代；同时建议 `PRODUCTION_MODE=true`、`FRONTEND_URL=https://app.bilirec.org`（若用官方 PWA 管理），见 [认证与安全 · 生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式)。
+9. 设置 **`PUBLIC_BASE_URL`** 为访客实际访问后端的 HTTPS 基址（含 `https://`），用于分享链接与预签名下载，见 [服务器与网络](/zh-cn/configuration/server-network/) 与 [文件管理 · 分享链接](/zh-cn/guides/file-management/#分享链接)。
+
+<Aside type="caution">
+公网暴露后务必设置管理员密码。只读账号不能防止有人把分享链接再转发；敏感内容请控制分享有效期与访问范围。
+</Aside>
+
+## 最小配置示例
+
+以下片段可合并进 `.env`（路径、密码请自行替换）：
+
+```bash
+USERNAME=admin
+PASSWORD=请改为强密码
+VIEWER_USERNAME=guest
+VIEWER_PASSWORD=请改为强密码
+JWT_SECRET=请改为随机长字符串
+
+DANMAKU_OUTPUT_FORMAT=jsonl
+CONVERT_TO_MP4=true
+
+MIN_DISK_SPACE_BYTES=5368709120
+
+FRP_ENABLED=true
+PRODUCTION_MODE=true
+FRONTEND_URL=https://app.bilirec.org
+PUBLIC_BASE_URL=https://你的公网后端地址
+TRUSTED_PROXIES=161.33.159.26
+```
+
+`delete_oldest_on_low_disk` 在 Web 订阅配置或 [房间 API](/zh-cn/api/room/) 里按房间设置，不必写进全局 `.env`。
+
+## 回放与 CDN
+
+访客用**只读账号**登录 bilirec-web，或在管理员生成的**分享链接**里打开文件时，播放器会拉取视频与同名 `.jsonl` 弹幕流，在页内完成互动回放（无需把弹幕烧进视频）。`PUBLIC_BASE_URL` 须与他们在浏览器里能打开的后端地址一致。
+
+若多人同时拉取大文件，可在**下载 / 回放路径**前加反向代理或 CDN 缓存静态文件；**不要**对需要登录的管理 API 做长期缓存。bilirec 没有单独的「CDN 开关」，具体厂商步骤不在本文展开。
+
+## 下一步
+
+- [Web 界面（PWA）](/zh-cn/guides/web-ui/) — 角色与回放
+- [文件管理](/zh-cn/guides/file-management/) — 浏览、分享、批量删除
+- [常见问题](/zh-cn/guides/faq/) — 会话过期、磁盘与性能

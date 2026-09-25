@@ -50,6 +50,34 @@ import QqCommunity from '../../../components/QqCommunity.astro';
   cardClass="shadow-none"
 />
 
+## 場景指南
+
+<IconLinkCardGrid
+  items={[
+    {
+      icon: '🌐',
+      title: '搭建錄播站',
+      href: '/zh-tw/guides/recording-station/',
+      description: '訪客在線回放或下載：jsonl 彈幕互動回放、帳號、公網與分享。',
+    },
+    {
+      icon: '⬆️',
+      title: '全自動掛機上傳',
+      href: '/zh-tw/guides/auto-upload/',
+      description: '開播自動錄，Webhook 交給 biliLive-tools 等壓制與上傳。',
+    },
+    {
+      icon: '📚',
+      title: '自用錄像庫',
+      href: '/zh-tw/guides/personal-archive/',
+      description: '只給自己看：jsonl 彈幕回放、轉 MP4、本機歸檔。',
+    },
+  ]}
+  columnsClass="md:grid-cols-3"
+  titleClass="text-base"
+  cardClass="shadow-none"
+/>
+
 ## 使用指南
 
 <IconLinkCardGrid

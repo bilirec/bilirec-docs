@@ -1,0 +1,60 @@
+---
+title: 自用錄像庫
+description: 訂閱自動錄製，留在本機用 Web 帶彈幕回放，不對外建站、不上傳
+sidebar:
+  label: 自用錄像庫
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+本頁按**目標**串起步驟：成片**只給自己**（或同一局域網內的設備）看，留在本機當檔案；預設**不**設定只讀訪客、**不**開 FRP、**不**接 Webhook 上傳流水線。
+
+## 適合誰
+
+- 想自動錄下關注的主播，事後在 bilirec-web 裡**回放彈幕和禮物**
+- 機器放在家裡或 NAS，**僅本機 / 局域網**存取即可
+
+若要訪客公網看錄播，見 [搭建錄播站](/zh-tw/guides/recording-station/)。若錄完要工具上傳 B 站，見 [全自動掛機上傳](/zh-tw/guides/auto-upload/)。
+
+## 步驟清單
+
+1. [安裝](/zh-tw/guides/installation/)並[啟動](/zh-tw/guides/quick-start/) bilirec，完成 B 站登入。
+2. 打開 [app.bilirec.org](https://app.bilirec.org/)（或本機地址），伺服器地址填 `http://localhost:8080` 或局域網 HTTP（若瀏覽器限制混合內容，見 [Web 介面 · 存取](/zh-tw/guides/web-ui/#存取-web-介面) 或 [自架前端](/zh-tw/development/web/)）。
+3. 僅自用、不暴露公網時，**可以不設** `USERNAME` / `PASSWORD`；若同一局域網裡有多人，仍建議設管理員密碼。
+4. 在「訂閱管理」添加房間，開啟 **自動錄製** 與需要的 **錄製彈幕**，見 [錄製直播間](/zh-tw/guides/recording/)。
+5. 保持預設 **`DANMAKU_OUTPUT_FORMAT=jsonl`**，以便內置播放器顯示滾動彈幕與禮物特效，見 [彈幕錄製](/zh-tw/configuration/danmaku/) 與 [Web 介面 · 錄製與回放](/zh-tw/guides/web-ui/#錄製與回放)。
+6. 建議開啟 **`CONVERT_TO_MP4=true`**，錄製完成後自動轉 MP4/M4A，便於在「錄製檔案」裡一鍵回放，見 [轉換設定](/zh-tw/configuration/conversion/) 與 [檔案管理](/zh-tw/guides/file-management/)。
+7. 定期在 Web「錄製檔案」瀏覽、下載；需要騰空間時使用批量刪除 API 或介面操作，見 [檔案管理 · 批量刪除](/zh-tw/guides/file-management/#批量刪除)。
+8. 磁碟緊張時：調高或理解 `MIN_DISK_SPACE_BYTES` 門檻；對指定房間在訂閱裡開啟「空間不足時刪除最舊檔案」，見 [錄製設定 · 磁碟空間](/zh-tw/configuration/recording/#磁碟空間)。
+
+<Aside type="tip">
+本場景**不需要** `VIEWER_*`、 `FRP_ENABLED`、`WEBHOOK_URLS`、`PUBLIC_BASE_URL`。以後若要對外建站或接上傳工具，再改對應場景指南即可。
+</Aside>
+
+## 最小設定示例
+
+```bash
+OUTPUT_DIR=/path/to/records
+
+DANMAKU_OUTPUT_FORMAT=jsonl
+CONVERT_TO_MP4=true
+DELETE_SOURCE_AFTER_CONVERT=false
+
+MIN_DISK_SPACE_BYTES=5368709120
+```
+
+未設定 `USERNAME` / `PASSWORD` 時，能存取到你後端地址的同一網路用戶都可調用 API；僅在本機 `127.0.0.1` 使用時風險較低。
+
+## 手機錄製
+
+在手機上跑後端請用 [bilirec-mobile](/zh-tw/guides/android/)，介面與保活見 [國產手機後台](/zh-tw/guides/android-mainland/)。本頁不展開 App 操作，流程仍是：訂閱 → 自動錄 → 本機 Web 回放。
+
+## 設備調優
+
+差設備、多路長時間錄製時，可參考 [I/O 與儲存調優](/zh-tw/configuration/io-tuning/)、[樹莓派 5B 預設設定](/zh-tw/configuration/pi5-defaults/)、[性能實測](/zh-tw/guides/performance-benchmark/)。
+
+## 下一步
+
+- [Web 介面（PWA）](/zh-tw/guides/web-ui/)
+- [錄製直播間](/zh-tw/guides/recording/)
+- [常見問題](/zh-tw/guides/faq/)
