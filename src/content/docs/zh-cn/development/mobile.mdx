@@ -123,7 +123,8 @@ UI 侧（`lib/app/home_page.dart`）通过 `FlutterForegroundTask.addTaskDataCal
 | `POST_NOTIFICATIONS` | 常驻通知与本地推送 |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | 电池优化豁免 |
 | `ACCESS_WIFI_STATE` / `ACCESS_NETWORK_STATE` | 网络锁（防休眠） |
-| `READ/WRITE_EXTERNAL_STORAGE`（maxSdkVersion 29） | Android 10 及以下外部存储 |
+| `MANAGE_EXTERNAL_STORAGE` | Android 11（API 30）及以上：输出路径落在 microSD、`/storage/...` 等外部目录时，需「所有文件访问」授权（见 `legacy_android_compatible.dart`） |
+| `READ/WRITE_EXTERNAL_STORAGE`（maxSdkVersion 29） | Android 10（API 29）及以下外部存储读写 |
 
 前台服务类型为 `specialUse|dataSync`，注册了 `flutter_foreground_task` 的 `ForegroundService`。
 
