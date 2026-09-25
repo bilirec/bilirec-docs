@@ -78,8 +78,6 @@ bilirec-mobile 通过应用内依赖提供 FFmpeg，无需单独安装。详见 
 </TabItem>
 </Tabs>
 
-遗留别名 `FFMPEG_ALLOW_DURING_RECORDING_BELOW_ACTIVE_RECORDINGS` 与 `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` 等效。
-
 转换失败的任务会进入冷却期，延后 `FFMPEG_CHECK_INTERVAL_SECS × 2` 再重试，避免多任务同时失败后又立刻并发重试。
 
 ## CloudConvert 云端
