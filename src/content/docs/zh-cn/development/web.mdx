@@ -86,7 +86,8 @@ import { Aside } from '@astrojs/starlight/components';
 | `src/lib/notifications.ts` | Web Push 订阅与权限引导 |
 | `src/sw.ts` | 自定义 Service Worker（injectManifest 策略） |
 | `src/i18n/` | 简繁中文文案 |
-| `public/manifest.json` | PWA 清单（构建时由 vite-plugin-pwa 生成） |
+| `vite.config.ts` | Vite / PWA 插件配置；`manifest` 字段定义生产环境 Web App 清单 |
+| `public/manifest.json` | 与插件配置同源的静态副本（`public/` 会复制到 `dist/`） |
 | `wrangler.jsonc` | Cloudflare Workers 静态资源部署配置 |
 
 ## 本地开发

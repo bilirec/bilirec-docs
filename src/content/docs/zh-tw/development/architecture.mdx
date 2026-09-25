@@ -8,23 +8,32 @@ description: bilirec 項目結構與核心實現
 ```text
 .
 ├── cmd/
-│   ├── backend/          # 後端可執行入口
-│   └── androidlib/       # Android c-shared 動態庫
+│   ├── backend/          # 桌面/伺服器可執行入口
+│   └── androidlib/       # Android c-shared 動態庫（Start / Stop）
 ├── internal/
+│   ├── bootstrap/        # Uber Fx 應用組裝與生命週期（桌面與 Android 共用 MainModule）
 │   ├── controllers/      # HTTP 控制器（auth, convert, file, notify, record, room）
-│   ├── modules/          # 核心模塊（bilibili, config, rest）
-│   ├── processors/       # 流處理器
-│   └── services/         # 業務邏輯（recorder, danmaku, convert, expose, notify, room, stream...）
-├── pkg/                  # 可複用庫（ffmpeg, flv, hls, cloudconvert, pool, swr...）
-└── utils/                # 工具函數庫
+│   ├── modules/          # bilibili、config、rest、logging、metrics
+│   ├── processors/       # 錄製寫入管道（FLV / HLS-fMP4 / HLS-TS 等處理器）
+│   └── services/         # recorder、stream、danmaku、convert、subscribe、subcheck、room、notify、file、expose、janitor、path
+├── pkg/                  # 可複用庫（ffmpeg、flv、hls、cloudconvert、pool、swr、sink、logger…）
+├── utils/                # 通用工具
+├── docs/                 # OpenAPI / Swagger 生成物（swag）
+├── database/             # BoltDB 等本地數據目錄約定
+├── dotenv.go             # 嵌入預設 .env、載入 .env.local
+├── swagger.go            # Swagger 文檔初始化
+├── Dockerfile
+└── Makefile
 ```
+
+桌面與 Android 共用 `internal/bootstrap` 中的 `MainModule()`；Android 通過 `cmd/androidlib` 導出 `Start` / `Stop`，內部調用 `bootstrap.NewAndroidApp()`。
 
 ## 錄製流程
 
 1. 通過 `bilibili.Client` 獲取直播流地址（未指定流格式時按畫質排序後，同畫質下偏好 HTTP-FLV → HLS-fMP4 → HLS-TS；指定時為嚴格允許清單，經 `WithProfiles` 過濾查詢與結果。開錄可用 query `stream_profile` 逗號多選；房間設定用 JSON `stream_profiles` 數組）
 2. `stream.Service` 讀取流數據
 3. `recorder.Service` 管理錄製任務（自動重連與恢復，恢復時沿用啟動時的畫質與流格式參數）
-4. 數據寫入錄製檔案（`.flv`、`.ts` 或 `.fmp4`）
+4. 數據經 `internal/processors` 寫入錄製檔案（`.flv`、`.ts` 或 `.fmp4`）
 5. 若本次錄製開啟了彈幕，`danmaku.Service` 獨立接收彈幕、醒目留言、禮物和艦長事件，並寫入與影片同名的 `.jsonl` 或 `.xml` 檔案；影片分段時同步切換對應檔案
 
 - **HTTP-FLV**：檢測到 PK 等 FLV 檔案頭變更（分辨率切換）時自動分段輪轉
@@ -43,13 +52,16 @@ description: bilirec 項目結構與核心實現
 - **開播檢測** — `subcheck` 分組輪詢已開啟通知或自動錄製的房間，檢測新場次並觸發推送或錄製；每組觸發前帶隨機抖動（`SUBCHECK_JITTER_SECS`），避免固定間隔被識別為機器輪詢
 - **直播間信息風控切換** — 查詢是否在播時預設匿名請求；B 站返回風控類 API 碼時自動改用已登入 Cookie 重試，並在日誌中記錄切換與恢復
 - **實時通知** — Web Push + SSE
+- **FRP 暴露** — `expose` 服務在啟用 `FRP_ENABLED` 時管理 frp 客戶端隧道
 - **記憶體池** — `pool.BufferPool` 減少 GC 壓力；讀/寫 bytes pool 的空閒複用塊數量由 channel 深度自動推導（約為讀側 channel 的 1/4、寫側的 1/8），在途記憶體公式不變
 - **SWR 緩存** — 房間信息 Stale-While-Revalidate（軟 TTL 5 分鐘，硬 TTL 30 分鐘）
-- **實時修復** — FLV Tag 時間戳修復與重複 Tag 去重
+- **流修復** — FLV Tag 時間戳修復與重複 Tag 去重；HLS-TS 連續性計數修復；fMP4 分片時間戳歸一化
 
 ## 依賴項
 
 - [Fiber v3](https://github.com/gofiber/fiber) — Web 框架
 - [bilibili/v2](https://github.com/CuteReimu/bilibili) — B 站 API 客戶端
 - [Uber Fx](https://github.com/uber-go/fx) — 依賴注入
-- [logrus](https://github.com/sirupsen/logrus) — 日誌
+- [Uber Zap](https://github.com/uber-go/zap) — 結構化日誌（經 `pkg/logger` 封裝）
+- [swag](https://github.com/swaggo/swag) — OpenAPI 文檔生成
+- [VictoriaMetrics metrics](https://github.com/VictoriaMetrics/metrics) — 可選 Prometheus 兼容指標

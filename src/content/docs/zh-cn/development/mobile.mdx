@@ -170,7 +170,7 @@ Debug 构建包含 `arm64-v8a` 与 `x86_64` 两个 ABI；Release 构建仅保留
 - `android/app/src/main/jniLibs/arm64-v8a/libbilirec.so`
 - `android/app/src/main/jniLibs/x86_64/libbilirec.so`
 
-`libbilirec.so` 依赖 FFmpeg 库，运行时由 Gradle 依赖 `com.antonkarpenko:ffmpeg-kit-min:2.1.0` 提供。
+`libbilirec.so` 依赖 FFmpeg 库，运行时由 Gradle 依赖 `com.antonkarpenko:ffmpeg-kit-min:2.2.2` 提供。
 
 如需替换核心版本，保持文件名为 `libbilirec.so` 并放入对应 ABI 目录。也可通过仓库内的 `Sync bilirec Android SO` GitHub Actions workflow 从 bilirec 最新 Release 自动同步。
 
