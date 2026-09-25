@@ -21,11 +21,15 @@ bilirec 可以在錄製影片的同時保存直播間的彈幕、醒目留言、
 
 ### 通過 API 開啟
 
-手動錄製時，在開始錄製請求中加入 `record_danmaku=true`：
+手動錄製時，在開始錄製請求中開啟 `record_danmaku`：
 
 ```bash
-curl -X POST "http://127.0.0.1:8080/record/12345/start?record_danmaku=true"
+curl -X POST "http://127.0.0.1:8080/record/12345/start" \
+  -H "Content-Type: application/json" \
+  -d '{"record_danmaku":true}'
 ```
+
+也可使用 query：`?record_danmaku=true`。
 
 自動錄製使用房間設定中的 `record_danmaku`：
 

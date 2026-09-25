@@ -31,10 +31,12 @@ Web 介面中「畫質」為請求偏好，不可用時會盡量選用該直播�
 </TabItem>
 </Tabs>
 
-也可通過 API 啟動：
+也可通過 API 啟動（推薦 JSON body；仍支持 query，詳見 [錄製 API](/zh-tw/api/record/)）：
 
 ```bash
-curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&record_danmaku=true"
+curl -X POST "http://127.0.0.1:8080/record/12345/start" \
+  -H "Content-Type: application/json" \
+  -d '{"duration_minutes":30,"stream_profiles":["http-flv"],"qn":150,"record_danmaku":true}'
 ```
 
 ### 畫質碼（qn）
@@ -66,7 +68,7 @@ Web 回放要顯示彈幕滾動和禮物特效，建議使用預設的 `jsonl` �
 
 嚴格允許清單。
 
-- **開始錄製 API**：query 參數 `stream_profile`，可傳單個值，或多個值用英文逗號分隔。
+- **開始錄製 API**：JSON body 字段 `stream_profiles`（字符串數組）；query 仍可用 `stream_profile`（逗號分隔）。
 - **房間設定 API**：JSON 字段 `stream_profiles`，為字符串數組。
 
 | 值 | 說明 |
@@ -118,16 +120,19 @@ curl -X PUT http://127.0.0.1:8080/room/12345/config \
   -d '{"auto_record":true,"notify":true,"record_duration_minutes":120,"qn":150,"record_danmaku":true,"stream_profiles":["hls-fmp4","hls-ts"]}'
 ```
 
-為房間開啟 **開播通知** 或 **自動錄製** 後，後台會定期檢查該房間的直播狀態。服務啟動時先檢查所有相關房間一次，之後將房間分成若干組、分組輪流檢查，避免訂閱較多時 CPU 瞬間飆高。檢測到新一場直播時：若開啟了通知則推送消息；若開啟了自動錄製則自動開始錄製（沿用房間設定中的畫質、流格式允許清單、是否錄製彈幕等）。分組與檢查週期預設隨訂閱規模自動調整，詳見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
+為房間開啟 **開播通知** 或 **自動錄製** 後，後台會定期檢查該房間的直播狀態。服務啟動時先檢查所有相關房間一次，之後將房間分成若干組、分組輪流檢查，避免訂閱較多時 CPU 瞬間飆高。檢測到新一場直播時：若開啟了通知則推送消息；若開啟了自動錄製則按該房間 config 中的**全部開錄相關項**自動開始錄製。分組與檢查週期預設隨訂閱規模自動調整，詳見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
 
 ## 自動錄製
 
-啟用 `auto_record: true` 後，檢測到開播時會自動開始錄製。
+啟用 `auto_record: true` 後，檢測到開播時會用該房間設定裡與開錄相關的字段一次性開錄，與手動 `POST /record/:roomID/start` 的 JSON body / query 字段同義，包括：
 
-`record_duration_minutes` 控制自動錄製的時長上限（僅在 `auto_record: true` 時生效）。房間設定中的 `qn`、`stream_profiles`、`only_audio`、`record_danmaku` 會作為自動錄製參數一併生效。
+- `record_duration_minutes`（時長上限：`0` 系統預設，`-1` 不限時，正整數為 N 分鐘）
+- `qn`、`stream_profiles`、`only_audio`、`record_danmaku`、`delete_oldest_on_low_disk`
+
+其中 `stream_profiles` 為空或省略表示允許全部流格式；為數組時為嚴格允許清單，元素為 `http-flv`、`hls-ts`、`hls-fmp4`。
 
 <Aside type="note">
-手動觸發的錄製不受房間 `record_duration_minutes` 設定影響，需在調用 `/record/:roomID/start` 時自行傳入 `duration_minutes` 參數。
+`record_duration_minutes` 只作用於自動錄製。手動開錄請在 `POST /record/:roomID/start` 的 JSON body 或 query 中傳入 `duration_minutes`（未傳則按系統預設）；其它開錄選項也可在該次請求中單獨指定。
 </Aside>
 
 ## 停止錄製
