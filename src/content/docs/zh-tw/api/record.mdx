@@ -6,7 +6,7 @@ description: 開始/停止錄製、查詢狀態與統計
 ## 開始錄製
 
 ```http
-POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<quality>&only_audio=<bool>&record_danmaku=<bool>
+POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<quality>&only_audio=<bool>&record_danmaku=<bool>&delete_oldest_on_low_disk=<bool>
 ```
 
 ### duration_minutes
@@ -64,6 +64,17 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 
 彈幕檔案格式與寫入行為由 [彈幕錄製設定](/zh-tw/configuration/danmaku/)控制。使用 Web 播放器顯示彈幕滾動和禮物特效時，建議使用預設的 `jsonl` 格式。
 
+### delete_oldest_on_low_disk
+
+可用空間低於 `MIN_DISK_SPACE_BYTES` 時，是否先刪除該房間目錄裡檔案名時間戳最早的錄像（含同名彈幕附件），再重新檢查空間並嘗試啟動。
+
+| 值 | 說明 |
+| -- | ---- |
+| 不傳 / `false` | 空間不足時直接拒絕啟動（HTTP `507`） |
+| `true` | 按檔案名中的 `YYYYMMDD_HHMMSS` 與分段號刪除該房間最舊媒體檔案，刪完仍不足則拒絕啟動 |
+
+斷線恢復沿用本次啟動時的選項。新舊只看檔案名，不看檔案修改時間；對不上時間戳的檔案不會刪；其他房間的檔案不會刪。
+
 **注意：**
 
 - 錄 4K / 杜比建議顯式傳 `qn`（如 `qn=20000`、`qn=30000`）
@@ -71,7 +82,7 @@ POST /record/:roomID/start?duration_minutes=<N>&stream_profile=<profile>&qn=<qua
 - 若遇卡頓或記憶體不足，參見 [高碼率 / 4K 調參](/zh-tw/configuration/high-bitrate-tuning/) 與 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/)
 
 ```bash
-curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true&record_danmaku=true"
+curl -X POST "http://127.0.0.1:8080/record/12345/start?duration_minutes=30&stream_profile=http-flv&qn=150&only_audio=true&record_danmaku=true&delete_oldest_on_low_disk=true"
 ```
 
 ### 錯誤響應
