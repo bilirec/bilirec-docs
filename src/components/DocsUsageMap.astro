@@ -1,105 +1,376 @@
 ---
-interface MapNode {
-	title: string;
-	description: string;
-	href: string;
-}
-
-interface MapChip {
+interface Station {
 	title: string;
 	href: string;
 }
 
-interface MapBand {
-	label: string;
-	items: MapChip[];
-}
-
-interface MapStage {
-	step: string;
-	title: string;
-	subtitle?: string;
-	layout: 'track' | 'fork' | 'bands';
-	nodes?: MapNode[];
-	bands?: MapBand[];
+interface Line {
+	name: string;
+	href: string;
+	tone: 'green' | 'pink' | 'blue';
+	stations: Station[];
 }
 
 interface Props {
-	intro: string;
-	stages: MapStage[];
+	caption: string;
+	trunk: Station[];
+	interchangeNote?: string;
+	lines: [Line, Line, Line];
+	facilitiesLabel: string;
+	facilities: Station[];
+	indexLabel: string;
 	indexHref: string;
-	indexLabel?: string;
 }
 
-const { intro, stages, indexHref, indexLabel = '文档导航' } = Astro.props as Props;
+const {
+	caption,
+	trunk,
+	interchangeNote,
+	lines,
+	facilitiesLabel,
+	facilities,
+	indexLabel,
+	indexHref,
+} = Astro.props as Props;
+
+const TRUNK_Y = 170;
+const ROWS = [60, 170, 280];
+const TRUNK_START = 20;
+const TRUNK_FIRST = 44;
+const IX = 300;
+const BEND_START = 340;
+const BEND_END = 450;
+const BRANCH_FIRST = 500;
+const BRANCH_STEP = 112;
+const LABEL_GAP = 30;
+const PILL_H = 32;
+const WIDTH = 830;
+const HEIGHT = 330;
+
+const textWidth = (s: string, size: number) =>
+	[...s].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? size : size * 0.6), 0);
+
+const trunkStep = (IX - TRUNK_FIRST) / (trunk.length - 1);
+const trunkStops = trunk.map((s, i) => ({ ...s, x: TRUNK_FIRST + i * trunkStep }));
+const interchange = trunkStops[trunkStops.length - 1];
+const trunkStations = trunkStops.slice(0, -1);
+
+const branches = lines.map((line, i) => {
+	const y = ROWS[i];
+	const stops = line.stations.map((s, j) => ({ ...s, x: BRANCH_FIRST + j * BRANCH_STEP }));
+	const pillX = BRANCH_FIRST + line.stations.length * BRANCH_STEP - 52;
+	const pillW = textWidth(line.name, 15) + 34;
+	const end = pillX + 16;
+	const path =
+		y === TRUNK_Y
+			? `M${BEND_START} ${TRUNK_Y} H${end}`
+			: `M${BEND_START} ${TRUNK_Y} L${BEND_END} ${y} H${end}`;
+	return { ...line, y, stops, pillX, pillW, path };
+});
 ---
 
-<div class="docs-usage-map not-content" id="guide-paths">
-	<ol class="docs-usage-map__route">
-		{
-			stages.map((stage, stageIndex) => (
-				<li
-					class:list={[
-						'docs-usage-map__leg',
-						`docs-usage-map__leg--${stage.layout}`,
-					]}
-				>
-					<div class="docs-usage-map__leg-head">
-						<span class="docs-usage-map__pin" aria-hidden="true">{stage.step}</span>
-						<div>
-							<h2 class="docs-usage-map__leg-title">{stage.title}</h2>
-						</div>
-					</div>
+<figure class="um not-content">
+	<figcaption class="um-caption">{caption}</figcaption>
 
-					{stage.layout === 'track' && stage.nodes ? (
-						<div class="docs-usage-map__pipeline" role="list">
-							{stage.nodes.map((node, i) => (
-								<div class="docs-usage-map__pipeline-segment" role="listitem">
-									<a href={node.href} class="docs-usage-map__stop" title={node.description}>
-										<span class="docs-usage-map__stop-title">{node.title}</span>
-									</a>
-									{i < stage.nodes.length - 1 ? (
-										<span class="docs-usage-map__pipe" aria-hidden="true">→</span>
-									) : null}
-								</div>
-							))}
-						</div>
+	<div class="um-scroll">
+		<svg
+			class="um-map"
+			viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+			role="group"
+			aria-label={caption}
+		>
+			{
+				branches.map((b) => (
+					<g class="um-branch" style={`--line: var(--um-${b.tone})`}>
+						<path class="um-track um-track--branch" d={b.path} pathLength="1" aria-hidden="true" />
+						{b.stops.map((s) => (
+							<a class="um-stop" href={s.href}>
+								<circle class="um-dot" cx={s.x} cy={b.y} r="7" />
+								<text class="um-label" x={s.x} y={b.y + LABEL_GAP} text-anchor="middle">
+									{s.title}
+								</text>
+							</a>
+						))}
+						<a class="um-terminus" href={b.href}>
+							<rect x={b.pillX} y={b.y - PILL_H / 2} width={b.pillW} height={PILL_H} rx={PILL_H / 2} />
+							<text x={b.pillX + b.pillW / 2} y={b.y + 5} text-anchor="middle">
+								{b.name}
+							</text>
+						</a>
+					</g>
+				))
+			}
+
+			<g class="um-trunk" style="--line: var(--um-ink)">
+				<path
+					class="um-track um-track--trunk"
+					d={`M${TRUNK_START} ${TRUNK_Y} H${BEND_START}`}
+					pathLength="1"
+					aria-hidden="true"
+				/>
+				{
+					trunkStations.map((s) => (
+						<a class="um-stop" href={s.href}>
+							<circle class="um-dot" cx={s.x} cy={TRUNK_Y} r="7" />
+							<text class="um-label" x={s.x} y={TRUNK_Y + LABEL_GAP} text-anchor="middle">
+								{s.title}
+							</text>
+						</a>
+					))
+				}
+				<a class="um-stop um-stop--interchange" href={interchange.href}>
+					<circle class="um-dot" cx={interchange.x} cy={TRUNK_Y} r="12" />
+					<text class="um-label" x={interchange.x} y={TRUNK_Y + LABEL_GAP + 5} text-anchor="middle">
+						{interchange.title}
+					</text>
+					{interchangeNote ? (
+						<text class="um-note" x={interchange.x} y={TRUNK_Y + LABEL_GAP + 23} text-anchor="middle">
+							{interchangeNote}
+						</text>
 					) : null}
+				</a>
+			</g>
+		</svg>
+	</div>
 
-					{stage.layout === 'fork' && stage.nodes ? (
-						<div class="docs-usage-map__fork">
-							<div class="docs-usage-map__fork-branches">
-								{stage.nodes.map((node) => (
-									<a href={node.href} class="docs-usage-map__branch">
-										<span class="docs-usage-map__branch-title">{node.title}</span>
-										<span class="docs-usage-map__branch-desc">{node.description}</span>
-									</a>
-								))}
-							</div>
-						</div>
-					) : null}
+	<div class="um-facilities">
+		<div class="um-facilities-row">
+			<span class="um-facilities-chip um-facilities-chip--label">{facilitiesLabel}</span>
+			{
+				facilities.map((f) => (
+					<a class="um-facilities-chip um-facilities-chip--link" href={f.href}>{f.title}</a>
+				))
+			}
+		</div>
+		<a class="um-facilities-chip um-facilities-chip--index" href={indexHref}>{indexLabel}</a>
+	</div>
+</figure>
 
-					{stage.layout === 'bands' && stage.bands ? (
-						<div class="docs-usage-map__bands">
-							{stage.bands.map((band) => (
-								<div class="docs-usage-map__band">
-									<span class="docs-usage-map__band-label">{band.label}</span>
-									<div class="docs-usage-map__chips">
-										{band.items.map((item) => (
-											<a href={item.href} class="docs-usage-map__chip">{item.title}</a>
-										))}
-									</div>
-								</div>
-							))}
-						</div>
-					) : null}
+<style>
+	.um {
+		--um-ink: var(--sl-color-white);
+		--um-green: #0f9170;
+		--um-pink: #e0457b;
+		--um-blue: #2a6fd6;
+		--um-panel: color-mix(in srgb, var(--sl-color-gray-6) 45%, var(--sl-color-bg));
+		margin: 0.5rem 0 2rem;
+		padding: 1.5rem 1.5rem 1.25rem;
+		border: 1px solid var(--surface-border);
+		border-radius: 1rem;
+		background: var(--um-panel);
+	}
 
-				</li>
-			))
+	.um-caption {
+		max-width: 46ch;
+		margin: 0 0 0.75rem;
+		font-size: 0.95rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+		text-wrap: pretty;
+	}
+
+	.um-scroll {
+		overflow-x: auto;
+		margin-inline: -0.5rem;
+		padding-inline: 0.5rem;
+	}
+
+	.um-map {
+		display: block;
+		width: 100%;
+		min-width: 640px;
+		height: auto;
+		font-family: inherit;
+		overflow: visible;
+	}
+
+	.um-track {
+		fill: none;
+		stroke: var(--line);
+		stroke-width: 9;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+		animation: um-draw 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+	}
+
+	.um-track--branch {
+		animation-delay: 0.45s;
+	}
+
+	.um-stop,
+	.um-terminus {
+		cursor: pointer;
+		outline: none;
+		animation: um-fade 0.4s ease-out 0.9s both;
+	}
+
+	.um-dot {
+		fill: var(--um-panel);
+		stroke: var(--line);
+		stroke-width: 4;
+		transition: fill 0.15s ease;
+	}
+
+	.um-stop--interchange .um-dot {
+		stroke-width: 5;
+	}
+
+	.um-label {
+		font-size: 13px;
+		font-weight: 500;
+		fill: var(--sl-color-gray-2);
+		transition: fill 0.15s ease;
+	}
+
+	.um-stop--interchange .um-label {
+		font-size: 14px;
+		font-weight: 700;
+		fill: var(--sl-color-white);
+	}
+
+	.um-note {
+		font-size: 11px;
+		fill: var(--sl-color-gray-3);
+	}
+
+	.um-stop:hover .um-dot,
+	.um-stop:focus-visible .um-dot {
+		fill: var(--line);
+	}
+
+	.um-stop:hover .um-label,
+	.um-stop:focus-visible .um-label {
+		fill: var(--sl-color-white);
+	}
+
+	.um-stop:focus-visible .um-dot {
+		stroke: var(--sl-color-accent);
+		stroke-width: 6;
+	}
+
+	.um-terminus rect {
+		fill: var(--line);
+		transition: filter 0.15s ease;
+	}
+
+	.um-terminus text {
+		font-size: 15px;
+		font-weight: 700;
+		fill: #fff;
+	}
+
+	.um-terminus:hover rect {
+		filter: brightness(1.12);
+	}
+
+	.um-terminus:focus-visible rect {
+		stroke: var(--sl-color-white);
+		stroke-width: 3;
+	}
+
+	.um-branch {
+		transition: opacity 0.2s ease;
+	}
+
+	.um-map:has(.um-branch:hover) .um-branch:not(:hover),
+	.um-map:has(.um-branch:focus-within) .um-branch:not(:focus-within) {
+		opacity: 0.18;
+	}
+
+	.um-facilities {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1rem;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--surface-border);
+		font-size: 0.85rem;
+	}
+
+	.um-facilities-row {
+		display: flex;
+		flex: 1 1 auto;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem 0.9rem;
+		min-width: 0;
+	}
+
+	.um-facilities-chip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		height: 1.375rem;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		line-height: 1;
+		font-size: inherit;
+		font-family: inherit;
+		white-space: nowrap;
+	}
+
+	.um-facilities-chip--label {
+		font-weight: 600;
+		color: var(--sl-color-gray-2);
+	}
+
+	.um-facilities-chip--link {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+	}
+
+	.um-facilities-chip--link:hover {
+		color: var(--sl-color-white);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.um-facilities-chip--index {
+		flex-shrink: 0;
+		margin-left: auto;
+		font-weight: 600;
+		color: var(--sl-color-text-accent) !important;
+		text-decoration: none;
+	}
+
+	.um-facilities-chip--index:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	@keyframes um-draw {
+		to {
+			stroke-dashoffset: 0;
 		}
-	</ol>
+	}
 
-	<p class="docs-usage-map__index-hint">
-		完整分类入口 → <a href={indexHref}>{indexLabel}</a>
-	</p>
-</div>
+	@keyframes um-fade {
+		from {
+			opacity: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.um-track,
+		.um-stop,
+		.um-terminus {
+			animation: none;
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@media (max-width: 40rem) {
+		.um {
+			padding: 1.25rem 1rem 1rem;
+		}
+
+		.um-facilities-chip--index {
+			margin-left: 0;
+		}
+	}
+</style>

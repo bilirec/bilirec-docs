@@ -1,100 +1,61 @@
 ---
-title: 使用地圖
-description: 從安裝到場景、日常操作與設定運維的文檔路徑一覽
+title: 使用路線
+description: 從安裝到三種用法的文檔路線：主線開始錄製，在錄製直播間換乘，去往自用錄像庫、錄播站或掛機上傳
 sidebar:
-  label: 使用地圖
+  label: 使用路線
 tableOfContents: false
 ---
 
 import DocsUsageMap from '../../../../components/DocsUsageMap.astro';
 
 <DocsUsageMap
-  intro="縱軸是主路徑：先跑通服務，再選場景分支。下方標籤只作指路，詳細分類見文檔導航。"
-  indexHref="/zh-tw/"
-  indexLabel="文檔導航"
-  stages={[
+  caption="圖中站點與線路終點均可點擊，會打開對應的文檔頁。"
+  trunk={[
+    { title: '安裝', href: '/zh-tw/guides/installation/' },
+    { title: '快速開始', href: '/zh-tw/guides/quick-start/' },
+    { title: '錄製直播間', href: '/zh-tw/guides/recording/' },
+  ]}
+  interchangeNote="換乘站"
+  lines={[
     {
-      step: '1',
-      title: '主路徑：跑通 bilirec',
-      subtitle: '按順序完成即可開始錄製',
-      layout: 'track',
-      nodes: [
-        {
-          title: '安裝',
-          href: '/zh-tw/guides/installation/',
-          description: '二進制 · Docker · 源碼',
-        },
-        {
-          title: '快速開始',
-          href: '/zh-tw/guides/quick-start/',
-          description: '啟動與 B 站登入',
-        },
-        {
-          title: '生態系概覽',
-          href: '/zh-tw/guides/ecosystem/',
-          description: '後端 · Web · Android',
-        },
+      name: '自用錄像庫',
+      href: '/zh-tw/guides/personal-archive/',
+      tone: 'green',
+      stations: [
+        { title: 'Web 回放', href: '/zh-tw/guides/web-ui/' },
+        { title: '檔案管理', href: '/zh-tw/guides/file-management/' },
       ],
     },
     {
-      step: '2',
-      title: '分支：你的目標場景',
-      subtitle: '三條路徑互斥為主，選一條深入',
-      layout: 'fork',
-      nodes: [
-        {
-          title: '自用錄像庫',
-          href: '/zh-tw/guides/personal-archive/',
-          description: '本機歸檔與彈幕回放',
-        },
-        {
-          title: '搭建錄播站',
-          href: '/zh-tw/guides/recording-station/',
-          description: '訪客在線看與分享',
-        },
-        {
-          title: '全自動掛機上傳',
-          href: '/zh-tw/guides/auto-upload/',
-          description: 'Webhook 交給外部工具',
-        },
+      name: '搭建錄播站',
+      href: '/zh-tw/guides/recording-station/',
+      tone: 'pink',
+      stations: [
+        { title: '認證與安全', href: '/zh-tw/configuration/auth-security/' },
+        { title: 'FRP 公網存取', href: '/zh-tw/guides/frp/' },
       ],
     },
     {
-      step: '3',
-      title: '岔路：按需跳轉',
-      subtitle: '不在主路徑上時，用標籤跳到對應主題',
-      layout: 'bands',
-      bands: [
-        {
-          label: '日常',
-          items: [
-            { title: 'Web 介面', href: '/zh-tw/guides/web-ui/' },
-            { title: '錄製', href: '/zh-tw/guides/recording/' },
-            { title: '檔案', href: '/zh-tw/guides/file-management/' },
-            { title: '彈幕 XML', href: '/zh-tw/guides/danmaku-xml/' },
-          ],
-        },
-        {
-          label: '擴展',
-          items: [
-            { title: 'FRP', href: '/zh-tw/guides/frp/' },
-            { title: 'Webhook', href: '/zh-tw/guides/webhook-integration/' },
-            { title: 'Docker', href: '/zh-tw/guides/docker/' },
-            { title: 'Android', href: '/zh-tw/guides/android/' },
-          ],
-        },
-        {
-          label: '運維',
-          items: [
-            { title: '設定', href: '/zh-tw/configuration/overview/' },
-            { title: 'I/O 調優', href: '/zh-tw/configuration/io-tuning/' },
-            { title: '監控', href: '/zh-tw/configuration/metrics/' },
-            { title: 'Grafana', href: '/zh-tw/configuration/grafana-dashboards/' },
-            { title: 'FAQ', href: '/zh-tw/guides/faq/' },
-            { title: 'API', href: '/zh-tw/api/overview/' },
-          ],
-        },
+      name: '全自動掛機上傳',
+      href: '/zh-tw/guides/auto-upload/',
+      tone: 'blue',
+      stations: [
+        { title: '彈幕 XML', href: '/zh-tw/guides/danmaku-xml/' },
+        { title: 'Webhook 對接', href: '/zh-tw/guides/webhook-integration/' },
       ],
     },
   ]}
+  facilitiesLabel="全線通用"
+  facilities={[
+    { title: '設定總覽', href: '/zh-tw/configuration/overview/' },
+    { title: '環境變數', href: '/zh-tw/configuration/env-reference/' },
+    { title: 'Docker', href: '/zh-tw/guides/docker/' },
+    { title: 'Android', href: '/zh-tw/guides/android/' },
+    { title: 'I/O 調優', href: '/zh-tw/configuration/io-tuning/' },
+    { title: '監控指標', href: '/zh-tw/configuration/metrics/' },
+    { title: '常見問題', href: '/zh-tw/guides/faq/' },
+    { title: 'REST API', href: '/zh-tw/api/overview/' },
+  ]}
+  indexLabel="全部文檔"
+  indexHref="/zh-tw/"
 />
