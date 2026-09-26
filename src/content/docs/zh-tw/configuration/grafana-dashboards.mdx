@@ -7,20 +7,20 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## 概述
 
-bilirec 提供一組現成的 Grafana 儀表盤與告警規則，導入後即可查看錄製狀態、資源佔用、彈幕與轉碼健康、日誌趨勢等，不必從零編寫查詢。
+bilirec 提供現成的 Grafana 儀表盤 JSON 與告警規則，覆蓋錄製狀態、資源、彈幕與轉碼健康、日誌趨勢等，無需從零寫查詢。
 
-適合已經部署 Grafana，並希望長期觀察 NAS、樹莓派或伺服器上錄製情況的用戶。指標盤需要 VictoriaMetrics 或 Prometheus；**導入現成 JSON 時強烈建議使用 VictoriaMetrics**，並在 Grafana 安裝 [VictoriaMetrics datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-metrics-datasource/) 後添加 **VictoriaMetrics** 資料源。日誌盤需要 VictoriaLogs。開啟指標與抓取方式見 [監控指標](/zh-tw/configuration/metrics/)；時序庫與 Grafana 本身的安裝見各項目官方文檔。
+適合已部署 Grafana、希望長期觀察錄製機（NAS、樹莓派、伺服器等）的用戶。前提：bilirec 已按 [監控指標](/zh-tw/configuration/metrics/) 暴露並被抓取；**建議使用 VictoriaMetrics 作指標後端**（[累計用量](#累計用量)、[用量趨勢](#用量趨勢)、[單房間詳情](#單房間詳情) 在純 Prometheus 下會空白）。日誌盤另需 VictoriaLogs。Grafana 與各後端的安裝見官方文檔。
 
-請下載**與當前文檔語言相同**的 JSON。簡繁兩套盤共用同一 `uid`，後導入的會覆蓋先導入的。
+請下載與當前文檔語言一致的 JSON；簡繁兩套共用 `uid`，後導入的會覆蓋先導入的。
 
 ## 快速開始
 
-1. 指標儀表盤需要 Grafana、**強烈建議 VictoriaMetrics**（或 Prometheus，但 [累計用量](#累計用量)、[用量趨勢](#用量趨勢)、[單房間詳情](#單房間詳情) 必須用 VictoriaMetrics），且 bilirec 已開啟指標並被抓取（見 [監控指標](/zh-tw/configuration/metrics/)）。在 Grafana 安裝 [VictoriaMetrics datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-metrics-datasource/) 並添加 VictoriaMetrics 資料源（單節點常見 `http://<host>:8428`）；若後端是 Prometheus，則添加 Prometheus 資料源。日誌儀表盤需要 VictoriaLogs 與 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)，其中“日誌分析”的傳輸健康區塊也會讀取指標資料源。
-2. Grafana → **Dashboards → Import** → 上傳本頁對應語言的 JSON（或粘貼內容）；導入嚮導裡把資料源映射到 VictoriaMetrics（或 Prometheus）。
-3. 導入後在頂欄選 **資料源**；指標盤的 `job` / `instance` 一般保持 All。“日誌分析”請同時選擇日誌資料源與指標資料源；“原始日誌瀏覽”只需選擇 VictoriaLogs 資料源。
-4. 房間異常時不想一直盯盤，可以再導入 [告警規則](#告警規則)。
+1. 在 Grafana 添加資料源：指標用 [VictoriaMetrics plugin](https://grafana.com/grafana/plugins/victoriametrics-metrics-datasource/)（單節點常見 `http://<host>:8428`）或 Prometheus；日誌盤用 [VictoriaLogs plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)。
+2. **Dashboards → Import**，上傳本頁對應語言的 JSON，按嚮導映射資料源。
+3. 頂欄選 **資料源**；指標盤 `job` / `instance` 一般保持 All。「日誌分析」需同時選日誌與指標資料源；「原始日誌瀏覽」只需 VictoriaLogs。
+4. 需要異常通知時，導入 [告警規則](#告警規則)。
 
-可以從 **錄製總覽** 開始看。其餘 7 張指標盤帶相同 `bilirec` 標籤，頂欄下拉可互相跳轉，並保留時間範圍與變數；兩張日誌盤（日誌分析、原始日誌瀏覽）使用 `logging` 標籤，在下拉里單獨成組——它們的資料源類型與指標盤不同，分開後互相跳轉不會帶上不兼容的變數。
+日常可從 [錄製總覽](#錄製總覽) 入手。7 張指標盤帶 `bilirec` 標籤，頂欄可互相跳轉並保留時間與變數；兩張日誌盤用 `logging` 標籤單獨成組，避免帶上不兼容的變數。
 
 ## 該選哪一張
 

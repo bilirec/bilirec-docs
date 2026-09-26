@@ -5,38 +5,48 @@ sidebar:
   label: 搭建錄播站
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
 
-本頁按**目標**串起步驟：成片留在你的機器（或掛載盤）上，通過 Web 給訪客回放或下載。與「只提供 MP4 下載」不同，bilirec 會把**同名 `.jsonl` 彈幕**與影片一起交給 bilirec-web 播放器，訪客可在瀏覽器裡看滾動彈幕、禮物與艦長等互動回放——這是錄播站場景的核心體驗。參數細節見各專題鏈接，此處不重複 FRP 或認證全文。
+本頁按**目標**串起步驟：成片留在你的機器上，訪客通過 Web **帶彈幕回放**或下載。需要設定管理員與只讀帳號，並把 API 安全地暴露到公網。
 
 ## 適合誰
 
 - 想給粉絲或朋友提供**在線看錄播 / 下檔案**，而不是只自己看
 - 願意設定**管理員 + 只讀訪客**帳號，並在公網暴露 API 時設密碼
 
-若只想自己看檔案，見 [自用錄像庫](/zh-tw/guides/personal-archive/)。若錄完要交給工具上傳 B 站，見 [全自動掛機上傳](/zh-tw/guides/auto-upload/)。
+其他場景指南：[自用錄像庫](/zh-tw/guides/personal-archive/)、[全自動掛機上傳](/zh-tw/guides/auto-upload/)。
 
 ## 步驟清單
+
+<Steps>
 
 1. [安裝](/zh-tw/guides/installation/)並[啟動](/zh-tw/guides/quick-start/) bilirec，完成 B 站登入。
 2. 設定**管理員** `USERNAME` / `PASSWORD`；公網暴露後未設定時 API 完全公開，見 [認證與安全](/zh-tw/configuration/auth-security/)。
 3. 設定**只讀訪客** `VIEWER_USERNAME` / `VIEWER_PASSWORD`：訪客可瀏覽、回放、下載，不能改訂閱或開停錄。
-4. 在 Web「訂閱管理」為房間開啟**自動錄製**（或手動開錄），見 [錄製直播間](/zh-tw/guides/recording/)。
-5. 規劃磁碟：按需調整 `MIN_DISK_SPACE_BYTES`；某房間可在訂閱設定裡開啟「空間不足時刪除最舊檔案」（`delete_oldest_on_low_disk`），只刪該房間、按檔案名時間戳最舊者，見 [錄製設定 · 磁碟空間](/zh-tw/configuration/recording/#磁碟空間)。
-6. 彈幕保持預設 **`DANMAKU_OUTPUT_FORMAT=jsonl`**（勿改成其它格式）：錄製分段旁會生成同名 `.jsonl`，訪客用 bilirec-web 打開即可同步看彈幕與禮物特效，見 [Web 介面 · 錄製與回放](/zh-tw/guides/web-ui/#錄製與回放) 與 [檔案管理 · 在線回放](/zh-tw/guides/file-management/#在線回放)。
-7. 可選：開啟 `CONVERT_TO_MP4=true`，方便訪客直接回放 MP4，見 [轉換設定](/zh-tw/configuration/conversion/)。
-8. **暴露到公網**：官方 [FRP](/zh-tw/guides/frp/) 或自建 Nginx 等反代；同時建議 `PRODUCTION_MODE=true`、`FRONTEND_URL=https://app.bilirec.org`（若用官方 PWA 管理），見 [認證與安全 · 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
-9. 設定 **`PUBLIC_BASE_URL`** 為訪客實際存取後端的 HTTPS 基址（含 `https://`），用於分享鏈接與預簽名下載，見 [伺服器與網路](/zh-tw/configuration/server-network/) 與 [檔案管理 · 分享鏈接](/zh-tw/guides/file-management/#分享鏈接)。
+4. 在 Web「訂閱管理」為房間開啟**自動錄製**，見 [錄製直播間](/zh-tw/guides/recording/)。
+5. 保持 **`DANMAKU_OUTPUT_FORMAT=jsonl`**，與 bilirec-web 彈幕回放配套，見 [彈幕錄製](/zh-tw/configuration/danmaku/) 與 [Web 介面 · 錄製與回放](/zh-tw/guides/web-ui/#錄製與回放)。
+6. 開啟 **`CONVERT_TO_MP4=true`**，錄製結束後生成 MP4，訪客才能在瀏覽器裡穩定回放，見 [轉換設定](/zh-tw/configuration/conversion/)。
+7. 按需調整 `MIN_DISK_SPACE_BYTES`；某房間可在訂閱裡開啟「空間不足時刪除最舊檔案」，見 [錄製設定 · 磁碟空間](/zh-tw/configuration/recording/#磁碟空間)。
+8. 設定 **`PUBLIC_BASE_URL`** 為訪客實際存取後端的 HTTPS 基址（含 `https://`），用於分享與預簽名下載，見 [伺服器與網路](/zh-tw/configuration/server-network/) 與 [檔案管理 · 分享鏈接](/zh-tw/guides/file-management/#分享鏈接)。
+9. 用 [FRP](/zh-tw/guides/frp/) 或自建反代把服務暴露到公網；若用官方 PWA 管理，建議 `PRODUCTION_MODE=true` 與 `FRONTEND_URL=https://app.bilirec.org`，見 [認證與安全 · 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
+
+</Steps>
 
 <Aside type="caution">
-公網暴露後務必設定管理員密碼。只讀帳號不能防止有人把分享鏈接再轉發；敏感內容請控制分享有效期與存取範圍。
+
+- 公網暴露後務必設定管理員密碼。
+- 只讀帳號不能防止分享鏈接被轉發。
+- 預簽名分享可設有效期（預設 1 小時，可改 `ttl`），見 [檔案管理 · 分享鏈接](/zh-tw/guides/file-management/#分享鏈接)。
+
 </Aside>
 
-## 最小設定示例
+## 設定示例
 
 以下片段可合併進 `.env`（路徑、密碼請自行替換）：
 
 ```bash
+OUTPUT_DIR=/path/to/records
+
 USERNAME=admin
 PASSWORD=請改為強密碼
 VIEWER_USERNAME=guest
@@ -48,23 +58,21 @@ CONVERT_TO_MP4=true
 
 MIN_DISK_SPACE_BYTES=5368709120
 
-FRP_ENABLED=true
 PRODUCTION_MODE=true
 FRONTEND_URL=https://app.bilirec.org
 PUBLIC_BASE_URL=https://你的公網後端地址
-TRUSTED_PROXIES=161.33.159.26
+
+# FRP_ENABLED=true 等見遠端存取（FRP）；不用官方 FRP 時可不設並自建反代
+# TRUSTED_PROXIES=反代或 FRP 出口 IP，逗號分隔；見伺服器與網路
+# delete_oldest_on_low_disk 在 Web 訂閱或房間 API 按房間設定，見錄製設定 · 磁碟空間
 ```
 
-`delete_oldest_on_low_disk` 在 Web 訂閱設定或 [房間 API](/zh-tw/api/room/) 裡按房間設定，不必寫進全局 `.env`。
+## 錄完檔案在哪？
 
-## 回放與 CDN
-
-訪客用**只讀帳號**登入 bilirec-web，或在管理員生成的**分享鏈接**裡打開檔案時，播放器會拉取影片與同名 `.jsonl` 彈幕流，在頁內完成互動回放（無需把彈幕燒進影片）。`PUBLIC_BASE_URL` 須與他們在瀏覽器裡能打開的後端地址一致。
-
-若多人同時拉取大檔案，可在**下載 / 回放路徑**前加反向代理或 CDN 緩存靜態檔案；**不要**對需要登入的管理 API 做長期緩存。bilirec 沒有單獨的「CDN 開關」，具體廠商步驟不在本文展開。
+成片在 **`OUTPUT_DIR`**（預設 `records`）下的 `{主播名}-{房間號}/`；訪客在 Web 裡看到的即此目錄。瀏覽、分享與在線回放見 [檔案管理](/zh-tw/guides/file-management/)。
 
 ## 下一步
 
-- [Web 介面（PWA）](/zh-tw/guides/web-ui/) — 角色與回放
-- [檔案管理](/zh-tw/guides/file-management/) — 瀏覽、分享、批量刪除
-- [常見問題](/zh-tw/guides/faq/) — 會話過期、磁碟與性能
+- [Web 介面（PWA）](/zh-tw/guides/web-ui/)
+- [檔案管理](/zh-tw/guides/file-management/)
+- [常見問題](/zh-tw/guides/faq/)

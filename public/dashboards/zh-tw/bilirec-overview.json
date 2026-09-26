@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "bilirec 錄製總覽。頂欄資料源選 VictoriaMetrics（需安裝 VictoriaMetrics Grafana 插件）。「落盤量」是當天寫入器實際寫出的位元組；讀取速率仍是 TCP 讀入。KPI 含本地 FFmpeg 轉碼待處理數；斷線恢復的成功 / 失敗 / 放棄趨勢在「趨勢」區。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
+    "description": "bilirec 錄製總覽。頂欄資料源選 VictoriaMetrics。「落盤量」是當天寫入器實際寫出的位元組；讀取速率仍是 TCP 讀入。KPI 含本地 FFmpeg 轉碼待處理數；斷線恢復的成功 / 失敗 / 放棄趨勢在「趨勢」區。只開開播通知、不自動錄製的房間也會出現在「開播但目前沒在錄」。",
     "time": { "from": "now-6h", "to": "now" },
     "templating": {
       "list": [

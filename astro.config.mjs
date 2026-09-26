@@ -15,6 +15,7 @@ const sidebar = [
 		translations: { 'zh-tw': '開始使用' },
 		items: [
 			{ slug: 'index' },
+			{ slug: 'guides/usage-map' },
 			{ slug: 'guides/ecosystem' },
 			{ slug: 'guides/installation' },
 			{ slug: 'guides/quick-start' },
@@ -26,9 +27,9 @@ const sidebar = [
 		label: '场景指南',
 		translations: { 'zh-tw': '場景指南' },
 		items: [
+			{ slug: 'guides/personal-archive' },
 			{ slug: 'guides/recording-station' },
 			{ slug: 'guides/auto-upload' },
-			{ slug: 'guides/personal-archive' },
 		],
 	},
 	{
@@ -121,6 +122,8 @@ export default defineConfig({
 		}),
 	},
 	redirects: {
+		'/zh-cn/guides/getting-started': '/zh-cn/guides/usage-map',
+		'/zh-tw/guides/getting-started': '/zh-tw/guides/usage-map',
 		'/zh-cn/guides/android-library': '/zh-cn/development/android-library',
 		'/zh-tw/guides/android-library': '/zh-tw/development/android-library',
 		'/zh-cn/guides/android-huawei': '/zh-cn/guides/android-mainland',
@@ -194,6 +197,7 @@ export default defineConfig({
 					],
 					promote: [
 						'zh-cn/index*',
+						'zh-cn/guides/usage-map*',
 						'zh-cn/guides/installation*',
 						'zh-cn/guides/quick-start*',
 						'zh-cn/guides/faq*',

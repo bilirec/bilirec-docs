@@ -1,0 +1,100 @@
+---
+title: 使用地图
+description: 从安装到场景、日常操作与配置运维的文档路径一览
+sidebar:
+  label: 使用地图
+tableOfContents: false
+---
+
+import DocsUsageMap from '../../../../components/DocsUsageMap.astro';
+
+<DocsUsageMap
+  intro="纵轴是主路径：先跑通服务，再选场景分支。下方标签只作指路，详细分类见文档导航。"
+  indexHref="/zh-cn/"
+  indexLabel="文档导航"
+  stages={[
+    {
+      step: '1',
+      title: '主路径：跑通 bilirec',
+      subtitle: '按顺序完成即可开始录制',
+      layout: 'track',
+      nodes: [
+        {
+          title: '安装',
+          href: '/zh-cn/guides/installation/',
+          description: '二进制 · Docker · 源码',
+        },
+        {
+          title: '快速开始',
+          href: '/zh-cn/guides/quick-start/',
+          description: '启动与 B 站登录',
+        },
+        {
+          title: '生态系概览',
+          href: '/zh-cn/guides/ecosystem/',
+          description: '后端 · Web · Android',
+        },
+      ],
+    },
+    {
+      step: '2',
+      title: '分支：你的目标场景',
+      subtitle: '三条路径互斥为主，选一条深入',
+      layout: 'fork',
+      nodes: [
+        {
+          title: '自用录像库',
+          href: '/zh-cn/guides/personal-archive/',
+          description: '本机归档与弹幕回放',
+        },
+        {
+          title: '搭建录播站',
+          href: '/zh-cn/guides/recording-station/',
+          description: '访客在线看与分享',
+        },
+        {
+          title: '全自动挂机上传',
+          href: '/zh-cn/guides/auto-upload/',
+          description: 'Webhook 交给外部工具',
+        },
+      ],
+    },
+    {
+      step: '3',
+      title: '岔路：按需跳转',
+      subtitle: '不在主路径上时，用标签跳到对应主题',
+      layout: 'bands',
+      bands: [
+        {
+          label: '日常',
+          items: [
+            { title: 'Web 界面', href: '/zh-cn/guides/web-ui/' },
+            { title: '录制', href: '/zh-cn/guides/recording/' },
+            { title: '文件', href: '/zh-cn/guides/file-management/' },
+            { title: '弹幕 XML', href: '/zh-cn/guides/danmaku-xml/' },
+          ],
+        },
+        {
+          label: '扩展',
+          items: [
+            { title: 'FRP', href: '/zh-cn/guides/frp/' },
+            { title: 'Webhook', href: '/zh-cn/guides/webhook-integration/' },
+            { title: 'Docker', href: '/zh-cn/guides/docker/' },
+            { title: 'Android', href: '/zh-cn/guides/android/' },
+          ],
+        },
+        {
+          label: '运维',
+          items: [
+            { title: '配置', href: '/zh-cn/configuration/overview/' },
+            { title: 'I/O 调优', href: '/zh-cn/configuration/io-tuning/' },
+            { title: '监控', href: '/zh-cn/configuration/metrics/' },
+            { title: 'Grafana', href: '/zh-cn/configuration/grafana-dashboards/' },
+            { title: 'FAQ', href: '/zh-cn/guides/faq/' },
+            { title: 'API', href: '/zh-cn/api/overview/' },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
