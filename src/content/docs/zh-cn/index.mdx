@@ -8,7 +8,7 @@ sidebar:
 import IconLinkCardGrid from '../../../components/IconLinkCardGrid.astro';
 import QqCommunity from '../../../components/QqCommunity.astro';
 
-产品介绍与功能概览见 [网站主页](/)。本页按主题整理文档入口，便于查找。
+产品介绍与功能概览见 [网站主页](/)。本页按主题整理文档入口，便于查找。刚接触可先打开 [使用地图](/zh-cn/guides/usage-map/) 对照自己所在的阶段。
 
 ## 新手从这里开始
 
@@ -55,22 +55,22 @@ import QqCommunity from '../../../components/QqCommunity.astro';
 <IconLinkCardGrid
   items={[
     {
+      icon: '📚',
+      title: '自用录像库',
+      href: '/zh-cn/guides/personal-archive/',
+      description: '只给自己看：自动录制、带弹幕回放、本机归档。',
+    },
+    {
       icon: '🌐',
       title: '搭建录播站',
       href: '/zh-cn/guides/recording-station/',
-      description: '访客在线回放或下载：jsonl 弹幕互动回放、账号、公网与分享。',
+      description: '给访客在线看录播、下载与分享，需账号与公网访问。',
     },
     {
       icon: '⬆️',
       title: '全自动挂机上传',
       href: '/zh-cn/guides/auto-upload/',
-      description: '开播自动录，Webhook 交给 biliLive-tools 等压制与上传。',
-    },
-    {
-      icon: '📚',
-      title: '自用录像库',
-      href: '/zh-cn/guides/personal-archive/',
-      description: '只给自己看：jsonl 弹幕回放、转 MP4、本机归档。',
+      description: '开播自动录，录完交给外部工具压制与上传。',
     },
   ]}
   columnsClass="md:grid-cols-3"

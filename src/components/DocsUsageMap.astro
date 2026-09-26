@@ -1,0 +1,105 @@
+---
+interface MapNode {
+	title: string;
+	description: string;
+	href: string;
+}
+
+interface MapChip {
+	title: string;
+	href: string;
+}
+
+interface MapBand {
+	label: string;
+	items: MapChip[];
+}
+
+interface MapStage {
+	step: string;
+	title: string;
+	subtitle?: string;
+	layout: 'track' | 'fork' | 'bands';
+	nodes?: MapNode[];
+	bands?: MapBand[];
+}
+
+interface Props {
+	intro: string;
+	stages: MapStage[];
+	indexHref: string;
+	indexLabel?: string;
+}
+
+const { intro, stages, indexHref, indexLabel = '文档导航' } = Astro.props as Props;
+---
+
+<div class="docs-usage-map not-content" id="guide-paths">
+	<ol class="docs-usage-map__route">
+		{
+			stages.map((stage, stageIndex) => (
+				<li
+					class:list={[
+						'docs-usage-map__leg',
+						`docs-usage-map__leg--${stage.layout}`,
+					]}
+				>
+					<div class="docs-usage-map__leg-head">
+						<span class="docs-usage-map__pin" aria-hidden="true">{stage.step}</span>
+						<div>
+							<h2 class="docs-usage-map__leg-title">{stage.title}</h2>
+						</div>
+					</div>
+
+					{stage.layout === 'track' && stage.nodes ? (
+						<div class="docs-usage-map__pipeline" role="list">
+							{stage.nodes.map((node, i) => (
+								<div class="docs-usage-map__pipeline-segment" role="listitem">
+									<a href={node.href} class="docs-usage-map__stop" title={node.description}>
+										<span class="docs-usage-map__stop-title">{node.title}</span>
+									</a>
+									{i < stage.nodes.length - 1 ? (
+										<span class="docs-usage-map__pipe" aria-hidden="true">→</span>
+									) : null}
+								</div>
+							))}
+						</div>
+					) : null}
+
+					{stage.layout === 'fork' && stage.nodes ? (
+						<div class="docs-usage-map__fork">
+							<div class="docs-usage-map__fork-branches">
+								{stage.nodes.map((node) => (
+									<a href={node.href} class="docs-usage-map__branch">
+										<span class="docs-usage-map__branch-title">{node.title}</span>
+										<span class="docs-usage-map__branch-desc">{node.description}</span>
+									</a>
+								))}
+							</div>
+						</div>
+					) : null}
+
+					{stage.layout === 'bands' && stage.bands ? (
+						<div class="docs-usage-map__bands">
+							{stage.bands.map((band) => (
+								<div class="docs-usage-map__band">
+									<span class="docs-usage-map__band-label">{band.label}</span>
+									<div class="docs-usage-map__chips">
+										{band.items.map((item) => (
+											<a href={item.href} class="docs-usage-map__chip">{item.title}</a>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
+					) : null}
+
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="docs-usage-map__index-hint">
+		完整分类入口 → <a href={indexHref}>{indexLabel}</a>
+	</p>
+</div>

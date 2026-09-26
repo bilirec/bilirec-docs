@@ -5,18 +5,20 @@ sidebar:
   label: 自用录像库
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
 
-本页按**目标**串起步骤：成片**只给自己**（或同一局域网内的设备）看，留在本机当档案；默认**不**配置只读访客、**不**开 FRP、**不**接 Webhook 上传流水线。
+本页按**目标**串起步骤：成片**只给自己**（或同一局域网内的设备）看，留在本机当档案。
 
 ## 适合谁
 
 - 想自动录下关注的主播，事后在 bilirec-web 里**回放弹幕和礼物**
 - 机器放在家里或 NAS，**仅本机 / 局域网**访问即可
 
-若要访客公网看录播，见 [搭建录播站](/zh-cn/guides/recording-station/)。若录完要工具上传 B 站，见 [全自动挂机上传](/zh-cn/guides/auto-upload/)。
+其他场景指南：[搭建录播站](/zh-cn/guides/recording-station/)、[全自动挂机上传](/zh-cn/guides/auto-upload/)。
 
 ## 步骤清单
+
+<Steps>
 
 1. [安装](/zh-cn/guides/installation/)并[启动](/zh-cn/guides/quick-start/) bilirec，完成 B 站登录。
 2. 打开 [app.bilirec.org](https://app.bilirec.org/)（或本机地址），服务器地址填 `http://localhost:8080` 或局域网 HTTP（若浏览器限制混合内容，见 [Web 界面 · 访问](/zh-cn/guides/web-ui/#访问-web-界面) 或 [自架前端](/zh-cn/development/web/)）。
@@ -27,27 +29,36 @@ import { Aside } from '@astrojs/starlight/components';
 7. 定期在 Web「录制文件」浏览、下载；需要腾空间时使用批量删除 API 或界面操作，见 [文件管理 · 批量删除](/zh-cn/guides/file-management/#批量删除)。
 8. 磁盘紧张时：调高或理解 `MIN_DISK_SPACE_BYTES` 门槛；对指定房间在订阅里开启「空间不足时删除最旧文件」，见 [录制配置 · 磁盘空间](/zh-cn/configuration/recording/#磁盘空间)。
 
-<Aside type="tip">
-本场景**不需要** `VIEWER_*`、 `FRP_ENABLED`、`WEBHOOK_URLS`、`PUBLIC_BASE_URL`。以后若要对外建站或接上传工具，再改对应场景指南即可。
-</Aside>
+</Steps>
 
-## 最小配置示例
+## 配置示例
+
+以下片段可合并进 `.env`（路径请自行替换）：
 
 ```bash
 OUTPUT_DIR=/path/to/records
 
+# 仅本机自用可不设；局域网有多人时建议开启
+# USERNAME=admin
+# PASSWORD=请改为强密码
+
 DANMAKU_OUTPUT_FORMAT=jsonl
+
 CONVERT_TO_MP4=true
 DELETE_SOURCE_AFTER_CONVERT=false
 
 MIN_DISK_SPACE_BYTES=5368709120
+
+# delete_oldest_on_low_disk 在 Web 订阅或房间 API 按房间设置，见录制配置 · 磁盘空间
 ```
 
-未设置 `USERNAME` / `PASSWORD` 时，能访问到你后端地址的同一网络用户都可调用 API；仅在本机 `127.0.0.1` 使用时风险较低。
+## 录完文件在哪？
 
-## 手机录制
+成片在 **`OUTPUT_DIR`**（默认 `records`）下的 `{主播名}-{房间号}/` 目录。刚落盘的一段多为 **`.flv`、`.ts` 或 `.fmp4`**（直播流封装，便于边录边写、少占 CPU）；开启 `CONVERT_TO_MP4` 后会再生成 `.mp4` / `.m4a` 方便 Web 一键回放。浏览与下载见 [文件管理](/zh-cn/guides/file-management/)；为何常见 FLV、如何选流格式见 [录制指南 · 流格式](/zh-cn/guides/recording/#流格式stream_profile--stream_profiles)；同一场出现 `-1`、`-2` 分段见 [常见问题](/zh-cn/guides/faq/#同一场直播里为什么会出现标题-1标题-2多个文件)。
 
-在手机上跑后端请用 [bilirec-mobile](/zh-cn/guides/android/)，界面与保活见 [国产手机后台](/zh-cn/guides/android-mainland/)。本页不展开 App 操作，流程仍是：订阅 → 自动录 → 本机 Web 回放。
+## 手机当录制机
+
+没有 24 小时开着的电脑时，可直接用 [bilirec-mobile](/zh-cn/guides/android/) 在手机上订阅、自动录、本机回放（流程与本文一致：jsonl 弹幕 + 可选转 MP4）。国产手机务必读 [后台保活](/zh-cn/guides/android-mainland/)，避免系统杀后台漏录。
 
 ## 设备调优
 
