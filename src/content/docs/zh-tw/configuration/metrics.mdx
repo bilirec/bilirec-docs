@@ -31,7 +31,7 @@ bilirec 只負責暴露指標，採集與可視化由上述工具完成。下面
 2. 在 `.env` 中設定 `METRICS_ENABLED=true`，按需調整 `METRICS_PORT`
 3. 重啟 bilirec，日誌會打印 `metrics 伺服器已啟動：http://<addr>:9090/metrics`
 4. 在 VictoriaMetrics（或 vmagent / Prometheus）的抓取設定中加入 bilirec 地址，`scrape_interval` 建議 `15–30s`
-5. 在 Grafana 添加 Prometheus 類型資料源後，可用下文查詢做圖，也可以導入 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)
+5. 在 Grafana 安裝 [VictoriaMetrics datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-metrics-datasource/) 並添加 VictoriaMetrics 資料源（或用 Prometheus 資料源），可用下文查詢做圖，也可以導入 [Grafana 儀表盤](/zh-tw/configuration/grafana-dashboards/)
 
 ```bash
 METRICS_ENABLED=true

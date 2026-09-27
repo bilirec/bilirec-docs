@@ -9,17 +9,16 @@ import { Aside } from '@astrojs/starlight/components';
 
 bilirec 提供一組現成的 Grafana 儀表盤與告警規則，導入後即可查看錄製狀態、資源佔用、彈幕與轉碼健康、日誌趨勢等，不必從零編寫查詢。
 
-適合已經部署 Grafana，並希望長期觀察 NAS、樹莓派或伺服器上錄製情況的用戶。指標盤需要 VictoriaMetrics 或 Prometheus；日誌盤需要 VictoriaLogs。開啟指標與抓取方式見 [監控指標](/zh-tw/configuration/metrics/)；時序庫與 Grafana 本身的安裝見各項目官方文檔。
+適合已經部署 Grafana，並希望長期觀察 NAS、樹莓派或伺服器上錄製情況的用戶。指標盤需要 VictoriaMetrics 或 Prometheus；**導入現成 JSON 時強烈建議使用 VictoriaMetrics**，並在 Grafana 安裝 [VictoriaMetrics datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-metrics-datasource/) 後添加 **VictoriaMetrics** 資料源。日誌盤需要 VictoriaLogs。開啟指標與抓取方式見 [監控指標](/zh-tw/configuration/metrics/)；時序庫與 Grafana 本身的安裝見各項目官方文檔。
 
 請下載**與當前文檔語言相同**的 JSON。簡繁兩套盤共用同一 `uid`，後導入的會覆蓋先導入的。
 
 ## 快速開始
 
-1. 指標儀表盤需要 Grafana、VictoriaMetrics 或 Prometheus，且 bilirec 已開啟指標並被抓取（見 [監控指標](/zh-tw/configuration/metrics/)）；日誌儀表盤需要 VictoriaLogs 與 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)，其中“日誌分析”的傳輸健康區塊也會讀取 Prometheus metrics。
-2. 在 Grafana 添加資料源：指標盤選 Prometheus，地址填 VictoriaMetrics 或 Prometheus；日誌盤選 `VictoriaLogs`，地址填 VictoriaLogs。
-3. Grafana → **Dashboards → Import** → 上傳本頁對應語言的 JSON（或粘貼內容）。
-4. 導入後在頂欄選 **資料源**；指標盤的 `job` / `instance` 一般保持 All。“日誌分析”請同時選擇日誌資料源與指標資料源；“原始日誌瀏覽”只需選擇 VictoriaLogs 資料源。
-5. 房間異常時不想一直盯盤，可以再導入 [告警規則](#告警規則)。
+1. 指標儀表盤需要 Grafana、**強烈建議 VictoriaMetrics**（或 Prometheus，但 [累計用量](#累計用量)、[用量趨勢](#用量趨勢)、[單房間詳情](#單房間詳情) 必須用 VictoriaMetrics），且 bilirec 已開啟指標並被抓取（見 [監控指標](/zh-tw/configuration/metrics/)）。在 Grafana 安裝 [VictoriaMetrics datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-metrics-datasource/) 並添加 VictoriaMetrics 資料源（單節點常見 `http://<host>:8428`）；若後端是 Prometheus，則添加 Prometheus 資料源。日誌儀表盤需要 VictoriaLogs 與 [VictoriaLogs datasource plugin](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/)，其中“日誌分析”的傳輸健康區塊也會讀取指標資料源。
+2. Grafana → **Dashboards → Import** → 上傳本頁對應語言的 JSON（或粘貼內容）；導入嚮導裡把資料源映射到 VictoriaMetrics（或 Prometheus）。
+3. 導入後在頂欄選 **資料源**；指標盤的 `job` / `instance` 一般保持 All。“日誌分析”請同時選擇日誌資料源與指標資料源；“原始日誌瀏覽”只需選擇 VictoriaLogs 資料源。
+4. 房間異常時不想一直盯盤，可以再導入 [告警規則](#告警規則)。
 
 可以從 **錄製總覽** 開始看。其餘 7 張指標盤帶相同 `bilirec` 標籤，頂欄下拉可互相跳轉，並保留時間範圍與變數；兩張日誌盤（日誌分析、原始日誌瀏覽）使用 `logging` 標籤，在下拉里單獨成組——它們的資料源類型與指標盤不同，分開後互相跳轉不會帶上不兼容的變數。
 
@@ -180,7 +179,7 @@ bilirec 提供一組現成的 Grafana 儀表盤與告警規則，導入後即可
 
 **下載：** [bilirec-totals.json](/dashboards/zh-tw/bilirec-totals.json)
 
-**注意：** 落盤量是寫入器實際寫出的字節，接近錄製檔案大小，不是整臺機器還剩多少空間。明細表另有 TCP 讀入量，通常略大於落盤。錄製 / 開播時長依賴 VictoriaMetrics；純 Prometheus 這些面板會空。預設約 7 天。
+**注意：** **需要 VictoriaMetrics**（查詢使用 `integrate()` 等 MetricsQL 函數）。落盤量是寫入器實際寫出的字節，接近錄製檔案大小，不是整臺機器還剩多少空間。明細表另有 TCP 讀入量，通常略大於落盤。用 Prometheus 時錄製 / 開播時長相關面板會空。預設約 7 天。
 
 ## 用量趨勢
 
@@ -196,11 +195,7 @@ bilirec 提供一組現成的 Grafana 儀表盤與告警規則，導入後即可
 
 **下載：** [bilirec-trends.json](/dashboards/zh-tw/bilirec-trends.json)
 
-**注意：**
-
-- 中間「每日」點是該時刻往回 24 小時，不是日曆日 0:00–24:00；時間範圍建議至少 7 天。
-- 磁碟還能撐多久，需要主機也提供磁碟空間指標（常見做法是裝 node_exporter，ZFS 盤優先用它的數據）。沒有這些指標時，錄製相關圖仍有數，磁碟預估為空。
-- 磁碟預估虛線同樣依賴 VictoriaMetrics。
+**注意：** **需要 VictoriaMetrics**（含 `integrate()`、`range_linear_regression()` 等）。中間「每日」點是該時刻往回 24 小時，不是日曆日 0:00–24:00；時間範圍建議至少 7 天。磁碟還能撐多久，需要主機也提供磁碟空間指標（常見做法是裝 node_exporter，ZFS 盤優先用它的數據）。沒有這些指標時，錄製相關圖仍有數，磁碟預估為空。用 Prometheus 時部分 KPI 與磁碟預估虛線會空。
 
 ## 單房間詳情
 
@@ -217,7 +212,7 @@ bilirec 提供一組現成的 Grafana 儀表盤與告警規則，導入後即可
 
 **下載：** [bilirec-room.json](/dashboards/zh-tw/bilirec-room.json)
 
-**注意：** 頂欄先選一個房間；未選時面板是空的。寫入管線在磁碟跟得上時接近 0；程式還沒有這些指標時，這一塊會空。
+**注意：** **需要 VictoriaMetrics**（區間錄製時長使用 `integrate()`）。頂欄先選一個房間；未選時面板是空的。寫入管線在磁碟跟得上時接近 0；程式還沒有這些指標時，這一塊會空。
 
 ## 告警規則
 
@@ -245,7 +240,7 @@ Grafana → **Alerting → Alert rules → Import to Grafana-managed rules**，�
 
 ## 導入後常見現象
 
-- 這些 JSON 的資料源類型是 Prometheus，地址指向 VictoriaMetrics。部分時長和磁碟預估用了 VictoriaMetrics 的查詢函數，純 Prometheus 裡對應面板會空。
+- 指標盤頂欄 **資料源** 請選 VictoriaMetrics（推薦）。[累計用量](#累計用量)、[用量趨勢](#用量趨勢)、[單房間詳情](#單房間詳情) 需要 VictoriaMetrics 作查詢後端；純 Prometheus 裡對應面板會空。
 - **日誌分析盤沒有日誌數據：** 請確認已安裝 VictoriaLogs datasource plugin、資料源地址可連通，並在頂欄選擇日誌資料源。
 - **日誌分析盤的傳輸健康區塊沒有數據：** 請確認已開啟 bilirec metrics、Prometheus/VictoriaMetrics 已抓取，並在頂欄選擇指標資料源。
 - **`job` / `instance` 對不上**時整張沒數：抓取設定裡的標籤要能在下拉里出現。

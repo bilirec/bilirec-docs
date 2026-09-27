@@ -9,7 +9,7 @@
     "graphTooltip": 1,
     "editable": true,
     "id": null,
-    "description": "bilirec 录制总览。数据源选 VictoriaMetrics（Prometheus 类型）。「落盘量」是当天写入器实际写出的字节；读取速率仍是 TCP 读入。KPI 含本地 FFmpeg 转码待处理数；断线恢复的成功 / 失败 / 放弃趋势在「趋势」区。只开开播通知、不自动录制的房间也会出现在「开播但目前没在录」。",
+    "description": "bilirec 录制总览。顶栏数据源选 VictoriaMetrics。「落盘量」是当天写入器实际写出的字节；读取速率仍是 TCP 读入。KPI 含本地 FFmpeg 转码待处理数；断线恢复的成功 / 失败 / 放弃趋势在「趋势」区。只开开播通知、不自动录制的房间也会出现在「开播但目前没在录」。",
     "time": { "from": "now-6h", "to": "now" },
     "templating": {
       "list": [
