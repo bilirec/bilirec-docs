@@ -14,6 +14,7 @@ import { Aside } from '@astrojs/starlight/components';
 | `MAX_RECOVERY_ATTEMPTS` | 單次錄製最大重連嘗試次數（流仍在線但連接失敗時） | `15` |
 | `MAX_RETRY_MINUTES` | 直播下線後判斷容忍時間（分鐘）；下線期間持續重試，超時後結束錄製。`0` 表示不等待重試，直播下線後直接結束此次錄製 | `10` |
 | `RECORDING_RECOVERY_DURATION` | 斷流重試**成功並恢復錄製**後，錄製時長如何計算：`preserve`（沿用開始錄製時的總時長，不延長）或 `reset`（從重試成功時重新計算） | `preserve` |
+| `STREAM_IDLE_TIMEOUT` | 流讀取無數據最長等待（秒）；超時斷線重連。`0` 關閉 | `20` |
 
 `RECORDING_RECOVERY_DURATION` 只影響流仍在線、重連恢復成功的情況，不改變 `MAX_RETRY_MINUTES` 的下線重試邏輯。若你設定了單次錄製時長上限（API 的 `duration_minutes` 或 `MAX_RECORDING_HOURS`），`preserve` 表示錄製時長從**第一次開始錄製**起算、不延長；`reset` 表示每次重連成功後重新享有完整錄製時長，適合擔心管理員強切新場次時漏錄的場景。
 

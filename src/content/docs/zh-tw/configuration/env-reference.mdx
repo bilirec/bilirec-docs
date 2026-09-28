@@ -54,6 +54,7 @@ tableOfContents: false
 | `MAX_RECOVERY_ATTEMPTS` | 單次錄製的最大重連嘗試次數 | `15` |
 | `MAX_RETRY_MINUTES` | 直播中斷後判斷是否仍在直播的最長容忍時間（分鐘）；`0` 表示不等待重試，直播下線後直接結束此次錄製 | `10` |
 | `RECORDING_RECOVERY_DURATION` | 斷流重試成功後錄製時長計算：`preserve`（保留，從開始錄製起算）/ `reset`（重置，從重試成功時重新計算）；兩種模式都會用新時間戳開新檔案，不覆蓋舊錄製 | `preserve` |
+| `STREAM_IDLE_TIMEOUT` | 流讀取無數據最長等待（秒）；超時斷線重連。`0` 關閉 | `20` |
 | `OUTPUT_DIR` | 錄製檔案保存目錄 | `records` |
 | `SECRET_DIR` | Cookie 和 Token 保存目錄 | `secrets` |
 | `CONVERT_TO_MP4` | 錄製完成後是否將可轉換源檔案（如 FLV/TS/fMP4）轉為 MP4 或 M4A；普通錄製為 MP4，僅錄製音頻為 M4A | `false` |
