@@ -100,16 +100,19 @@ curl -s -b cookies.txt -X POST http://127.0.0.1:8080/version/check
 若檢查更新時存取 GitHub 不穩定，可在桌面或 Docker 的 `.env` 中設定：
 
 ```bash
-GITHUB_API_URL=https://gh-proxy.com/https://api.github.com/
+GITHUB_API_URL=https://gh.bilirec.org/https://api.github.com/
 ```
 
-留空則使用官方預設地址。影響啟動時自動檢查與 `POST /version/check`。Android 用戶可在 **服務啟動前設定 → 更新策略** 中設定 GitHub API 反代。
+留空則使用官方預設地址。影響啟動時自動檢查與 `POST /version/check`。
 
-公益反代由第三方運營，不保證可用與隱私。下列地址在文檔編寫時抽測可用，**隨時可能失效**：
+**Android App** 的更新與下載鏡像在 App 內 **服務啟動前設定 → 更新策略** 設定，說明見 [Android 指南 · 更新策略](/zh-tw/guides/android/#更新策略)（與錄製服務環境變數無關）。
 
-| 可選用地址 |
-|------------|
-| `https://gh-proxy.com/https://api.github.com/` |
-| `https://gh-proxy.org/https://api.github.com/` |
+下列地址供 **桌面 / Docker** 的 `GITHUB_API_URL` 選用。第一行為項目自建節點；其餘為第三方公益反代，不保證可用與隱私，**隨時可能失效**。
+
+| `GITHUB_API_URL` 示例 | 說明 |
+|----------------------|------|
+| `https://gh.bilirec.org/https://api.github.com/` | 項目自建 |
+| `https://gh-proxy.com/https://api.github.com/` | 第三方公益反代 |
+| `https://gh-proxy.org/https://api.github.com/` | 第三方公益反代 |
 
 詳見 [環境變數參考 · GITHUB_API_URL](/zh-tw/configuration/env-reference/)。
