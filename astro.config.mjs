@@ -136,7 +136,7 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Bilirec',
-			description: '专为低配设备优化的高性能 Bilibili 直播录制后端',
+			description: '面向低配设备与手机、录制与回放一体化的 B 站直播录制后端',
 			head: [
 				{
 					tag: 'script',
@@ -185,7 +185,7 @@ export default defineConfig({
 				starlightLlmsTxt({
 					projectName: 'Bilirec',
 					description:
-						'Bilirec 是专为低配设备优化的高性能 Bilibili 直播录制后端。本文件只包含简体中文（zh-cn）文档；繁体页面由同一份简体源转换，请勿重复索引。',
+						'Bilirec 是面向低配设备与手机、录制与回放一体化的 B 站直播录制后端。本文件只包含简体中文（zh-cn）文档；繁体页面由同一份简体源转换，请勿重复索引。',
 					details:
 						'优先阅读 /llms-full.txt 获取完整正文。文档 MCP：https://llm.bilirec.org/mcp。静态导出见 /llms.txt、/llms-small.txt、/llms-full.txt。用法见 zh-cn/guides/ai-docs。',
 					optionalLinks: [

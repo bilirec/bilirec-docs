@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Bilirec — 专为低配设备优化的 Bilibili 直播录制后端</title>
-<meta name="description" content="开源、自托管的 Bilibili 直播录制后端，为树莓派 / NAS / Android 等低配设备优化。订阅后开播自动录制，弹幕、礼物、醒目留言同步存档，5 路 1080p 并发仅约 193MB 内存。" />
+<title>Bilirec — 录制与回放一体化的 B 站直播录制后端</title>
+<meta name="description" content="开源可自托管、录制与回放一体化的 B 站直播录制后端，面向树莓派、NAS 和手机。订阅后开播自动录制，弹幕、礼物、醒目留言可同步存档并回放。" />
 <meta name="theme-color" content="#05070b" />
 <link rel="icon" href="/images/web-ui/logo.svg" type="image/svg+xml" />
 <script defer src="https://analytics.bilirec.org/script.js" data-website-id="d54cefd9-e899-4fc8-a73d-65d143827ef3" data-tag="docs-landing" data-performance="true" data-domains="www.bilirec.org,bilirec.org"></script>
@@ -961,10 +961,10 @@
   <!-- ————————— Hero ————————— -->
   <section class="hero" id="top">
     <div class="hero-text">
-      <p class="hero-eyebrow"><span class="hero-eyebrow-en">REC · </span>Bilibili 直播录制后端<span class="rec-dot" aria-hidden="true"></span></p>
-      <h1>高性能、低功耗、<span class="u">边缘设备优先</span></h1>
+      <p class="hero-eyebrow"><span class="hero-eyebrow-en">REC · </span>Bilibili 直播录制工具<span class="rec-dot" aria-hidden="true"></span></p>
+      <h1>高性能、低占用、<span class="u">录制回放一体化。</span></h1>
       <p class="hero-lead">
-        Bilirec 是一款可自托管的 B 站直播录制后端，为树莓派、NAS 等低配设备优化，让个人设备和闲置硬件也能变成强大的录播服务器。
+        Bilirec 是一款开源可自托管的 B 站直播录制工具，专为树莓派等低配设备优化。通过配套的 Web / Android 客户端，实现从直播录制、内容归档到互动回放的统一管理。
       </p>
     </div>
 
@@ -1027,7 +1027,7 @@
     <header class="sh rv">
       <p class="sh-idx">00 · 实测数据</p>
       <h2>效能实测</h2>
-      <p class="sh-sub">测试环境：树莓派 5B 16GB · Docker 1GB 内存限制 · 默认配置 · 每路 1080p。改配置或版本后数据会有偏差，完整表格见性能实测。</p>
+      <p class="sh-sub">测试环境：树莓派 5B 16GB · Docker 1GB 内存限制 · 默认配置 · 每路 1080p。</p>
     </header>
     <div class="stats-chart rv" role="img" aria-label="效能实测：闲置内存约 12 MB（1GB 限制）；5 路 1080p 并发内存峰值约 193 MB（1GB 限制）；CPU 峰值约 5.3%（上限 400%，4 核）；单路 4K 内存估算约 172 MB（1GB 限制）">
       <div class="chart-row">
@@ -1063,7 +1063,7 @@
     <header class="sh rv">
       <p class="sh-idx">01 · 客户端</p>
       <h2>Web 管理界面（PWA）</h2>
-      <p class="sh-sub">通过 <b>app.bilirec.org</b> 访问 Web 管理界面，登录时填写自己的后端地址；也可安装为 PWA，添加到桌面或主屏。</p>
+      <p class="sh-sub">同一界面，双端可用：录制、订阅、文件与回放都在浏览器里完成。也可安装为 PWA，添加到桌面或主屏。</p>
     </header>
     <div class="tabs rv" data-tabs role="tablist" aria-label="界面预览切换">
       <button type="button" data-tab class="on">录制管理</button>

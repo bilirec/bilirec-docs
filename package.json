@@ -2,7 +2,7 @@
   "name": "bilirec-docs",
   "type": "module",
   "version": "0.0.1",
-  "description": "Bilirec 官方文檔站 — 高性能 B 站直播錄製後端使用指南",
+  "description": "Bilirec 官方文檔站 — B 站直播錄製後端使用指南",
   "repository": {
     "type": "git",
     "url": "https://github.com/bilirec/bilirec-docs.git"
