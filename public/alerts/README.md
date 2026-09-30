@@ -29,7 +29,7 @@ Grafana 匯入 Prometheus YAML 時：
 
 ## 房間類通知文案
 
-房間告警會 join `bilirec_room_info`，摘要用主播名（`uname`）加房間號。`BilirecGaveUpRecording` 另外按 `reason` 聚合，並把封禁／加密／重試用盡／路數已滿寫成人話，避免看起來像程式自己放棄。
+房間告警會 join `bilirec_room_info`，摘要用主播名（`uname`）加房間號。`BilirecGaveUpRecording` 另外按 `reason` 聚合，摘要與描述依原因寫成簡短事實說明。
 
 若 Discord 標題仍只顯示房間號，把 contact point 的 title 改成優先 `uname`：
 

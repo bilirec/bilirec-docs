@@ -42,7 +42,7 @@ groups:
           component: recording
           severity: warning
         annotations:
-          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}錄製中且主播在線，但流沒連上（非恢復中）'
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}錄製中且主播在線，但流沒連上'
           description: recording_active=1、live_status=1，且沒有 stream_connection_active / recording_recovering
 
       - alert: BilirecStreamStalled
@@ -60,7 +60,7 @@ groups:
           severity: warning
         annotations:
           summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}連著但讀取速率為 0'
-          description: TCP 讀入速率為 0，可能卡流或上游無資料。此告警看的是讀入，不是落盤。
+          description: TCP 讀入速率為 0，可能卡流或上游無資料。
 
       - alert: BilirecGaveUpRecording
         # 必須按 reason 聚合，否則通知裡 reason 會變成 [no value]。
@@ -79,7 +79,7 @@ groups:
           severity: warning
         annotations:
           summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}停止恢復：{{ if eq $labels.reason "banned" }}直播間已被封禁{{ else if eq $labels.reason "encrypted" }}付費／加密直播{{ else if eq $labels.reason "max_attempts" }}斷線重試次數用盡{{ else if eq $labels.reason "concurrent" }}同時錄製數已滿{{ else }}{{ $labels.reason }}{{ end }}'
-          description: '{{ if eq $labels.reason "banned" }}B 站回傳此直播間已被封禁，因此停止恢復連流。這不是錄製程式故障。已經錄下的檔案會照常收尾轉碼。{{ else if eq $labels.reason "encrypted" }}直播間已改為付費／加密，無法繼續錄製。這不是斷流重試失敗。已經錄下的檔案會照常收尾。{{ else if eq $labels.reason "max_attempts" }}斷線後已依設定次數重試，仍連不上，因此結束這場錄製。請檢查網路、畫質或直播間狀態。後半段可能沒錄到。{{ else if eq $labels.reason "concurrent" }}同時錄製路數已滿，無法為這間房恢復。可稍後再錄，或提高同時錄製上限。{{ else }}恢復失敗後已停止這場錄製（reason={{ $labels.reason }}）。正常下播逾時（not_live_timeout）不會觸發此告警。{{ end }}'
+          description: '{{ if eq $labels.reason "banned" }}B 站回傳此直播間已被封禁，因此停止恢復連流。{{ else if eq $labels.reason "encrypted" }}直播間已改為付費／加密，無法繼續錄製。{{ else if eq $labels.reason "max_attempts" }}斷線後已依設定次數重試，仍連不上，因此結束這場錄製。{{ else if eq $labels.reason "concurrent" }}同時錄製路數已滿，無法為這間房恢復。{{ else }}恢復失敗後已停止這場錄製（reason={{ $labels.reason }}）。{{ end }}'
 
       - alert: BilirecWriterBackpressure
         # 寫入佇列已滿時發送端會阻塞；短促尖峰常見，持續等待才告警。
@@ -137,7 +137,7 @@ groups:
           severity: warning
         annotations:
           summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}FLV 時間戳大幅跳變'
-          description: 近 15 分鐘折疊掉超過 30 秒媒體時間。常見於源流斷續或畫質切換；檔案時間軸可能不連續。偶發小跳變不會告警。
+          description: 近 15 分鐘折疊掉超過 30 秒媒體時間。常見於源流斷續或畫質切換；檔案時間軸可能不連續。
 
       - alert: BilirecDanmakuParseErrors
         expr: |
@@ -196,7 +196,7 @@ groups:
           severity: warning
         annotations:
           summary: 無錄製中但轉碼佇列仍積壓 provider={{ $labels.provider }} > 1
-          description: 持續 30 分鐘。可能是轉碼失敗不斷重試；有房間在錄時的切檔積壓不告警
+          description: 持續 30 分鐘。可能是轉碼失敗不斷重試。
 
       - alert: BilirecVictoriaLogsQueueGrow
         expr: increase(bilirec_victorialogs_logs_dropped_total[5m]) > 0
