@@ -16,6 +16,20 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 
 其他場景指南：[自用錄像庫](/zh-tw/guides/personal-archive/)、[全自動掛機上傳](/zh-tw/guides/auto-upload/)。
 
+## 前端
+
+訪客用的網頁和錄播程式是分開的。可以直接打開官方頁 [app.bilirec.org](https://app.bilirec.org/)，也可以把同一套網頁部署到自己的域名，做法見 [自行部署（Cloudflare）](/zh-tw/development/web/#自行部署cloudflare)。
+
+自架之後，每臺後端的 `FRONTEND_URL` 填這個網頁的 HTTPS 地址，並建議 `PRODUCTION_MODE=true`。繼續用官方頁時，`FRONTEND_URL` 仍是 `https://app.bilirec.org`。根域名與後端不同時，見 [生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式) 與 [FRP — 根域名是否相同](/zh-tw/guides/frp/#根域名是否相同)。
+
+前後端分開，所以可以同時跑多臺 bilirec。粉絲用同一套網頁（官方或自架），在登入頁改「伺服器地址」就能換到另一台，不必為每臺再部署一個網頁。每臺仍要單獨暴露到公網，並各自設定管理員帳號、只讀帳號和 `FRONTEND_URL`。
+
+<Aside type="note">
+
+**半公開：** 對方要知道錄播伺服器地址，並且輸入只讀帳號密碼，才能瀏覽、回放和下載。做不到完全公開：不能變成打開一個網址就能翻庫，既不用帳號，也不用另填伺服器地址。
+
+</Aside>
+
 ## 步驟清單
 
 <Steps>
@@ -28,7 +42,7 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 6. 開啟 **`CONVERT_TO_MP4=true`**，錄製結束後生成 MP4，訪客才能在瀏覽器裡穩定回放，見 [轉換設定](/zh-tw/configuration/conversion/)。
 7. 按需調整 `MIN_DISK_SPACE_BYTES`；某房間可在訂閱裡開啟「空間不足時刪除最舊檔案」，見 [錄製設定 · 磁碟空間](/zh-tw/configuration/recording/#磁碟空間)。
 8. 設定 **`PUBLIC_BASE_URL`** 為訪客實際存取後端的 HTTPS 基址（含 `https://`），用於分享與預簽名下載，見 [伺服器與網路](/zh-tw/configuration/server-network/) 與 [檔案管理 · 分享鏈接](/zh-tw/guides/file-management/#分享鏈接)。
-9. 用 [FRP](/zh-tw/guides/frp/) 或自建反代把服務暴露到公網；若用官方 PWA 管理，建議 `PRODUCTION_MODE=true` 與 `FRONTEND_URL=https://app.bilirec.org`，見 [認證與安全 · 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
+9. 用 [FRP](/zh-tw/guides/frp/) 或自建反代把服務暴露到公網；訪客可用 [app.bilirec.org](https://app.bilirec.org/) 或[自架網頁](/zh-tw/development/web/#自行部署cloudflare)登入，將後端的 `FRONTEND_URL` 設為實際使用的網頁 HTTPS 地址（官方頁為 `https://app.bilirec.org`），並建議 `PRODUCTION_MODE=true`，見 [認證與安全 · 生產模式](/zh-tw/configuration/auth-security/#何時需要生產模式)。
 
 </Steps>
 
@@ -59,7 +73,7 @@ CONVERT_TO_MP4=true
 MIN_DISK_SPACE_BYTES=5368709120
 
 PRODUCTION_MODE=true
-FRONTEND_URL=https://app.bilirec.org
+FRONTEND_URL=https://app.bilirec.org  # 自架網頁時改為你的前端 HTTPS 地址
 PUBLIC_BASE_URL=https://你的公網後端地址
 
 # FRP_ENABLED=true 等見遠端存取（FRP）；不用官方 FRP 時可不設並自建反代
