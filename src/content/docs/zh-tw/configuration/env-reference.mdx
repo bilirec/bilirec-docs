@@ -61,7 +61,7 @@ tableOfContents: false
 | `DELETE_SOURCE_AFTER_CONVERT` | 轉換後是否刪除原始源檔案 | `false` |
 | `NO_CONVERT_IF_INVALID` | 當源檔案缺少音影片流時是否停止轉碼；`true` 時會阻止轉換並返回錯誤，`false` 時只記錄警告並繼續轉換。若系統未安裝 `ffprobe`，檢查會自動放行 | `false` |
 | `PUBLIC_BASE_URL` | 後端公開基址（僅用於生成預簽名 URL，需為完整 URL） | (空字符串) |
-| `FRONTEND_URL` | 前端 URL（用於 CORS） | `http://localhost:8080` |
+| `FRONTEND_URL` | 前端 URL（用於 CORS） | `https://app.bilirec.org` |
 | `WEBPUSH_SUBSCRIBER` | Web Push VAPID 的 subject（建議使用 `mailto:you@example.com`） | `mailto:webpush@example.com` |
 | `NOTIFY_SSE_TOKEN` | SSE 通知訂閱 token（用於 `/notify/sse?token=...`；為空則禁用 SSE） | (空字符串) |
 | `WEBHOOK_URLS` | Webhook v2 出站地址（與錄播姬兼容），每行一個 URL；為空則不發送。見 [Webhook 對接](/zh-tw/guides/webhook-integration/) | (空字符串) |
