@@ -43,7 +43,7 @@ import { Aside } from '@astrojs/starlight/components';
 合併緩衝 = LIVE_STREAM_WRITER_BUFFER_SIZE
 ```
 
-其中 **43~50 MB** 是程式本身和系統固定開銷（和緩衝設定幾乎無關，也**不能通過環境變數調小**）。錄 4K / 杜比時，讀側兩個變數換成 `*_HIGH`，寫側塊大小換成 `LIVE_STREAM_WRITER_BYTES_POOL_SIZE_HIGH`。
+其中 **43~50 MB** 是公式裡的**全局餘量**（與路數 N 無關）：覆蓋預設設定下進程常駐部分，以及規劃時預留的緩衝池複用等，讓估算略偏保守（例如預設 1080p 單路算出來約 92~99 MB，[性能實測](/zh-tw/guides/performance-benchmark/) 同場景容器峰值約 85 MB）。
 
 ### 預設 1080p 示例
 
