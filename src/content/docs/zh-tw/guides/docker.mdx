@@ -65,28 +65,15 @@ docker run -d \
 - **內置 FFmpeg** — 鏡像包含 FFmpeg 8.1.1，無需額外安裝
 - **預設時區** — `TZ=Asia/Hong_Kong`
 
-## Go 記憶體上限（GOMEMLIMIT）
+## Go 記憶體軟上限（GOMEMLIMIT）
 
-**僅官方 Docker 鏡像**在 Dockerfile 裡寫死了下面兩項；直接跑二進制、systemd、Android 等**預設沒有**這個限制，一般不必管 `GOMEMLIMIT`。
-
-```bash
-GOMEMLIMIT=768MiB
-GOGC=100
-```
-
-`GOMEMLIMIT` 告訴 Go 運行時：**堆記憶體儘量別超過這個數**。快碰到上限時，運行會更勤快地回收記憶體（GC）。
-
-<Aside type="caution">
-若你給容器分了很大記憶體（例如 `docker run -m 4g`），卻**沒有**用 `-e` 改掉 `GOMEMLIMIT`，程式仍按 **768MiB** 自律。容器監控裡明明還有很多空餘，Go 卻會一直提前 GC——你可能感到 **CPU 週期性抖動**，錄製偶發微卡，誤以為是磁碟或路數問題。
-
-反過來，容器 memory limit **小於** `GOMEMLIMIT` 時，可能先被 Docker OOM 殺掉，而不是由 Go 平穩降記憶體。
-</Aside>
+若希望 Go 運行時按**堆記憶體軟上限**自律（接近上限時更積極 GC），可在運行容器時用 `-e GOMEMLIMIT=...` 傳入。鏡像**不會**替你寫死該值；不設則 Go 不會按固定堆上限自律，主要仍靠容器 memory limit 與進程實際分配。
 
 **建議做法：**
 
 1. 用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 估目標路數需要多少記憶體。
 2. 給容器的 memory limit 留約 **兩成餘量**（還要算上頁緩存、轉碼子進程等）。
-3. 把 `GOMEMLIMIT` 設成**略低於**該 limit（常見取 limit 的 **75%～85%**），運行時用 `-e` 傳入。
+3. 把 `GOMEMLIMIT` 設成**略低於**該 limit（常見取 limit 的 **75%～85%**），與 limit 一起傳入。
 
 示例：計劃錄 8 路 1080p，容器 limit 約 2GB：
 
@@ -98,9 +85,11 @@ docker run -d \
   ...
 ```
 
-只錄 3～5 路、容器 limit 約 1GB 時，預設 `768MiB` 通常夠用，不必改。
+<Aside type="caution">
+容器 memory limit **小於** `GOMEMLIMIT` 時，可能先被 Docker OOM 殺掉，而不是由 Go 平穩降記憶體。
+</Aside>
 
-更多現象說明見 [常見問題 · Docker 記憶體明明很空卻頻繁 GC](/zh-tw/guides/faq/#docker-記憶體明明很空卻頻繁-gc)。
+Android 端會按 **同時錄製上限** 自動計算記憶體軟上限，一般無需手設 `GOMEMLIMIT`；見 [Android 預設設定 · 啟動時自動限制資源](/zh-tw/configuration/android-defaults/#啟動時自動限制資源)。
 
 <Aside type="note">
 Docker 環境下建議通過 `-e` 傳入所有需要的設定。完整環境變數列表見[環境變數參考](/zh-tw/configuration/env-reference/)，示例設定見[設定示例](/zh-tw/configuration/examples/)。
