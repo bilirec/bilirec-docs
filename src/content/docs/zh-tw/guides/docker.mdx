@@ -65,7 +65,31 @@ docker run -d \
 - **內置 FFmpeg** — 鏡像包含 FFmpeg 8.1.1，無需額外安裝
 - **預設時區** — `TZ=Asia/Hong_Kong`
 
-容器 memory limit 請用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 按路數規劃，並留約兩成餘量（頁緩存、轉碼子進程等）。
+## Go 記憶體軟上限（GOMEMLIMIT）
+
+若希望 Go 運行時按**堆記憶體軟上限**自律（接近上限時更積極 GC），可在運行容器時用 `-e GOMEMLIMIT=...` 傳入。鏡像**不會**替你寫死該值；不設則 Go 不會按固定堆上限自律，主要仍靠容器 memory limit 與進程實際分配。
+
+**建議做法：**
+
+1. 用 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/) 估目標路數需要多少記憶體。
+2. 給容器的 memory limit 留約 **兩成餘量**（還要算上頁緩存、轉碼子進程等）。
+3. 把 `GOMEMLIMIT` 設成**略低於**該 limit（常見取 limit 的 **75%～85%**），與 limit 一起傳入。
+
+示例：計劃錄 8 路 1080p，容器 limit 約 2GB：
+
+```bash
+docker run -d \
+  --memory=2g \
+  -e GOMEMLIMIT=1536MiB \
+  -e MAX_CONCURRENT_RECORDINGS=8 \
+  ...
+```
+
+<Aside type="caution">
+容器 memory limit **小於** `GOMEMLIMIT` 時，可能先被 Docker OOM 殺掉，而不是由 Go 平穩降記憶體。
+</Aside>
+
+Android 端會按 **同時錄製上限** 自動計算記憶體軟上限，一般無需手設 `GOMEMLIMIT`；見 [Android 預設設定 · 啟動時自動限制資源](/zh-tw/configuration/android-defaults/#啟動時自動限制資源)。
 
 <Aside type="note">
 Docker 環境下建議通過 `-e` 傳入所有需要的設定。完整環境變數列表見[環境變數參考](/zh-tw/configuration/env-reference/)，示例設定見[設定示例](/zh-tw/configuration/examples/)。
