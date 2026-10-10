@@ -40,6 +40,34 @@ SERVER_KEY=/path/to/server.key
 
 `TRUSTED_PROXIES` 默认值 `161.33.159.26` 为公共 FRP 服务 IP。使用 Nginx 等反向代理时，将代理 IP 加入此列表。
 
+### Nginx 反代示例
+
+bilirec 的 [在线回放](/zh-cn/guides/file-management/#在线回放)与 `/files/playback/` 会用到浏览器的 **Range 请求**（拖动进度条、分段加载大 MP4）。若 Nginx 未把 `Range` / `If-Range` 转给后端，或未把后端的 `Accept-Ranges` 回传给客户端，回放可能**卡顿**，拖动进度条时更明显。
+
+建议在 `location` 中关闭代理侧缓冲（避免大文件或长串流占满 Nginx 所在机器磁盘），并显式转发 Range 与常见缓存校验头。下面片段需与你的 `proxy_pass`、TLS、`location` 等配置合并使用（仅作参考）：
+
+```nginx
+client_max_body_size 0;
+proxy_set_header Connection "";
+
+# 关闭缓存，适合大文件或串流，避免写满 Nginx 所在机器的磁盘
+proxy_buffering off;
+proxy_cache off;
+
+# 支持断点续传与影音拖曳（Range Requests）
+proxy_set_header Range $http_range;
+proxy_set_header If-Range $http_if_range;
+proxy_pass_header Accept-Ranges;
+
+# 缓存验证转发
+proxy_set_header If-None-Match $http_if_none_match;
+proxy_set_header If-Modified-Since $http_if_modified_since;
+
+proxy_set_header X-Real-IP $remote_addr;
+```
+
+其他反向代理（Caddy、Traefik 等）也需保证 Range 能端到端透传；具体写法因软件而异。
+
 `FRONTEND_URL` 设为 `https://app.bilirec.org` 时，表示允许该管理页跨域访问你的 API。若通过 app.bilirec.org 管理自架 HTTPS 后端，还需开启 `PRODUCTION_MODE=true`，详见 [认证与安全](/zh-cn/configuration/auth-security/#何时需要生产模式)。
 
 `PUBLIC_BASE_URL` 建议包含 `http://` 或 `https://` 前缀，为空时预签名 URL 回退为相对地址。Web 界面的[文件分享链接](/zh-cn/guides/file-management/#分享链接)会写入该基址；若只填内网地址、或后端未对公网开放，他人打开分享链接仍无法下载。CloudConvert 拉取大文件转码时同样依赖可从外网访问的 `PUBLIC_BASE_URL`（见 [转换配置](/zh-cn/configuration/conversion/)）。
