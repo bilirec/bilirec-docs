@@ -49,7 +49,7 @@ NAS 往往比树莓派有更多内存，可根据 [内存占用估算](/zh-cn/co
 |------|------|------|
 | `MAX_CONCURRENT_RECORDINGS` | `3` | 每加一路，程序缓冲约线性 +49 MB（1080p 默认缓冲）；调大后配合同上 flush 表 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 每路合并缓冲；加大 4～8 MB 即每路多占相应程序内存，见上一节 |
-| `SKIP_SMALL_FLUSH` | `true` | 沿用默认即可：延迟建文件（攒够 1 MB），正常直播仍走 8 MB 合并缓冲；改为 `false` 仅当必须保留不足 1 MB 的场次 |
+| `SKIP_SMALL_FLUSH` | `true` | 沿用默认即可：延迟建文件（攒够 1 MB），正常直播仍走 8 MB 合并缓冲；改为 `false` 后阈值为 1 KB，仅丢弃不足 1 KB 的碎片 |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 设为 `0` 时，长录期间**页缓存明显累积**，监控曲线会显著升高，但回放更顺 |
 | `DROP_FILE_PAGE_CACHE` | `true` | 设为 `false` 时，关档后仍保留整份文件缓存，**内存占用明显上升**；常与上项搭配 |
 
