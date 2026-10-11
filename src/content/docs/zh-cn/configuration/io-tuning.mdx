@@ -143,12 +143,12 @@ bilirec 会把直播数据写入磁盘后，操作系统往往还会在内存里
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `SKIP_SMALL_FLUSH_THRESHOLD` | 启用 `SKIP_SMALL_FLUSH` 后，攒够多少数据才开始建文件（字节） | `1048576` (1 MB) |
-| `SKIP_SMALL_FLUSH` | 极短直播先只在内存里攒，够阈值再建文件 | `true` |
+| `SKIP_SMALL_FLUSH_THRESHOLD` | `SKIP_SMALL_FLUSH=true` 时，攒够多少数据才开始建文件（字节）；有效值不低于 1024。`false` 时忽略本项 | `1048576` (1 MB) |
+| `SKIP_SMALL_FLUSH` | 极短直播先只在内存里攒，够阈值再建文件。设为 `false` 时阈值为 1024 字节 | `true` |
 | `SEQUENTIAL_WRITE` | 多路录制时轮流写盘，避免同时抢一张卡 | `true` |
 | `DROP_FILE_PAGE_CACHE` | 关档或转码成功后释放整份文件缓存（仅 Linux/Android） | `true` |
 
-- **`SKIP_SMALL_FLUSH`** — 对几分钟就下播的低码率流特别有用：不到 1MB 不写文件，减少空文件和无效写盘
+- **`SKIP_SMALL_FLUSH`** — 对几分钟就下播的低码率流特别有用：默认不到 1MB 不写文件，减少空文件和无效写盘。设为 `false` 时仍延迟建文件，但阈值为 1KB，仅过滤极小碎片
 - **`SEQUENTIAL_WRITE`** — 多路录到**同一张** microSD / 机械盘时建议保持开启：你会感觉到磁盘峰值更平稳；SSD 上可关闭以追求更高并发。提高同时录制路数时，建议同步调整 flush 周期，见上文 [多路录制与 flush 周期](#多路录制与-flush-周期)
 - **`DROP_FILE_PAGE_CACHE`** — 关档/转码后释放文件缓存；默认已开。播放或下载结束后，按 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 空闲等待后释放该文件缓存（未配置或 `0` 时播放侧仍用默认 **60** 秒，仅关闭录制中冷释放）。与录制中的冷缓存释放配合，可压低监控曲线。**代价**：刚录完或停播后立刻再播可能要从磁盘重读，略慢。长时间连续播放时缓存仍可能上涨（计时会被新请求重置）。详见 [常见问题](/zh-cn/guides/faq/#在线播放或下载后监控内存一直很高)
 

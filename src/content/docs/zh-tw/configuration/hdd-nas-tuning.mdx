@@ -49,7 +49,7 @@ NAS 往往比樹莓派有更多記憶體，可根據 [記憶體佔用估算](/zh
 |------|------|------|
 | `MAX_CONCURRENT_RECORDINGS` | `3` | 每加一路，程式緩衝約線性 +49 MB（1080p 預設緩衝）；調大後配合同上 flush 表 |
 | `LIVE_STREAM_WRITER_BUFFER_SIZE` | `8 MB` | 每路合併緩衝；加大 4～8 MB 即每路多佔相應程式記憶體，見上一節 |
-| `SKIP_SMALL_FLUSH` | `true` | 沿用預設即可：延遲建檔案（攢夠 1 MB），正常直播仍走 8 MB 合併緩衝；改為 `false` 僅當必須保留不足 1 MB 的場次 |
+| `SKIP_SMALL_FLUSH` | `true` | 沿用預設即可：延遲建檔案（攢夠 1 MB），正常直播仍走 8 MB 合併緩衝；改為 `false` 後閾值為 1 KB，僅丟棄不足 1 KB 的碎片 |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | `60` | 設為 `0` 時，長錄期間**頁緩存明顯累積**，監控曲線會顯著升高，但回放更順 |
 | `DROP_FILE_PAGE_CACHE` | `true` | 設為 `false` 時，關檔後仍保留整份檔案緩存，**記憶體佔用明顯上升**；常與上項搭配 |
 
