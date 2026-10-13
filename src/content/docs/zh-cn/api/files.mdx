@@ -27,8 +27,10 @@ GET /files/browse/*
 ## 下载文件
 
 ```http
-GET /files/download/*
+GET /files/download/{path}?presigned={token}
 ```
+
+需要携带有效的预签名 token（见下方「预签名下载」，`purpose` 使用 `download` 或省略）。token 与请求路径绑定，路径不符返回 `403`，过期返回 `403`，缺失返回 `401`。
 
 直接返回存储的文件。
 
@@ -41,16 +43,18 @@ GET /files/download/*
 ## 预签名下载
 
 ```http
-POST /files/presigned/{path}?ttl=<seconds>
+POST /files/presigned/{path}?ttl=<seconds>&purpose=<purpose>
 ```
 
-需要 JWT 认证。`ttl` 默认 3600 秒。返回临时令牌后：
+需要 JWT 认证。`ttl` 默认 3600 秒。`purpose` 决定返回的 URL 指向哪条路由：
 
-```http
-GET /files/tempdownload?presigned=<token>
-```
+- `download`（默认）：返回 `/files/download/{path}?presigned=<token>`，以附件形式下载
+- `playback`：返回 `/files/playback/{path}?presigned=<token>`，用于浏览器内联播放
+- `share`：返回同 `download`，但每次都签发全新链接，适合分享场景
 
-无需认证，过期后失效。
+`download` 与 `playback` 会复用 URL：同一文件、同一用途在到期前重复请求时，返回同一条 URL，便于 CDN 按稳定网址缓存；此时 `expires_in` 是该 URL 的剩余有效秒数。剩余不足 5 分钟时才会重新签发新 URL。`share` 则不受影响，总是返回新链接。
+
+返回的 URL 无需 cookie 即可访问，适合交给 CDN、外部播放器或下载工具重放。token 与文件路径绑定并带过期时间，过期后失效；正在录制的文件无法生成。
 
 ## 批量删除
 
@@ -70,13 +74,14 @@ DELETE /files/{path}
 ## 在线播放
 
 ```http
-GET /files/playback/{path}
+GET /files/playback/{path}?presigned={token}
 ```
 
-返回 MP4 或 M4A 媒体流，浏览器可直接播放。支持 Range 请求（快进/快退）。
+需要携带有效的预签名 token（`purpose` 使用 `playback`）。返回 MP4 或 M4A 媒体流，浏览器可直接播放。支持 Range 请求（快进/快退）。
 
 - 支持 MP4 与 M4A
 - 无法播放进行中的录制文件
+- token 过期后返回 `403`，播放器应在过期前重新调用预签名接口换取新 URL
 
 ```html
 <video controls width="100%">
