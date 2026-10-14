@@ -26,9 +26,9 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 
 访客用的网页和录播程序是分开的。可以直接打开官方页 [app.bilirec.org](https://app.bilirec.org/)，也可以把同一套网页部署到自己的域名，做法见 [自行部署（Cloudflare）](/zh-cn/development/web/#自行部署cloudflare)。
 
-自架之后，每台后端的 `FRONTEND_URL` 填这个网页的 HTTPS 地址，并建议 `PRODUCTION_MODE=true`。继续用官方页时，`FRONTEND_URL` 仍是 `https://app.bilirec.org`。根域名与后端不同时，见 [生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式) 与 [FRP — 根域名是否相同](/zh-cn/guides/frp/#根域名是否相同)。
+自架之后，每台后端的 `FRONTEND_URLS` 填这个网页的 HTTPS 地址，并建议 `PRODUCTION_MODE=true`。继续用官方页时，可写 `https://app.bilirec.org`；若官方页与自架页都要连同一台后端，用逗号分隔写多个来源。根域名与后端不同时，见 [生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式) 与 [FRP — 根域名是否相同](/zh-cn/guides/frp/#根域名是否相同)。
 
-前后端分开，所以可以同时跑多台 bilirec。粉丝用同一套网页（官方或自架），在登录页改「服务器地址」就能换到另一台，不必为每台再部署一个网页。每台仍要单独暴露到公网，并各自设置管理员账号、只读账号和 `FRONTEND_URL`。
+前后端分开，所以可以同时跑多台 bilirec。粉丝用同一套网页（官方或自架），在登录页改「服务器地址」就能换到另一台，不必为每台再部署一个网页。每台仍要单独暴露到公网，并各自设置管理员账号、只读账号和 `FRONTEND_URLS`。
 
 <Aside type="note">
 
@@ -48,7 +48,7 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 6. 开启 **`CONVERT_TO_MP4=true`**，录制结束后生成 MP4，访客才能在浏览器里稳定回放，见 [转换配置](/zh-cn/configuration/conversion/)。
 7. 按需调整 `MIN_DISK_SPACE_BYTES`；某房间可在订阅里开启「空间不足时删除最旧文件」，见 [录制配置 · 磁盘空间](/zh-cn/configuration/recording/#磁盘空间)。
 8. 设置 **`PUBLIC_BASE_URL`** 为访客实际访问后端的 HTTPS 基址（含 `https://`），用于分享与预签名下载，见 [服务器与网络](/zh-cn/configuration/server-network/) 与 [文件管理 · 分享链接](/zh-cn/guides/file-management/#分享链接)。
-9. 用 [FRP](/zh-cn/guides/frp/) 或自建反代把服务暴露到公网；访客可用 [app.bilirec.org](https://app.bilirec.org/) 或[自架网页](/zh-cn/development/web/#自行部署cloudflare)登录，将后端的 `FRONTEND_URL` 设为实际使用的网页 HTTPS 地址（官方页为 `https://app.bilirec.org`），并建议 `PRODUCTION_MODE=true`，见 [认证与安全 · 生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式)。
+9. 用 [FRP](/zh-cn/guides/frp/) 或自建反代把服务暴露到公网；访客可用 [app.bilirec.org](https://app.bilirec.org/) 或[自架网页](/zh-cn/development/web/#自行部署cloudflare)登录，将后端的 `FRONTEND_URLS` 设为实际使用的网页 HTTPS 地址（官方页为 `https://app.bilirec.org`；多个页面逗号分隔），并建议 `PRODUCTION_MODE=true`，见 [认证与安全 · 生产模式](/zh-cn/configuration/auth-security/#何时需要生产模式)。
 
 </Steps>
 
@@ -79,7 +79,7 @@ CONVERT_TO_MP4=true
 MIN_DISK_SPACE_BYTES=5368709120
 
 PRODUCTION_MODE=true
-FRONTEND_URL=https://app.bilirec.org  # 自架网页时改为你的前端 HTTPS 地址
+FRONTEND_URLS=https://app.bilirec.org  # 自架网页时改为你的前端 HTTPS 地址，或与官方页逗号分隔
 PUBLIC_BASE_URL=https://你的公网后端地址
 
 # FRP_ENABLED=true 等见远程访问（FRP）；不用官方 FRP 时可不设并自建反代

@@ -36,7 +36,7 @@ SERVER_KEY=/path/to/server.key
 |------|------|--------|
 | `TRUSTED_PROXIES` | 受信任代理 IP/CIDR（逗號分隔） | `161.33.159.26` |
 | `PUBLIC_BASE_URL` | 後端公開基址（生成預簽名 URL） | (空) |
-| `FRONTEND_URL` | 前端 URL（CORS） | `https://app.bilirec.org` |
+| `FRONTEND_URLS` | 前端來源（CORS，逗號分隔多個） | `https://app.bilirec.org` |
 
 `TRUSTED_PROXIES` 預設值 `161.33.159.26` 為公共 FRP 服務 IP。使用 Nginx 等反向代理時，將代理 IP 加入此列表。
 
@@ -68,6 +68,6 @@ proxy_set_header X-Real-IP $remote_addr;
 
 其他反向代理（Caddy、Traefik 等）也需保證 Range 能端到端透傳；具體寫法因軟體而異。
 
-`FRONTEND_URL` 設為 `https://app.bilirec.org` 時，表示允許該管理頁跨域存取你的 API。若通過 app.bilirec.org 管理自架 HTTPS 後端，還需開啟 `PRODUCTION_MODE=true`，詳見 [認證與安全](/zh-tw/configuration/auth-security/#何時需要生產模式)。
+`FRONTEND_URLS` 設為 `https://app.bilirec.org` 時，表示允許該管理頁跨域存取你的 API。若同時使用官方頁與自架前端，可寫為 `https://app.bilirec.org,https://你的域名`。若通過 app.bilirec.org 管理自架 HTTPS 後端，還需開啟 `PRODUCTION_MODE=true`，詳見 [認證與安全](/zh-tw/configuration/auth-security/#何時需要生產模式)。
 
 `PUBLIC_BASE_URL` 建議包含 `http://` 或 `https://` 前綴，為空時預簽名 URL 回退為相對地址。Web 介面的[檔案分享鏈接](/zh-tw/guides/file-management/#分享鏈接)會寫入該基址；若只填內網地址、或後端未對公網開放，他人打開分享鏈接仍無法下載。CloudConvert 拉取大檔案轉碼時同樣依賴可從外網存取的 `PUBLIC_BASE_URL`（見 [轉換設定](/zh-tw/configuration/conversion/)）。

@@ -125,7 +125,7 @@ pnpm preview  # 本地預覽生產建置
 
 | 事項 | 說明 |
 |------|------|
-| 後端 `FRONTEND_URL` | 部署完成後，將 bilirec 後端的 `FRONTEND_URL` 設為你的前端 HTTPS 域名（CORS 與 Cookie 認證）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) |
+| 後端 `FRONTEND_URLS` | 部署完成後，將 bilirec 後端的 `FRONTEND_URLS` 設為你的前端 HTTPS 域名（CORS 與 Cookie 認證；多個來源逗號分隔）。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) |
 | 自架前端 + 不同根域名後端 | 若前端域名與後端（如 FRP 的 `*.tunnel.bilirec.org`）**根域名不同**，除 `PRODUCTION_MODE=true` 外，可能還需在瀏覽器允許第三方 Cookie。官方 `app.bilirec.org` 連 FRP 一般無此問題。見 [FRP — 根域名是否相同](/zh-tw/guides/frp/#根域名是否相同) |
 | PWA / Web Push 的 HTTPS 要求 | 如果需要安裝 PWA 或使用 Web Push，前端部署需要 HTTPS。對於 HTTPS 前端，多數瀏覽器會阻止直接請求 HTTP 局域網地址；`localhost` / `127.0.0.1` 通常是例外。遠端後端通常需要使用 HTTPS（如 [FRP](/zh-tw/guides/frp/)），或把前後端放在同一 HTTPS 反代後 |
 | 與官方前端取捨 | `app.bilirec.org` 適合本機、Android 內嵌後端或 FRP HTTPS 隧道；自架前端適合自定義域名，或前後端同站 HTTPS 反代等場景 |
@@ -199,7 +199,7 @@ $env:VIEWER_PASSWORD = "你的唯讀帳號密碼"
 pnpm build
 ```
 
-部署前請將後端 `FRONTEND_URL` 設為該前端的 HTTPS 域名，並確保 CORS 與 Cookie（`withCredentials`）與現有自架方式一致。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) 與 [認證與安全](/zh-tw/configuration/auth-security/)。
+部署前請將後端 `FRONTEND_URLS` 設為該前端的 HTTPS 域名，並確保 CORS 與 Cookie（`withCredentials`）與現有自架方式一致。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) 與 [認證與安全](/zh-tw/configuration/auth-security/)。
 
 <Aside type="caution" title="安全提示">
 
@@ -216,7 +216,7 @@ pnpm build
 1. 執行 `pnpm build` 生成 `dist/`。
 2. 將 `dist/` 部署到任意靜態託管（Cloudflare Pages、Nginx、對象儲存 + CDN 等），或使用 `pnpm deploy`（`wrangler deploy`）。
 3. 如果需要安裝 PWA 或使用 Web Push，前端部署需要 HTTPS。
-4. 部署完成後，將後端 `FRONTEND_URL` 設定為前端域名，以允許 CORS 請求。見 [伺服器與網路設定](/zh-tw/configuration/server-network/)。
+4. 部署完成後，將後端 `FRONTEND_URLS` 設定為前端域名，以允許 CORS 請求。見 [伺服器與網路設定](/zh-tw/configuration/server-network/)。
 
 ## 認證與後端連接
 

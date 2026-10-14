@@ -56,7 +56,7 @@ PRODUCTION_MODE=true
 USERNAME=你的用戶名
 PASSWORD=你的密碼
 JWT_SECRET=一個固定的長隨機字符串
-FRONTEND_URL=https://app.bilirec.org
+FRONTEND_URLS=https://app.bilirec.org
 ```
 
 若使用 FRP，再加上 `FRP_ENABLED=true`。寫入 `.env` 後**重啟 bilirec**，在登入頁填入**當前**的後端地址再登入（FRP 每次重啟子域名可能變化）。
@@ -70,7 +70,7 @@ FRONTEND_URL=https://app.bilirec.org
 | [app.bilirec.org](https://app.bilirec.org/) | `https://xxx.tunnel.bilirec.org` | 同為 `bilirec.org` | **通常不需要** — 即使瀏覽器封鎖第三方 Cookie，登入也大多正常 |
 | 自架前端，如 `https://bilirec.example.com` | `https://xxx.tunnel.bilirec.org` 或其它不同根域名的地址 | **不同**（如 `example.com` 與 `bilirec.org`） | **往往需要** — 瀏覽器會把後端的登入狀態當作「第三方」，預設可能攔下 |
 
-**自架前端 + 不同根域名後端**時，除 `PRODUCTION_MODE=true` 外，還須把後端的 `FRONTEND_URL` 設為**你的前端 HTTPS 地址**（不能仍寫 `app.bilirec.org`）。若仍登入不上，再到瀏覽器裡**允許第三方 Cookie**，或將前端與後端域名加入例外：
+**自架前端 + 不同根域名後端**時，除 `PRODUCTION_MODE=true` 外，還須把後端的 `FRONTEND_URLS` 設為**你的前端 HTTPS 地址**（不能仍只寫 `app.bilirec.org`；若官方頁與自架頁都要用，可逗號分隔寫多個）。若仍登入不上，再到瀏覽器裡**允許第三方 Cookie**，或將前端與後端域名加入例外：
 
 | 瀏覽器 | 大致路徑 |
 |--------|---------|
