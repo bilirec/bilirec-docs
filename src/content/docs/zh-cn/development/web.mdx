@@ -199,7 +199,19 @@ $env:VIEWER_PASSWORD = "你的唯读账号密码"
 pnpm build
 ```
 
-部署前请将后端 `FRONTEND_URLS` 设为该前端的 HTTPS 域名，并确保 CORS 与 Cookie（`withCredentials`）与现有自架方式一致。见 [服务器与网络配置](/zh-cn/configuration/server-network/) 与 [认证与安全](/zh-cn/configuration/auth-security/)。
+部署前请将后端 `FRONTEND_URLS` 设为包含该前端 HTTPS 来源（可与其他前端并列），并确保 CORS 与 Cookie（`withCredentials`）与现有自架方式一致。见 [服务器与网络配置](/zh-cn/configuration/server-network/) 与 [认证与安全](/zh-cn/configuration/auth-security/)。
+
+<Aside type="tip" title="与官方页（或自架管理页）并用">
+
+公开站只是后端允许的又一个前端来源，不影响管理。你自己照常在 [app.bilirec.org](https://app.bilirec.org/)（或另一个自架管理前端）用管理员账号登录；访客打开公开站即可浏览。把两边的来源都写进 `FRONTEND_URLS`：
+
+```text
+FRONTEND_URLS=https://app.bilirec.org,https://viewer.example.com
+```
+
+构建公开站时，前端的 `VIEWER_USERNAME` / `VIEWER_PASSWORD` 须与后端只读账号相同（后端那组是**定义**账号，前端构建变量是启动时**自动登录**）。完整建站流程见 [录播站指南](/zh-cn/guides/recording-station/)。
+
+</Aside>
 
 <Aside type="caution" title="安全提示">
 
