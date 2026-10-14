@@ -171,6 +171,44 @@ pnpm preview  # 本地預覽生產建置
 
 不想啟用匿名統計時，不要在建置環境中設定 `UMAMI_URL` 和 `UMAMI_WEBSITE_ID`；兩者任意一個為空，前端就不會顯示同意提示或載入統計腳本。
 
+### 公開唯讀模式（可選）
+
+若希望將自架前端作為**完全公開的錄播站**（訪客打開頁面即可瀏覽，不出現登入介面），可在建置時設定以下環境變數。未設定時行為與官方預設一致，不會增加任何運行時開銷。
+
+| 建置變數 | 含義 | 預設 |
+|----------|------|------|
+| `SERVER_URL` | bilirec 後端地址（須以 `http://` 或 `https://` 開頭） | 空（關閉） |
+| `VIEWER_USERNAME` | 自動登入用的用戶名（可選） | 空 |
+| `VIEWER_PASSWORD` | 自動登入用的密碼（可選） | 空 |
+
+**啟用條件：** `SERVER_URL` 非空即啟用公開模式。若同時提供 `VIEWER_USERNAME` 與 `VIEWER_PASSWORD`，前端會在啟動時自動調用 `POST /login`；僅設定 `SERVER_URL` 時則嘗試無認證連接（適用於後端未開啟帳號密碼的場景）。
+
+**訪客會看到什麼：**
+
+- 不會顯示登入頁，直接進入主介面，並預設打開「錄製檔案」頁面（而非「錄製管理」）。
+- 使用後端返回的角色；通常應設定專用的 **viewer（唯讀）** 帳號，介面會隱藏停止錄製、刪除檔案等寫操作。
+- 會話過期（401）時會自動重新連接，仍不回到登入頁；若後端暫時不可達，會顯示「無法連接」與重試按鈕。
+- 公開模式下不顯示登出按鈕。
+
+**建置示例：**
+
+```powershell
+$env:SERVER_URL = "https://rec.example.com"
+$env:VIEWER_USERNAME = "viewer"
+$env:VIEWER_PASSWORD = "你的唯讀帳號密碼"
+pnpm build
+```
+
+部署前請將後端 `FRONTEND_URL` 設為該前端的 HTTPS 域名，並確保 CORS 與 Cookie（`withCredentials`）與現有自架方式一致。見 [伺服器與網路設定](/zh-tw/configuration/server-network/) 與 [認證與安全](/zh-tw/configuration/auth-security/)。
+
+<Aside type="caution" title="安全提示">
+
+`VIEWER_PASSWORD` 會**編譯進公開的 JavaScript 包**，任何存取者都可能從靜態資源中提取。請**僅使用專用的唯讀 viewer 帳號**，切勿使用管理員憑據；權限控制應依賴後端 RBAC，前端隱藏按鈕只是輔助。
+
+若需要在前端完全不暴露憑據，需另行設計（例如在反向代理或 Worker 側代登並同源轉發 API），不在本倉庫預設方案內。
+
+</Aside>
+
 ### 手動部署
 
 自行部署時也可不使用 Cloudflare 按鈕：
