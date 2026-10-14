@@ -168,7 +168,7 @@ import { Aside } from '@astrojs/starlight/components';
 **根域名不同时**（例如自架前端 `https://bilirec.example.com` 连 FRP 的 `https://xxx.tunnel.bilirec.org`），浏览器还可能把登录状态当作第三方 Cookie 拦下；**app.bilirec.org 连 `*.tunnel.bilirec.org` 同属 `bilirec.org`，一般不会有这个问题**，优先检查 `PRODUCTION_MODE` 即可。
 
 **你可以：**
-1. 在后端设置 `PRODUCTION_MODE=true`，并配置 `USERNAME`、`PASSWORD`、固定的 `JWT_SECRET`；`FRONTEND_URL` 填你实际使用的管理页地址（官方页用 `https://app.bilirec.org`，自架前端填你的 HTTPS 域名），然后重启 bilirec。
+1. 在后端设置 `PRODUCTION_MODE=true`，并配置 `USERNAME`、`PASSWORD`、固定的 `JWT_SECRET`；`FRONTEND_URLS` 填你实际使用的管理页地址（官方页用 `https://app.bilirec.org`，自架前端填你的 HTTPS 域名；多个来源用逗号分隔），然后重启 bilirec。
 2. 在登录页填入**当前**的后端地址（FRP 每次重启子域名可能变化；自架域名一般不变）。
 3. **仅当前端与后端根域名不同**（自架前端 + FRP 等）且仍登录不上时：在浏览器里**允许第三方 Cookie**，或将前端与后端域名加入例外。Chrome / Edge：「设置 → 隐私和安全 → 第三方 Cookie」；Safari：关闭「阻止跨站跟踪」；Firefox：对前端域名放宽隐私保护。
 4. 本机 `localhost` 开发不受此影响，无需改 `PRODUCTION_MODE`。
