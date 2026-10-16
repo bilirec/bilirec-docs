@@ -312,9 +312,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 想改善什麼 | 環境變數 | 方向 |
 | ---------- | -------- | ---- |
-| 讓系統忘掉檔案頁緩存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（預設已開）；關檔 / 轉碼後整份釋放 |
+| 讓系統忘掉檔案頁緩存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（預設已開）；關檔 / 轉碼後整份釋放。本地 ffmpeg 成品會先寫穩到磁碟再釋放 |
 | 錄製中更勤地清舊頁緩存 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 改小間隔（如 `60` → `30`）；`0` = 關閉錄製中冷釋放 |
 | 降低記憶體池預熱佔用 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`<br />`READ_STREAM_CHAN_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_BUFFER_SIZE` 等 | 略減小緩衝，見 [記憶體佔用估算](/zh-tw/configuration/memory-estimation/#想省記憶體優先改哪幾個) |
+
+本地 ffmpeg 轉碼剛結束時，監控可能仍偏高：成品會先寫穩到磁碟，再釋放頁緩存；寫回與釋放完成前，曲線未必立刻下降。
 
 冷釋放細節（何時才真正執行、與整檔案落盤的區別）見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android)。
 
@@ -324,7 +326,9 @@ import { Aside } from '@astrojs/starlight/components';
 
 瀏覽器在線播放、或下載已錄好的 MP4 時，系統會為讀盤加速在記憶體裡**再留一份檔案副本**（與錄製寫入類似，還是屬於系統頁緩存）。播得越久、拖進度條越頻繁，這份緩存可能越大；**停播後**若監控仍居高不下，多半是緩存還沒被系統收回。
 
-**預設行為（`DROP_FILE_PAGE_CACHE=true`）：** 最後一次播放或下載請求結束後，會等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（預設 **60**）再釋放該檔案的緩存；這段時間內若再次播放同一檔案，計時會重新算起。若你把該變數設為 `0`（僅關閉**錄製中**冷釋放），播放/下載空閒仍按預設 **60** 秒等待後釋放，避免與關檔釋放（`DROP_FILE_PAGE_CACHE`）綁死。
+**預設行為（`DROP_FILE_PAGE_CACHE=true`）：** 最後一次播放或下載請求結束後，會先等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（預設 **60**）做第一次釋放；約 **5 分鐘**後再補一次，把第一次沒清乾淨的緩存再收一截。等待期間若再次播放同一檔案，計時會重新算起。若你把該變數設為 `0`（僅關閉**錄製中**冷釋放），播放/下載空閒仍按預設 **60** 秒等待，5 分鐘後的第二次釋放同樣會執行，避免與關檔釋放（`DROP_FILE_PAGE_CACHE`）綁死。第二次等待不可單獨設定。
+
+停播約 1 分鐘後監控可能先降一截；若仍偏高，約 5 分鐘後的第二次釋放往往還會再降。停播後立刻查看時，數字可能尚未反映完整釋放節奏。
 
 **侷限：** 長時間連續播放、Range 請求不斷到來時，計時會被反覆重置，**播放過程中**監控仍可能上漲；本機制主要改善**停播 / 下載完成後**曲線不降的問題。
 
@@ -337,7 +341,7 @@ import { Aside } from '@astrojs/starlight/components';
 | 環境變數 | 說明 | 預設 |
 | -------- | ------ | ---- |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **錄製過程中**，每隔一段時間讓系統釋放「已經寫好、暫時不會再讀」的舊檔案緩存 | `60`（秒） |
-| `DROP_FILE_PAGE_CACHE` | **一段錄完或轉碼結束後**，釋放整份檔案的系統頁緩存 | `true` |
+| `DROP_FILE_PAGE_CACHE` | **一段錄完或轉碼結束後**，釋放整份檔案的系統頁緩存（本地 ffmpeg 成品會先寫穩再釋放）。播放/下載結束後的釋放見上一節 | `true` |
 
 兩者配合，可避免 Docker / 手機監控裡記憶體隨錄製一路頂到上限。代價是：剛錄完立刻播放、或錄製中回放已寫好的前半段，可能要從磁碟重新讀，略慢。
 

@@ -83,7 +83,7 @@ HLS 讀進來的是**一整段分片**（大小由 m3u8 決定，常見 2–6 MB
 | -------- | ---------- | ------------ | -------- |
 | **程式緩衝（讀入 / 寫盤排隊）** | 錄播時隨路數、畫質上漲；停錄後若仍偏高但穩定，可能還留著複用緩衝 | `READ_STREAM_*`、`LIVE_STREAM_WRITER_*`、`MAX_CONCURRENT_RECORDINGS` | 按上文公式估算；優先減小 `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`、`READ_STREAM_CHAN_BUFFER_SIZE`，見下文「想省記憶體」 |
 | **系統頁緩存（錄製寫入）** | 長錄、多路時監控遠高於 [性能實測](/zh-tw/guides/performance-benchmark/)，關檔後仍虛高 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS`、`DROP_FILE_PAGE_CACHE` | 預設已開啟；仍偏高見 [I/O 調優 · 錄製檔案緩存釋放](/zh-tw/configuration/io-tuning/#錄製檔案緩存釋放linux--android) |
-| **系統頁緩存（在線播放 / 下載）** | 播完或下完仍居高不下 | 同上；播放空閒等待亦用 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 見 [常見問題 · 在線播放或下載後](/zh-tw/guides/faq/#在線播放或下載後監控記憶體一直很高) |
+| **系統頁緩存（在線播放 / 下載）** | 播完或下完仍居高不下；約 1 分鐘後可能先降，再過約 5 分鐘才較完全 | 同上；播放空閒等待亦用 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 見 [常見問題 · 在線播放或下載後](/zh-tw/guides/faq/#在線播放或下載後監控記憶體一直很高) |
 | **停錄後緩衝複用** | 任務都停了，仍比剛啟動高約幾十 MB，且長期穩定 | （屬正常行為，無單獨開關） | 對照性能實測「恢復閒置」；想略降可調小緩衝相關變數 |
 
 規劃 **Docker 記憶體 limit** 建議用上文公式（偏保守）；對照監控曲線可參考性能實測。
