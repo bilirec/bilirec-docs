@@ -312,9 +312,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 | 想改善什么 | 环境变量 | 方向 |
 | ---------- | -------- | ---- |
-| 让系统忘掉文件页缓存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（默认已开）；关档 / 转码后整份释放 |
+| 让系统忘掉文件页缓存 | `DROP_FILE_PAGE_CACHE` | 保持 `true`（默认已开）；关档 / 转码后整份释放。本地 ffmpeg 成品会先写稳到磁盘再释放 |
 | 录制中更勤地清旧页缓存 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | 改小间隔（如 `60` → `30`）；`0` = 关闭录制中冷释放 |
 | 降低内存池预热占用 | `LIVE_STREAM_WRITER_CHAN_BUFFER_SIZE`<br />`READ_STREAM_CHAN_BUFFER_SIZE`<br />`LIVE_STREAM_WRITER_BUFFER_SIZE` 等 | 略减小缓冲，见 [内存占用估算](/zh-cn/configuration/memory-estimation/#想省内存优先改哪几个) |
+
+本地 ffmpeg 转码刚结束时，监控可能仍偏高：成品会先写稳到磁盘，再释放页缓存；写回与释放完成前，曲线未必立刻下降。
 
 冷释放细节（何时才真正执行、与整文件落盘的区别）见 [I/O 调优 · 录制文件缓存释放](/zh-cn/configuration/io-tuning/#录制文件缓存释放linux--android)。
 
@@ -324,7 +326,9 @@ import { Aside } from '@astrojs/starlight/components';
 
 浏览器在线播放、或下载已录好的 MP4 时，系统会为读盘加速在内存里**再留一份文件副本**（与录制写入类似，还是属于系统页缓存）。播得越久、拖进度条越频繁，这份缓存可能越大；**停播后**若监控仍居高不下，多半是缓存还没被系统收回。
 
-**默认行为（`DROP_FILE_PAGE_CACHE=true`）：** 最后一次播放或下载请求结束后，会等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（默认 **60**）再释放该文件的缓存；这段时间内若再次播放同一文件，计时会重新算起。若你把该变量设为 `0`（仅关闭**录制中**冷释放），播放/下载空闲仍按默认 **60** 秒等待后释放，避免与关档释放（`DROP_FILE_PAGE_CACHE`）绑死。
+**默认行为（`DROP_FILE_PAGE_CACHE=true`）：** 最后一次播放或下载请求结束后，会先等待 `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` 秒（默认 **60**）做第一次释放；约 **5 分钟**后再补一次，把第一次没清干净的缓存再收一截。等待期间若再次播放同一文件，计时会重新算起。若你把该变量设为 `0`（仅关闭**录制中**冷释放），播放/下载空闲仍按默认 **60** 秒等待，5 分钟后的第二次释放同样会执行，避免与关档释放（`DROP_FILE_PAGE_CACHE`）绑死。第二次等待不可单独配置。
+
+停播约 1 分钟后监控可能先降一截；若仍偏高，约 5 分钟后的第二次释放往往还会再降。停播后立刻查看时，数字可能尚未反映完整释放节奏。
 
 **局限：** 长时间连续播放、Range 请求不断到来时，计时会被反复重置，**播放过程中**监控仍可能上涨；本机制主要改善**停播 / 下载完成后**曲线不降的问题。
 
@@ -337,7 +341,7 @@ import { Aside } from '@astrojs/starlight/components';
 | 环境变量 | 说明 | 默认 |
 | -------- | ------ | ---- |
 | `LIVE_STREAM_WRITER_COLD_CACHE_RELEASE_SECS` | **录制过程中**，每隔一段时间让系统释放「已经写好、暂时不会再读」的旧文件缓存 | `60`（秒） |
-| `DROP_FILE_PAGE_CACHE` | **一段录完或转码结束后**，释放整份文件的系统页缓存 | `true` |
+| `DROP_FILE_PAGE_CACHE` | **一段录完或转码结束后**，释放整份文件的系统页缓存（本地 ffmpeg 成品会先写稳再释放）。播放/下载结束后的释放见上一节 | `true` |
 
 两者配合，可避免 Docker / 手机监控里内存随录制一路顶到上限。代价是：刚录完立刻播放、或录制中回放已写好的前半段，可能要从磁盘重新读，略慢。
 
