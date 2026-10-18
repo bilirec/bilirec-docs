@@ -172,6 +172,11 @@ export default defineConfig({
 					label: 'GitHub',
 					href: 'https://github.com/bilirec/bilirec',
 				},
+				{
+					icon: 'discord',
+					label: 'Discord',
+					href: 'https://discord.gg/TahN28VDwc',
+				},
 			],
 			editLink: {
 				baseUrl: 'https://github.com/bilirec/bilirec-docs/edit/main/',
@@ -194,6 +199,11 @@ export default defineConfig({
 							url: 'https://github.com/bilirec/bilirec',
 							description: 'Bilirec 后端源码',
 						},
+						{
+							label: 'Discord',
+							url: 'https://discord.gg/TahN28VDwc',
+							description: 'B站录播工具社区（交流与反馈）',
+						},
 					],
 					promote: [
 						'zh-cn/index*',
@@ -205,7 +215,7 @@ export default defineConfig({
 						'zh-cn/guides/ai-docs*',
 					],
 					customSelectors: {
-						all: ['.qq-community'],
+						all: ['.community-links'],
 					},
 				}),
 			],
