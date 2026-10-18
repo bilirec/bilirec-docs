@@ -43,6 +43,8 @@ const termFixes = [
 	[/编译/g, '編譯'],
 	[/安装/g, '安裝'],
 	[/界面/g, '介面'],
+	// UI tab (OpenCC / versions may yield 頁簽 or 頁籤 — lock to Taiwan UI 頁籤)
+	[/页签/g, '頁籤'],
 	[/远程/g, '遠端'],
 	[/访问/g, '存取'],
 	[/公开/g, '公開'],
@@ -129,6 +131,7 @@ const postTermFixes = [
 	[/一臺/g, '一台'],
 	[/瞭解/g, '了解'],
 	[/數據源/g, '資料源'],
+	[/頁簽/g, '頁籤'],
 ];
 
 // Dashboard-only OpenCC leftovers (do not apply to docs)
