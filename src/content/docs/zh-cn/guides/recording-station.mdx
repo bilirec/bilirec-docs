@@ -5,7 +5,7 @@ sidebar:
   label: 搭建录播站
 ---
 
-import { Aside, Steps } from '@astrojs/starlight/components';
+import { Aside, LinkCard, Steps } from '@astrojs/starlight/components';
 
 本页按**目标**串起步骤：成片留在你的机器上，访客通过 Web **带弹幕回放**或下载。需要配置管理员与只读账号，并把 API 安全地暴露到公网。
 
@@ -14,6 +14,14 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 本站计划免费提供用 Bilirec 搭建、**面向粉丝公开**的录播站（可长期使用，单站约 **100 GB** 存储）。有兴趣者可加入 [Q群](https://qm.qq.com/q/oMTN3EsGBy) 咨询，或 [填写申请表](https://forms.cloud.microsoft/r/Uj04eD73SG)。
 
 </Aside>
+
+## 公开演示
+
+<LinkCard title="hinome.bilirec.org" href="https://hinome.bilirec.org/">
+  公开唯读录播站：浏览、带弹幕回放、下载或分享，无需登录。
+</LinkCard>
+
+该站没有登录页，默认打开「录制文件」。侧栏仍有「录制管理」「订阅管理」，但不提供添加房间、删除文件、开始或停止录制。管理员用 [app.bilirec.org](https://app.bilirec.org/) 或另一套自架管理页登录同一台后端。同类做法见下文与 [公开唯读模式](/zh-cn/development/web/#公开唯读模式可选)。
 
 ## 适合谁
 
@@ -32,7 +40,7 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 
 <Aside type="note">
 
-默认是**半公开**：对方要知道录播服务器地址，并输入只读账号密码，才能浏览、回放和下载。若希望访客打开网址就能翻库、不出现登录页，见 [公开唯读模式](/zh-cn/development/web/#公开唯读模式可选)。
+默认是**半公开**：对方要知道录播服务器地址，并输入只读账号密码，才能浏览、回放和下载。若希望访客打开网址就能翻库、不出现登录页（如 [演示站](https://hinome.bilirec.org/)），见 [公开唯读模式](/zh-cn/development/web/#公开唯读模式可选)。
 
 </Aside>
 
