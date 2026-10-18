@@ -1,0 +1,59 @@
+---
+const QQ_GROUP_NUMBER = '834229325';
+const QQ_GROUP_URL = 'https://qm.qq.com/q/oMTN3EsGBy';
+const DISCORD_URL = 'https://discord.gg/TahN28VDwc';
+const QR_SRC = '/images/community/qq-group.png';
+---
+
+<div class="community-links not-content">
+	<div class="community-links__card">
+		<div class="community-links__body">
+			<div class="community-links__text">
+				<p class="community-links__title">
+					<svg class="community-links__qq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.395 15.035a40 40 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a39 39 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 2.103-2.472 2.103-2.472 0 1.469.756 3.387 2.394 4.771-.612.188-1.363.479-1.845.835-.434.32-.379.646-.301.778.343.578 5.883.369 7.482.189 1.6.18 7.14.389 7.483-.189.078-.132.132-.458-.301-.778-.483-.356-1.233-.646-1.846-.836 1.637-1.384 2.393-3.302 2.393-4.771 0 0 1.563 2.537 2.103 2.472.251-.03.581-1.39-.438-4.673"/></svg>
+					QQ 交流群
+				</p>
+				<p class="community-links__lead">
+					遇到问题、想交流使用经验或反馈建议，欢迎加入 QQ 群一起讨论。
+				</p>
+				<p class="community-links__meta">
+					群号：
+					<a href={QQ_GROUP_URL} target="_blank" rel="noopener noreferrer">{QQ_GROUP_NUMBER}</a>
+					<span aria-hidden="true"> · </span>
+					<a href={QQ_GROUP_URL} target="_blank" rel="noopener noreferrer">点击加入</a>
+				</p>
+			</div>
+			<a
+				class="community-links__qr"
+				href={QQ_GROUP_URL}
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="扫码加入 QQ 群 834229325"
+			>
+				<img
+					src={QR_SRC}
+					alt="B站录播工具交流群 QQ 二维码"
+					width="400"
+					height="400"
+					loading="lazy"
+					decoding="async"
+				/>
+				<span>扫一扫加入群聊</span>
+			</a>
+		</div>
+	</div>
+	<div class="community-links__card community-links__card--discord">
+		<div class="community-links__text">
+			<p class="community-links__title">
+				<svg class="community-links__discord-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4444.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1639-.3933-.4059-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0409.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/></svg>
+				Discord 社区
+			</p>
+			<p class="community-links__lead">
+				即时聊天频道，适合快速提问、交流使用经验与反馈建议。
+			</p>
+		</div>
+		<a class="community-links__join" href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
+			加入 Discord 服务器
+		</a>
+	</div>
+</div>
