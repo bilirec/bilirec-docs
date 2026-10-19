@@ -205,8 +205,8 @@ Android 后端默认监听 `http://127.0.0.1:8080`（登录页填 `localhost` �
 |---------|---------|------|
 | **录完自动转为 MP4** | `CONVERT_TO_MP4` | 录制完成的 FLV/TS/fMP4 在收尾时自动转 MP4（内嵌 FFmpeg）；RAM 少于 8 GB 建议关闭 |
 | **转档后删除原始文件** | `DELETE_SOURCE_AFTER_CONVERT` | 转码成功后再异步删除 FLV/TS/fMP4 等源文件；删除失败会重试，仍失败则重命名为带「转换完成可删除」标记的文件 |
-| **录制中允许转换** | `FFMPEG_ALLOW_DURING_RECORDING` | 边录边转，增加读写负载与发热 |
-| **允许转档的「最高录制路数」** | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`（不限）～`5` 路；超过时暂停后台转档以优先保证录制 |
+| **录制中允许转换** | `FFMPEG_ALLOW_DURING_RECORDING` | 即使还有直播间在录，也可以转换已经录完的文件；仍受下方路数上限限制，并会增加读写负载与发热 |
+| **边录边转的路数上限** | `FFMPEG_ALLOW_DURING_RECORDING_MAX_ACTIVE_RECORDINGS` | `0`（不限，录制中也不停）～`5` 路；正在录制的房间不超过此值时才边录边转。超过则延后、不取消队列。这不是「同时录制上限」 |
 
 转档行为详见 [转换配置](/zh-cn/configuration/conversion/)。
 
