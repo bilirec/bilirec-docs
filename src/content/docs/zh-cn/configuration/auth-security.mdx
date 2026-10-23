@@ -17,7 +17,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 设置 `USERNAME` 和 `PASSWORD` 后，访问 API 需要先登录。Web 管理页通过登录接口验证账号密码。
 
-`VIEWER_USERNAME` / `VIEWER_PASSWORD` 提供只读账号，写操作仍需 admin 角色。
+`VIEWER_USERNAME` / `VIEWER_PASSWORD` 提供只读账号：可浏览文件、成片回放与下载，但不能执行写操作（如开停录、删文件），也不能调用 **录制中预览**（`/preview/`，仅管理员）。
 
 <Aside type="caution">
 暴露到公网（如启用 FRP）后，**建议**设置 `USERNAME` 和 `PASSWORD`。未设置时 API 完全公开访问。

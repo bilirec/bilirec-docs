@@ -50,7 +50,7 @@ import { Aside, LinkCard, Steps } from '@astrojs/starlight/components';
 
 1. [安裝](/zh-tw/guides/installation/)並[啟動](/zh-tw/guides/quick-start/) bilirec，完成 B 站登入。
 2. 設定**管理員** `USERNAME` / `PASSWORD`；公網暴露後未設定時 API 完全公開，見 [認證與安全](/zh-tw/configuration/auth-security/)。
-3. 設定**只讀訪客** `VIEWER_USERNAME` / `VIEWER_PASSWORD`：訪客可瀏覽、回放、下載，不能改訂閱或開停錄。
+3. 設定**只讀訪客** `VIEWER_USERNAME` / `VIEWER_PASSWORD`：訪客可瀏覽、成片回放、下載，不能改訂閱、開停錄，也不能預覽正在錄製的房間（需管理員帳號）。
 4. 在 Web「訂閱管理」為房間開啟**自動錄製**，見 [錄製直播間](/zh-tw/guides/recording/)。
 5. 保持 **`DANMAKU_OUTPUT_FORMAT=jsonl`**，與 bilirec-web 彈幕回放配套，見 [彈幕錄製](/zh-tw/configuration/danmaku/) 與 [Web 介面 · 錄製與回放](/zh-tw/guides/web-ui/#錄製與回放)。
 6. 開啟 **`CONVERT_TO_MP4=true`**，錄製結束後生成 MP4，訪客才能在瀏覽器裡穩定回放，見 [轉換設定](/zh-tw/configuration/conversion/)。

@@ -24,7 +24,7 @@ curl -i -c cookies.txt -X POST http://127.0.0.1:8080/login \
 
 ## 只读账号
 
-配置 `VIEWER_USERNAME` / `VIEWER_PASSWORD` 可创建只读访客账号，写操作仍需 admin 角色。
+配置 `VIEWER_USERNAME` / `VIEWER_PASSWORD` 可创建只读访客账号。写操作（如开停录、删文件）与 **录制中预览**（`/preview/`）仍需 admin 角色；访客可浏览文件并使用成片回放接口。
 
 ## 公开访问
 

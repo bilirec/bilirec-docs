@@ -80,7 +80,7 @@ GET /files/playback/{path}?presigned={token}
 需要携带有效的预签名 token（`purpose` 使用 `playback`）。返回 MP4 或 M4A 媒体流，浏览器可直接播放。支持 Range 请求（快进/快退）。
 
 - 支持 MP4 与 M4A
-- 无法播放进行中的录制文件
+- 无法播放进行中的录制文件（正在写入的分段请用 [录制中预览](/zh-cn/api/preview/)，仅管理员）
 - token 过期后返回 `403`，播放器应在过期前重新调用预签名接口换取新 URL
 
 ```html
