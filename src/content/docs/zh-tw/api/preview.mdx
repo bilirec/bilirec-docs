@@ -1,0 +1,63 @@
+---
+title: 錄製中預覽
+description: 錄製進行中的實時媒體流與彈幕事件 API
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+在房間**正在錄製**且當前分段已打開時，可通過以下接口向瀏覽器或自定義客戶端推送**實時**畫面（或純音頻）與彈幕互動。這不是檔案回放；成片仍使用 [檔案管理 · 在線播放](/zh-tw/api/files/#在線播放)。
+
+<Aside type="note">
+啟用 `USERNAME` / `PASSWORD` 後，預覽路由需要 **管理員** JWT。只讀訪客帳號返回 `403`（`沒有權限`）。未設定帳號密碼時，與部分其他受保護寫操作路由一樣，預覽接口在未登入時也可存取。
+</Aside>
+
+## 實時媒體流
+
+```http
+GET /preview/rooms/:roomID/media
+```
+
+| 項目 | 說明 |
+| ---- | ---- |
+| `roomID` | 正整數直播間 ID；無效時返回 `400`（`無效的房間 ID`） |
+| Query | 無 |
+| 響應 | 長連接流式 body，直到當前錄製分段結束、錄製停止或客戶端被斷開 |
+| `Content-Type` | 隨當前分段容器：`video/x-flv`、`video/mp2t`、`video/mp4`（fMP4）等 |
+
+響應頭包含 `Cache-Control: no-store` 與 `X-Accel-Buffering: no`，便於反向代理直接透傳。
+
+### 錯誤
+
+| 狀態 | 說明 |
+| ---- | ---- |
+| `401` | 已啟用認證但未登入或 JWT 無效 |
+| `403` | 已登入但不是管理員角色 |
+| `409` | 該房間當前沒有可預覽的錄製（`該房間當前沒有可預覽的錄製`） |
+
+客戶端應在流結束（EOF）後**重新請求**同一 URL 以接續下一段；分段切換間隙可能短暫返回 `409`。
+
+若觀看端消費過慢，服務端可能在積壓約 1 MiB 後斷開該連接，需重新打開媒體流。
+
+## 彈幕與互動事件（SSE）
+
+```http
+GET /preview/rooms/:roomID/events
+Accept: text/event-stream
+```
+
+與 `/media` 相同的房間 ID 與認證要求。
+
+- 連接成功後先發送註釋行 `connected`，隨後約每 **25 秒** 心跳
+- 若本次錄製開啟了彈幕且 `DANMAKU_OUTPUT_FORMAT=jsonl`，會推送與 sidecar 相同結構的 JSON 行（彈幕、禮物、醒目留言、艦長等）
+- 新連接時會從當前分段的 `.jsonl` **補發**最近約 **60 秒**內的互動（`meta` 行會一併補發）
+- 當前錄製分段結束時推送 `{"type":"segment"}`；客戶端應清空疊加層並配合重新打開 `/media`
+
+未開啟錄製彈幕，或輸出格式為 `xml` 時，SSE 仍可能建立，但不會有實時互動行（補發也依賴 jsonl sidecar）。
+
+## 與 Web 播放器的關係
+
+[bilirec-web](https://github.com/bilirec/bilirec-web) 在「錄製管理」卡片上對管理員展示 **預覽錄製**，同時連接上述媒體流與 SSE。回看時長由瀏覽器端緩衝控制（預設約 60 秒），不是服務端 Range/DVR。用戶說明見 [Web 介面 · 錄製中預覽](/zh-tw/guides/web-ui/#錄製中預覽)。
+
+## 反向代理
+
+請勿對 `/preview/` 開啟響應體緩衝，否則畫面可能卡頓或彈幕延遲。設定示例見 [伺服器與網路](/zh-tw/configuration/server-network/#nginx-反代示例)。

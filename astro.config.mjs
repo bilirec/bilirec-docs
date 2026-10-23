@@ -86,6 +86,7 @@ const sidebar = [
 			{ slug: 'api/record' },
 			{ slug: 'api/room' },
 			{ slug: 'api/files' },
+			{ slug: 'api/preview' },
 			{ slug: 'api/convert' },
 			{ slug: 'api/notify' },
 			{ slug: 'development/android-library' },

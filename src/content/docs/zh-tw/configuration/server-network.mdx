@@ -66,7 +66,9 @@ proxy_set_header If-Modified-Since $http_if_modified_since;
 proxy_set_header X-Real-IP $remote_addr;
 ```
 
-其他反向代理（Caddy、Traefik 等）也需保證 Range 能端到端透傳；具體寫法因軟體而異。
+[錄製中預覽](/zh-tw/api/preview/) 的 `GET /preview/rooms/:roomID/media` 與 `/events`（SSE）同樣是**長連接**。後端會對這些響應設定 `X-Accel-Buffering: no`；若 Nginx 等仍對 `/preview/` 做響應緩衝，Web 裡可能出現畫面卡住、彈幕遲遲不更新。請與上文一樣保持 `proxy_buffering off`，並確保 SSE 不被代理合併或截斷。
+
+其他反向代理（Caddy、Traefik 等）也需保證 Range 能端到端透傳，且長連接預覽路徑不被緩衝；具體寫法因軟體而異。
 
 `FRONTEND_URLS` 設為 `https://app.bilirec.org` 時，表示允許該管理頁跨域存取你的 API。若同時使用官方頁與自架前端，可寫為 `https://app.bilirec.org,https://你的域名`。若通過 app.bilirec.org 管理自架 HTTPS 後端，還需開啟 `PRODUCTION_MODE=true`，詳見 [認證與安全](/zh-tw/configuration/auth-security/#何時需要生產模式)。
 
