@@ -36,7 +36,7 @@ GET /preview/rooms/:roomID/media
 
 客户端应在流结束（EOF）后**重新请求**同一 URL 以接续下一段；分段切换间隙可能短暂返回 `409`。
 
-若观看端消费过慢，服务端可能在积压约 1 MiB 后断开该连接，需重新打开媒体流。
+若观看端消费过慢，服务端会在该连接的出站积压超过 `PREVIEW_MEDIA_MAX_QUEUED_BYTES`（默认 **4 MiB**，见 [环境变量参考](/zh-cn/configuration/env-reference/)）后断开，需重新打开媒体流。低配主机或只开一路预览时可酌情调小；2K/4K 或频繁回看追看时可酌情调大。
 
 ## 弹幕与互动事件（SSE）
 
