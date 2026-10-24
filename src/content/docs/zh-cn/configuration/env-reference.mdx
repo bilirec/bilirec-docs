@@ -93,6 +93,7 @@ tableOfContents: false
 | `SUBCHECK_MAX_INTERVAL_SECS` | 订阅开播检查：完整轮询周期上限（秒） | `300` |
 | `SUBCHECK_MAX_SHARDS` | 订阅开播检查：分组数上限 | `32` |
 | `SUBCHECK_JITTER_SECS` | 订阅开播检查：每组触发前的最大随机延迟（秒），打散请求节奏以降低反爬风控风险 | `2` |
+| `PREVIEW_MEDIA_MAX_QUEUED_BYTES` | 录制中预览：每个 `/preview/rooms/:roomID/media` 观看连接在 bilirec 进程内可积压的未发送字节上限；超出后断开该连接（客户端需重连）。与浏览器回看秒数无关；多标签页各占一路 | `4194304` (4 MB) |
 | `UPLOAD_BUFFER_SIZE` | 上传时或向外部服务（如 CloudConvert）传输文件使用的缓冲区大小（字节） | `5242880` (5 MB) |
 | `DOWNLOAD_BUFFER_SIZE` | 文件下载 / 导出时使用的缓冲区大小（字节） | `5242880` (5 MB) |
 | `STREAM_WRITER_BUFFER_SIZE` | 流写入器（写入文件）缓冲区大小（字节） | `1048576` (1 MB) |
