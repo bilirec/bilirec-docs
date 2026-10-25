@@ -1,0 +1,78 @@
+---
+title: AI 字幕錄製
+description: 從直播影片碼流提取 AI 字幕，保存為與分段同名的 WebVTT sidecar
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## 概述
+
+部分 B 站直播間提供 AI 實時字幕。bilirec 可以在錄製影片時，從 FLV、HLS fMP4、HLS TS 影片碼流裡的 SEI 信息提取這些字幕，保存為與影片**同名**的 `.vtt` 檔案（例如 `rec-0.flv` 旁邊的 `rec-0.vtt`）。
+
+該功能**預設關閉**，與「錄製彈幕」一樣按每次開錄或房間設定單獨開啟。只有直播間本身開啟了 AI 字幕、且錄製過程中出現了可識別的句子時才會生成檔案；整段沒有字幕則**不會**留下空檔案。正在錄製的分段無法通過 Web 或 API 讀取字幕檔案。
+
+站內播放器與 VLC、mpv、PotPlayer 等外部播放器都可以使用這份 VTT。bilirec **不提供** SRT 格式選項。
+
+## 快速開始
+
+### 在 Web 介面開啟
+
+開始手動錄製時，在錄製選項中開啟「錄製 AI 字幕」。
+
+為訂閱房間開啟自動錄製時，在房間設定中開啟「錄製 AI 字幕」。之後由該房間自動開始的錄製會沿用這個設定。
+
+### 通過 API 開啟
+
+手動錄製時在開始錄製請求中開啟 `record_subtitle`：
+
+```bash
+curl -X POST "http://127.0.0.1:8080/record/12345/start" \
+  -H "Content-Type: application/json" \
+  -d '{"record_subtitle":true}'
+```
+
+也可使用 query：`?record_subtitle=true`。
+
+自動錄製使用房間設定中的 `record_subtitle`：
+
+```json
+{
+  "auto_record": true,
+  "record_subtitle": true,
+  "stream_profiles": []
+}
+```
+
+## 行為說明
+
+- **與影片分段對齊**：PK、斷流或畫質輪轉產生新分段時，每個影片分段各有一份同名 `.vtt`（若該段有字幕）。
+- **丟棄分段**：與彈幕 sidecar 一樣，被丟棄的小分段會刪除對應的 `.vtt`。
+- **僅錄音**：`only_audio=true` 時不提取字幕。
+- **房間未提供 AI 字幕**：即使開啟了 `record_subtitle`，也不會生成檔案。
+
+<Aside type="note">
+瀏覽器播放封裝影片時不會把 SEI 顯示為字幕軌，因此 Web 回放需要這份 VTT sidecar，而不是在播放時再從影片裡拆字幕。
+</Aside>
+
+## 讀取字幕檔案
+
+對已結束錄製的分段：
+
+```bash
+curl -b "session=..." "http://127.0.0.1:8080/files/subtitle/路徑/rec-0.flv"
+```
+
+請求中的路徑為**影片檔案路徑**（與彈幕 sidecar 相同約定），服務端會解析為同名的 `.vtt`。正在錄製的分段返回 `400`。
+
+## 故障排除
+
+### 開了開關卻沒有 `.vtt`
+
+1. 確認直播間在開播時確實提供了 AI 字幕（並非所有分區或主播都開啟）。
+2. 確認該段錄製時間內出現了可識別的語音；安靜時段不會生成檔案。
+3. 確認不是「僅錄音」錄製。
+
+### 有 `.vtt` 但站內播放器沒有字幕
+
+1. 確認播放的是**已結束**的分段；正在錄製的分段無法掛載字幕軌。
+2. 確認檔案列表中的影片旁確實存在同名 `.vtt`，並刷新頁面重新打開播放器。
