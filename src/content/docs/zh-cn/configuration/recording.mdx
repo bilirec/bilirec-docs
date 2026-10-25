@@ -34,6 +34,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 是否保存弹幕、礼物等直播互动记录，由每次开始录制的 `record_danmaku` 参数或房间配置中的同名字段控制，不是全局开关。输出格式、消息高峰处理方式和写入频率见[弹幕录制](/zh-cn/configuration/danmaku/)。
 
+## AI 字幕
+
+是否提取直播间 AI 字幕并保存为同名 `.vtt`，由每次开始录制的 `record_subtitle` 参数或房间配置中的同名字段控制，默认关闭。详见 [AI 字幕录制](/zh-cn/configuration/subtitle/)。
+
 ## 存储路径
 
 | 变量 | 说明 | 默认值 |

@@ -80,6 +80,17 @@ Content-Type: application/json
 
 弹幕文件格式与写入行为由 [弹幕录制配置](/zh-cn/configuration/danmaku/)控制。使用 Web 播放器显示弹幕滚动和礼物特效时，建议使用默认的 `jsonl` 格式。
 
+### record_subtitle
+
+是否从视频码流提取直播间 AI 字幕并保存为同名 `.vtt` sidecar。
+
+| 值 | 说明 |
+| -- | ---- |
+| 不传 / `false` | 不录制字幕 |
+| `true` | 在房间提供 AI 字幕且出现可识别句子时写入 `.vtt` |
+
+详见 [AI 字幕录制](/zh-cn/configuration/subtitle/)。`only_audio=true` 时不提取字幕。
+
 ### delete_oldest_on_low_disk
 
 可用空间低于 `MIN_DISK_SPACE_BYTES` 时，是否先删除该房间目录里文件名时间戳最早的录像（含同名弹幕附件），再重新检查空间并尝试启动。

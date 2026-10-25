@@ -12,7 +12,7 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 在 Web 介面中輸入直播間房間號，在確認頁選擇畫質、允許的流格式、是否僅錄製音頻、是否錄製彈幕與時長，點擊開始錄製。
 
 <Aside type="note">
-Web 介面中「畫質」為請求偏好，不可用時會盡量選用該直播支持的較高檔位。「流格式」可多選，作為嚴格允許清單：未選表示允許全部格式；選中後只會在所選格式內嘗試。「僅錄製音頻」對應 API 參數 `only_audio=true`，「錄製彈幕」對應 `record_danmaku=true`。不傳 `qn` 時後端預設使用原畫（`10000`）。
+Web 介面中「畫質」為請求偏好，不可用時會盡量選用該直播支持的較高檔位。「流格式」可多選，作為嚴格允許清單：未選表示允許全部格式；選中後只會在所選格式內嘗試。「僅錄製音頻」對應 API 參數 `only_audio=true`，「錄製彈幕」對應 `record_danmaku=true`，「錄製 AI 字幕」對應 `record_subtitle=true`。不傳 `qn` 時後端預設使用原畫（`10000`）。
 </Aside>
 
 <Tabs>
@@ -63,6 +63,10 @@ curl -X POST "http://127.0.0.1:8080/record/12345/start" \
 開啟後，bilirec 會同時保存普通彈幕、醒目留言、禮物和艦長等互動記錄。記錄會保存為與影片同名的彈幕檔案；影片分段或斷流恢復後，新的影片檔案會對應新的彈幕檔案。
 
 Web 回放要顯示彈幕滾動和禮物特效，建議使用預設的 `jsonl` 格式。輸出格式、消息高峰處理和磁碟寫入相關調節見[彈幕錄製設定](/zh-tw/configuration/danmaku/)。
+
+### 錄製 AI 字幕（record_subtitle）
+
+開啟後，bilirec 會從影片碼流提取直播間 AI 字幕，保存為與影片同名的 `.vtt` 檔案。只有直播間提供 AI 字幕且該段出現了可識別句子時才會落盤；預設關閉。詳見 [AI 字幕錄製](/zh-tw/configuration/subtitle/)。
 
 ### 流格式（stream_profile / stream_profiles）
 

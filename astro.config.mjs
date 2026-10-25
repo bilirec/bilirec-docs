@@ -59,6 +59,7 @@ const sidebar = [
 			{ slug: 'configuration/frp' },
 			{ slug: 'configuration/recording' },
 			{ slug: 'configuration/danmaku' },
+			{ slug: 'configuration/subtitle' },
 			{ slug: 'configuration/conversion' },
 			{ slug: 'configuration/auth-security' },
 			{ slug: 'configuration/notifications' },

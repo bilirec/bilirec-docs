@@ -122,6 +122,7 @@ GET /room/:roomID/config
   "qn": 150,
   "only_audio": false,
   "record_danmaku": true,
+  "record_subtitle": false,
   "stream_profiles": ["hls-fmp4", "hls-ts"],
   "delete_oldest_on_low_disk": false
 }
@@ -140,6 +141,7 @@ Content-Type: application/json
   "qn": 150,
   "only_audio": false,
   "record_danmaku": true,
+  "record_subtitle": false,
   "stream_profiles": ["hls-fmp4", "hls-ts"],
   "delete_oldest_on_low_disk": false
 }
@@ -148,6 +150,6 @@ Content-Type: application/json
 `auto_record`、`notify` 為行為開關，不參與開錄參數。啟用自動錄製後，下列字段會在開錄時**全部**生效（與 [錄製管理 API](/zh-tw/api/record/) 中同名 query 參數同義）：
 
 - `record_duration_minutes`：`0` 系統預設，`-1` 不限時，正整數為 N 分鐘（**僅**自動錄製讀取；手動開錄用請求 query `duration_minutes`）
-- `qn`、`only_audio`、`record_danmaku`
+- `qn`、`only_audio`、`record_danmaku`、`record_subtitle`
 - `stream_profiles`：空或省略=允許全部格式；數組為嚴格允許清單，元素為 `http-flv` / `hls-ts` / `hls-fmp4`
 - `delete_oldest_on_low_disk`：預設 `false`；為 `true` 時，可用空間低於 `MIN_DISK_SPACE_BYTES` 會先刪除該房間檔案名時間戳最早的錄像再嘗試啟動

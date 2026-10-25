@@ -39,6 +39,10 @@ curl "http://127.0.0.1:8080/files/browse/username-roomID/?start=20260101_000000&
 
 使用 bilirec-web 回放時，宜選 `.jsonl`，播放器方能還原滾動彈幕與禮物特效。`.xml` 則按 [彈幕 XML 的後續使用](/zh-tw/guides/danmaku-xml/) 接入錄播姬生態裡的 XML 工具；Web 播放器不為 XML 疊這些效果。
 
+## AI 字幕檔案（.vtt）
+
+開啟 [AI 字幕錄製](/zh-tw/configuration/subtitle/) 後，部分直播會在影片旁生成同名的 `.vtt` 檔案。它們是 WebVTT 字幕，可在 bilirec-web 播放器或 VLC、mpv、PotPlayer 中使用。沒有識別到句子時不會出現空檔案；正在錄製的分段無法在 Web 中預覽字幕。
+
 ## 下載檔案
 
 ```bash
