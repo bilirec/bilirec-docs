@@ -136,8 +136,8 @@ groups:
           component: recording
           severity: warning
         annotations:
-          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}FLV 時間戳大幅跳變'
-          description: 近 15 分鐘折疊掉超過 30 秒媒體時間。常見於源流斷續或畫質切換；檔案時間軸可能不連續。
+          summary: '{{ if $labels.uname }}{{ $labels.uname }}（{{ $labels.room_id }}）{{ else }}房間 {{ $labels.room_id }}{{ end }}媒體時間軸大幅跳變'
+          description: 近 15 分鐘折疊掉超過 30 秒媒體時間。常見於源流斷續、HLS 漏片、fMP4 時間軸異常或畫質切換；檔案時間軸可能不連續。
 
       - alert: BilirecDanmakuParseErrors
         expr: |

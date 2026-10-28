@@ -11,7 +11,7 @@
   "graphTooltip": 1,
   "editable": true,
   "id": null,
-  "description": "单一房间的开播/录制时间线、读入与落盘速率，以及 Grafana 时间范围内的弹幕、落盘量、录制时长与次数。写入管线可看队列等待、慢 flush/fsync 与 FLV 时间戳跳变。房间下拉显示主播名，实际值仍是 room_id。",
+  "description": "单一房间的开播/录制时间线、读入与落盘速率，以及 Grafana 时间范围内的弹幕、落盘量、录制时长与次数。写入管线可看队列等待、慢 flush/fsync 与媒体时间轴跳变。房间下拉显示主播名，实际值仍是 room_id。",
   "time": {
     "from": "now-24h",
     "to": "now"
@@ -829,7 +829,7 @@
     {
       "id": 18,
       "type": "timeseries",
-      "title": "FLV 时间戳跳变",
+      "title": "媒体时间轴跳变",
       "description": "正跳变次数，以及折叠掉的媒体时间。常见于源流断续或画质切换。",
       "gridPos": {
         "h": 8,
