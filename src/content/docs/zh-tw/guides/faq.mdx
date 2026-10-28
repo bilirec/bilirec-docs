@@ -390,6 +390,12 @@ import { Aside } from '@astrojs/starlight/components';
 
 **若更在意播放流暢、不在意監控數字：** 設 `DROP_FILE_PAGE_CACHE=false`（同時也會影響關檔釋放，見下節）。
 
+### 用 loop 掛載固定大小的 .img，關檔或停播後監控仍一直很高？
+
+錄製目錄若在 **loop 上的 .img** 裡，且 loop 沒開 direct I/O，預設釋放只能清 mp4，清不掉宿主機上那份 `.img` 緩存，監控可能長期偏高。這和日誌裡的「釋放頁緩存失敗」無關。
+
+可以 **改綁普通目錄**（用配額限容量），或掛 loop 時 **加 `losetup --direct-io=on`**。詳見 [I/O 調優 · loop 映像與固定容量 .img](/zh-tw/configuration/io-tuning/#loop-映像與固定容量-img)。
+
 ### 監控記憶體偏高？兩個相關選項怎麼理解？
 
 **預設已開啟**（一般不用改）：

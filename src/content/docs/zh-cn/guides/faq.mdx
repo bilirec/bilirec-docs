@@ -390,6 +390,12 @@ import { Aside } from '@astrojs/starlight/components';
 
 **若更在意播放流畅、不在意监控数字：** 设 `DROP_FILE_PAGE_CACHE=false`（同时也会影响关档释放，见下节）。
 
+### 用 loop 挂载固定大小的 .img，关档或停播后监控仍一直很高？
+
+录制目录若在 **loop 上的 .img** 里，且 loop 没开 direct I/O，默认释放只能清 mp4，清不掉宿主机上那份 `.img` 缓存，监控可能长期偏高。这和日志里的「释放页缓存失败」无关。
+
+可以 **改绑普通目录**（用配额限容量），或挂 loop 时 **加 `losetup --direct-io=on`**。详见 [I/O 调优 · loop 映像与固定容量 .img](/zh-cn/configuration/io-tuning/#loop-映像与固定容量-img)。
+
 ### 监控内存偏高？两个相关选项怎么理解？
 
 **默认已开启**（一般不用改）：
