@@ -116,6 +116,11 @@ Go 运行时与进程资源指标由 [VictoriaMetrics/metrics](https://github.co
 | `bilirec_room_stream_enqueue_wait_seconds_total` | counter | 写入队列等待累计秒数 |
 | `bilirec_room_stream_slow_flushes_total` | counter | 周期性或关闭时 flush 超过 3 秒的次数 |
 | `bilirec_room_stream_slow_syncs_total` | counter | 周期性或关闭时 fsync 超过 1.2 秒的次数 |
+
+<Aside type="tip">
+未部署 Grafana Alerting 时，可将上述写入队列、慢 I/O、媒体时间轴等指标在进程内按与 [告警规则](/zh-cn/configuration/grafana-dashboards/#告警规则) 相近的窗口做推送旁路：设置 `NOTIFY_METRICS_ALERTS=true`，详见 [通知配置](/zh-cn/configuration/notifications/#指标告警旁路)。与 `METRICS_ENABLED` 无关，可只开推送、不开 metrics 端口。
+</Aside>
+
 | `bilirec_room_recording_sessions_total` | counter | 录制场次数。停录后仍留在 `/metrics`，同房间下场继续累加 |
 | `bilirec_room_recording_active` | gauge 1/0 | 是否正在录制（积分得每日录制时长）。恢复中仍为 1。停录后会从 `/metrics` 消失，历史仍在时序数据库 |
 | `bilirec_room_recording_recovering` | gauge 1/0 | 是否正在恢复循环（断线后重试连流，含正常下播后的重试）。开录时建为 0；进入恢复为 1；恢复成功或停录归 0。停录后会从 `/metrics` 消失 |

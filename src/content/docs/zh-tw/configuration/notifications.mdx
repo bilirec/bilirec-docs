@@ -28,4 +28,14 @@ Accept: text/event-stream
 
 推薦用於無法依賴 Google FCM 的場景（如中國大陸網路）。bilirec-mobile 開啟「本地通知模式」後，App 通過本機 SSE 接收事件並彈出本地通知（走 `127.0.0.1`，無需 HTTPS）。若把 SSE 暴露到遠端網路，建議使用 HTTPS，避免 token 明文傳輸。
 
+## 指標告警旁路
+
+未部署 Grafana Alerting 時，可啟用與 VictoriaMetrics **同源指標**的推送旁路：在進程內按與 `public/alerts/bilirec.yml` 相近的窗口與閾值判斷，滿足條件後記錄告警日誌（Web Push / SSE 正文在後續版本補齊）。**當前已實現**錄製 pipeline 相關規則（`BilirecWriterBackpressure`、`BilirecSlowDiskIO`、`BilirecTimestampJump`）；轉碼、彈幕等指標的旁路可在後續版本擴展，仍受同一開關控制。
+
+| 變數 | 說明 | 預設值 |
+|------|------|--------|
+| `NOTIFY_METRICS_ALERTS` | 為 `true` 時啟用上述指標告警旁路 | `false` |
+
+與 `METRICS_ENABLED` 獨立：可只開推送、不開 metrics 端口；也可兩者同時開啟（Grafana 看板 + 移動端旁路）。開播/停錄等 **直播狀態** 通知仍由房間訂閱與 `PublishLiveState` 驅動，不受本開關影響。
+
 訂閱房間開啟 **開播通知** 後，後台會定期檢查直播狀態並在開播時推送；檢查頻率與分組方式見 [錄製設定](/zh-tw/configuration/recording/#訂閱房間狀態檢查)。
