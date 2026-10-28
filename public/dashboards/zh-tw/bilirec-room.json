@@ -829,7 +829,7 @@
     {
       "id": 18,
       "type": "timeseries",
-      "title": "FLV 時間戳跳變",
+      "title": "媒體時間軸跳變",
       "description": "正跳變次數，以及摺疊掉的媒體時間。常見於源流斷續或畫質切換。",
       "gridPos": {
         "h": 8,
