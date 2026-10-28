@@ -65,7 +65,7 @@ tableOfContents: false
 | `FRONTEND_URL` | `FRONTEND_URLS` 的别名；仅在未设置 `FRONTEND_URLS` 时生效，语法相同 | (未设置) |
 | `WEBPUSH_SUBSCRIBER` | Web Push VAPID 的 subject（建议使用 `mailto:you@example.com`） | `mailto:webpush@example.com` |
 | `NOTIFY_SSE_TOKEN` | SSE 通知订阅 token（用于 `/notify/sse?token=...`；为空则禁用 SSE） | (空字符串) |
-| `NOTIFY_METRICS_ALERTS` | 是否将进程内观测到的指标异常（当前为录制 pipeline：写入队列堵塞、慢 flush/fsync、媒体时间轴跳变）按与 [Grafana 告警规则](/zh-cn/configuration/grafana-dashboards/#告警规则) 相近的窗口条件推送到 Web Push / SSE；`false` 时不走指标告警旁路（VictoriaMetrics 写入仍仅受 `METRICS_ENABLED` 控制） | `false` |
+| `NOTIFY_METRICS_ALERTS` | 是否将进程内观测到的指标异常（当前为录制 pipeline：写入队列堵塞、慢 flush/fsync、媒体时间轴跳变）按与 [Grafana 告警规则](/zh-cn/configuration/grafana-dashboards/#告警规则) 相近的窗口条件推送到 Web Push / SSE（需已配置推送通道）；`false` 时不走指标告警旁路（VictoriaMetrics 写入仍仅受 `METRICS_ENABLED` 控制） | `false` |
 | `WEBHOOK_URLS` | Webhook v2 出站地址（与录播姬兼容），每行一个 URL；为空则不发送。见 [Webhook 对接](/zh-cn/guides/webhook-integration/) | (空字符串) |
 | `USERNAME` | 可选：启用用户名/密码认证时的用户名 | (未设置) |
 | `PASSWORD` | 可选：启用用户名/密码认证时的密码 | (未设置) |

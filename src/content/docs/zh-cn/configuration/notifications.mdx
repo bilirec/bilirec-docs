@@ -30,12 +30,22 @@ Accept: text/event-stream
 
 ## 指标告警旁路
 
-未部署 Grafana Alerting 时，可启用与 VictoriaMetrics **同源指标**的推送旁路：在进程内按与 `public/alerts/bilirec.yml` 相近的窗口与阈值判断，满足条件后记录告警日志（Web Push / SSE 正文在后续版本补齐）。**当前已实现**录制 pipeline 相关规则（`BilirecWriterBackpressure`、`BilirecSlowDiskIO`、`BilirecTimestampJump`）；转码、弹幕等指标的旁路可在后续版本扩展，仍受同一开关控制。
+未部署 Grafana Alerting 时，可启用与 VictoriaMetrics **同源指标**的进程内旁路：按与 [`public/alerts/bilirec.yml`](https://github.com/bilirec/bilirec/blob/develop/public/alerts/bilirec.yml) 相近的窗口与阈值判断，满足条件后通过 **Web Push** 或 **SSE** 推送（与开播/停录通知同一通道）。**当前已实现**录制 pipeline 三条规则：
+
+| 规则名 | 含义 |
+|--------|------|
+| `BilirecWriterBackpressure` | 写入队列持续堵塞 |
+| `BilirecSlowDiskIO` | flush / fsync 过慢 |
+| `BilirecTimestampJump` | 媒体时间轴大幅跳变（下载跟不上、HLS 漏片等） |
+
+转码、弹幕等指标的旁路可在后续版本扩展，仍受同一开关控制。
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `NOTIFY_METRICS_ALERTS` | 为 `true` 时启用上述指标告警旁路 | `false` |
 
-与 `METRICS_ENABLED` 独立：可只开推送、不开 metrics 端口；也可两者同时开启（Grafana 看板 + 移动端旁路）。开播/停录等 **直播状态** 通知仍由房间订阅与 `PublishLiveState` 驱动，不受本开关影响。
+启用旁路后，仍需至少一种推送通道可用：**Web Push**（配置 `WEBPUSH_SUBSCRIBER` 并在 bilirec-web 允许通知）或 **SSE**（配置 `NOTIFY_SSE_TOKEN`，供 bilirec-mobile 本地通知模式等）。与 `METRICS_ENABLED` 独立：可只开推送、不开 metrics 端口；也可两者同时开启（Grafana 看板 + 客户端旁路）。开播/停录等 **直播状态** 通知仍由房间订阅与 `PublishLiveState` 驱动，不受本开关影响。
+
+同一房间、同一告警类型在单次录制中通常只推送一次；录制结束后会重置旁路状态，下一场可再次告警。
 
 订阅房间开启 **开播通知** 后，后台会定期检查直播状态并在开播时推送；检查频率与分组方式见 [录制配置](/zh-cn/configuration/recording/#订阅房间状态检查)。
