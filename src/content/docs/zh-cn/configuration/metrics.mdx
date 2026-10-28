@@ -110,8 +110,8 @@ Go 运行时与进程资源指标由 [VictoriaMetrics/metrics](https://github.co
 |------|------|------|
 | `bilirec_room_stream_bytes_total` | counter | 从直播 TCP 读入的字节数（进入写入管线之前）。停录后仍留在 `/metrics`，同房间下场继续累加 |
 | `bilirec_room_stream_bytes_written_total` | counter | 实际写入磁盘的字节数（含切档）。停录后仍留在 `/metrics`，同房间下场继续累加 |
-| `bilirec_room_stream_timestamp_jumps_total` | counter | FLV 时间戳正跳变次数（`delta > 0`） |
-| `bilirec_room_stream_timestamp_jump_collapsed_seconds_total` | counter | 正跳变折叠掉的媒体时间（秒，`delta_ms / 1000` 累加） |
+| `bilirec_room_stream_timestamp_jumps_total` | counter | 媒体时间轴正跳变次数（FLV 正向跳变、fMP4 tfdt 异常、HLS 漏片等，`delta > 0`） |
+| `bilirec_room_stream_timestamp_jump_collapsed_seconds_total` | counter | 正跳变折叠掉的媒体时间（秒，各来源估算间隔累加） |
 | `bilirec_room_stream_enqueue_waits_total` | counter | 写入队列已满、发送方等待的次数 |
 | `bilirec_room_stream_enqueue_wait_seconds_total` | counter | 写入队列等待累计秒数 |
 | `bilirec_room_stream_slow_flushes_total` | counter | 周期性或关闭时 flush 超过 3 秒的次数 |
@@ -226,7 +226,7 @@ bilirec 只暴露**累积 counter** 与**即时 gauge**，每日 / 总量统计�
 | 每房间写入队列等待秒数 | `sum by (room_id) (increase(bilirec_room_stream_enqueue_wait_seconds_total[$__range]))` |
 | 每房间慢 flush 次数 | `increase(bilirec_room_stream_slow_flushes_total[$__range])` |
 | 每房间慢 fsync 次数 | `increase(bilirec_room_stream_slow_syncs_total[$__range])` |
-| 每房间 FLV 时间戳跳变次数 | `increase(bilirec_room_stream_timestamp_jumps_total[$__range])` |
+| 每房间媒体时间轴跳变次数 | `increase(bilirec_room_stream_timestamp_jumps_total[$__range])` |
 | 每房间折掉的媒体时间 | `increase(bilirec_room_stream_timestamp_jump_collapsed_seconds_total[$__range])` |
 | 当前同时录制 | `sum(bilirec_active_recordings) or vector(0)` |
 | 整段平均同时录制 | `avg_over_time((sum(bilirec_room_recording_active) or vector(0))[$__range:5m])` |
