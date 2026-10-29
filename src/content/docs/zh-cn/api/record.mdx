@@ -179,12 +179,22 @@ Content-Type: application/json
     "actual_qn": 150,
     "actual_stream_format": "http-flv",
     "is_audio_only": false,
-    "room_title": "开录时的直播标题"
+    "room_title": "开录时的直播标题",
+    "flush_count": 12,
+    "flush_ms": 36000,
+    "sync_count": 4,
+    "sync_ms": 5200,
+    "enqueue_waits": 3,
+    "enqueue_wait_ms": 450,
+    "timeline_gaps": 1,
+    "timeline_gap_ms": 2500
   }
 }
 ```
 
 `bytes_read` 为从直播流读入的字节累计（尚未写入磁盘）。`bytes_written` 为实际写入录制文件的字节累计（含切档），通常略小于或接近最终文件大小。`danmaku_bytes_written` 为弹幕文件实际写入磁盘的字节累计，按已落盘的数据计数，而不是仅进入等待队列时计数。
+
+`flush_count` / `flush_ms`、`sync_count` / `sync_ms`、`enqueue_waits` / `enqueue_wait_ms`、`timeline_gaps` / `timeline_gap_ms` 为**当前录制会话**内各操作的累计次数与累计耗时（毫秒），切档不清零。它们是原始统计，不在服务端判定「慢」；bilirec-web 在相邻两次 stats 轮询之间做差，再按网页阈值参与流健康度展示。
 
 `room_title` 为**开始录制时**固定的房间标题（用于输出文件名），与房间信息接口返回的当前标题可能不同。
 
