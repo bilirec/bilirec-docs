@@ -118,7 +118,7 @@ Go 运行时与进程资源指标由 [VictoriaMetrics/metrics](https://github.co
 | `bilirec_room_stream_slow_syncs_total` | counter | 周期性或关闭时 fsync 超过 1.2 秒的次数 |
 
 <Aside type="tip">
-未部署 Grafana Alerting 时，可将上述写入队列、慢 I/O、媒体时间轴等指标在进程内按与 [告警规则](/zh-cn/configuration/grafana-dashboards/#告警规则) 相近的窗口做推送旁路：设置 `NOTIFY_METRICS_ALERTS=true`，详见 [通知配置](/zh-cn/configuration/notifications/#指标告警旁路)。与 `METRICS_ENABLED` 无关，可只开推送、不开 metrics 端口。
+未部署 Grafana Alerting 时，可将上述写入队列、慢 I/O、媒体时间轴在进程内按本场累计推送：写入等待每满 2 秒、慢 flush / fsync 每满 3 次、时间轴每折掉 30 秒各推一次。设置 `NOTIFY_METRICS_ALERTS=true`，详见 [通知配置](/zh-cn/configuration/notifications/#指标告警旁路)。与 `METRICS_ENABLED` 无关，可只开推送、不开 metrics 端口。Grafana 告警规则仍使用自己的滑动窗口。
 </Aside>
 
 | `bilirec_room_recording_sessions_total` | counter | 录制场次数。停录后仍留在 `/metrics`，同房间下场继续累加 |
