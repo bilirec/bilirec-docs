@@ -118,7 +118,7 @@ Go 運行時與行程資源指標由 [VictoriaMetrics/metrics](https://github.co
 | `bilirec_room_stream_slow_syncs_total` | counter | 週期性或關閉時 fsync 超過 1.2 秒的次數 |
 
 <Aside type="tip">
-未部署 Grafana Alerting 時，可將上述寫入隊列、慢 I/O、媒體時間軸等指標在進程內按與 [告警規則](/zh-tw/configuration/grafana-dashboards/#告警規則) 相近的窗口做推送旁路：設定 `NOTIFY_METRICS_ALERTS=true`，詳見 [通知設定](/zh-tw/configuration/notifications/#指標告警旁路)。與 `METRICS_ENABLED` 無關，可只開推送、不開 metrics 端口。
+未部署 Grafana Alerting 時，可將上述寫入隊列、慢 I/O、媒體時間軸在進程內按本場累計推送：寫入等待每滿 2 秒、慢 flush / fsync 每滿 3 次、時間軸每折掉 30 秒各推一次。設定 `NOTIFY_METRICS_ALERTS=true`，詳見 [通知設定](/zh-tw/configuration/notifications/#指標告警旁路)。與 `METRICS_ENABLED` 無關，可只開推送、不開 metrics 端口。Grafana 告警規則仍使用自己的滑動窗口。
 </Aside>
 
 | `bilirec_room_recording_sessions_total` | counter | 錄製場次數。停錄後仍留在 `/metrics`，同房間下場繼續累加 |
