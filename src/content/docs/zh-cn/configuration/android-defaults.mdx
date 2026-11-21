@@ -30,6 +30,7 @@ App 里每一项怎么设、对应哪些环境变量，见 [Android App](/zh-cn/
 | `BILIBILI_LOGIN_MODE` | `controller` | 通过 Web UI 扫码登录 |
 | `FRP_ENABLED` | `false` | 手机无需内网穿透 |
 | `CHECK_UPDATE` | `false` | 启动时不检查 GitHub 更新 |
+| `NOTIFY_METRICS_ALERTS` | `true` | 录制异常告警（写入变慢、直播流不连续等） |
 | `SILENT_ACCESS_LOG` | `true` | 减少访问日志 |
 
 Android App 的 **录制策略** 中可设置 **重试成功后的时长计算**（`preserve` / `reset`），对应 `RECORDING_RECOVERY_DURATION`；未设置时与上表默认 `preserve` 一致。

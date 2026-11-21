@@ -36,7 +36,7 @@ Dart SDK 约束见 `pubspec.yaml`：`>=3.4.0 <4.0.0`。
 ┌─────────────────────────────────────────────────────────┐
 │  UI 层（lib/app/）                                       │
 │  home_page.dart — 控制中心、启停服务、设置入口            │
-│  settings_card.dart — 设置抽屉与环境变量映射              │
+│  settings/sections/ — 设置抽屉与环境变量映射              │
 └───────────────────────┬─────────────────────────────────┘
                         │ FlutterForegroundTask 通信
 ┌───────────────────────▼─────────────────────────────────┐
@@ -58,9 +58,10 @@ Dart SDK 约束见 `pubspec.yaml`：`>=3.4.0 <4.0.0`。
 
 `BilirecTaskHandler`（`lib/foreground/bilirec_task_handler.dart`）运行在前台任务隔离区，负责：
 
-1. 读取 `Preferences` 中的输出路径、SSE 开关、防休眠开关、环境变量等设置。
+1. 读取 `Preferences` 中的输出路径、SSE 开关、录制异常告警开关、防休眠开关、环境变量等设置。
 2. 组装 `StartConfig`（`basePath` + `env`），调用 `BilirecService.start(...)` 启动原生核心。
 3. 若启用 SSE 推送，生成随机 token 写入 `NOTIFY_SSE_TOKEN`，并连接 `GET /notify/sse?token=...`。
+4. 无论开关状态都会写入 `NOTIFY_METRICS_ALERTS`（`true` / `false`）——Android 核心默认开启该旁路，空值会被跳过，因此必须传明确布尔值才能让 App 里的开关真正生效。
 4. 周期性（`onRepeatEvent`）：
    - 心跳检查 `http://127.0.0.1:8080/` 可用性。
    - 查询 `/record/list` 判断是否在录制。
@@ -100,8 +101,20 @@ UI 侧（`lib/app/home_page.dart`）通过 `FlutterForegroundTask.addTaskDataCal
 当用户开启「本地通知模式」时：
 
 1. 启动时生成 24 字节随机 token（`generateSseToken()`），通过 `NOTIFY_SSE_TOKEN` 传给核心。
-2. `BilirecSseHandler` 连接 `http://127.0.0.1:8080/notify/sse?token=...`，解析开播/录制事件并弹出本地通知。
+2. `BilirecSseHandler` 连接 `http://127.0.0.1:<PORT>/notify/sse?token=...`，解析开播/录制事件并弹出本地通知。
 3. 断线后约 3 秒自动重连。
+
+同一房间、同一事件类型只保留一条通知：以房间与事件类型组成通知 tag，重复事件替换同 tag 通知并再次提醒；服务停止时统一取消这些通知。
+
+指标类事件（`metrics_timeline_gap`、`metrics_slow_io`、`metrics_enqueue_wait`）的标题与正文按事件类型选择本地化文案，正文中的数值取自事件里的 `alert_value` 字段，单位随类型不同（秒 / 次）。开关本身是 App 的 **录制异常通知**，对应 `NOTIFY_METRICS_ALERTS`，仅在本地通知模式开启时可用。
+
+## 后端地址解析
+
+健康检查、SSE 与手动「检查系统服务连接」都通过 `lib/shared/backend_base_uri.dart` 取得基址：
+
+- 读取开发者环境变量里的 `PORT`，非法值回退 `8080`。
+- `HOST` 固定 `127.0.0.1`，因为 App 只与本机回环通信。
+- 未设置 `PORT` 时行为与硬编码 `8080` 完全一致。
 
 详见 [通知配置](/zh-cn/configuration/notifications/)。
 
@@ -134,7 +147,9 @@ UI 侧（`lib/app/home_page.dart`）通过 `FlutterForegroundTask.addTaskDataCal
 |------|------|
 | `lib/main.dart` | 应用入口、语言切换 |
 | `lib/app/home_page.dart` | 主 UI、前台服务控制、状态流转 |
-| `lib/app/widgets/settings_card.dart` | 设置抽屉、转档策略、日志导出 |
+| `lib/app/home/` | 服务启停、会话、外部浏览器跳转与更新提示等流程 |
+| `lib/app/widgets/settings/sections/` | 设置抽屉的各个区块（一般设置、存储、录制、通知、检测、弹幕、转换、更新、开发者选项等） |
+| `lib/shared/backend_base_uri.dart` | 解析内嵌后端基址（读取开发者环境变量中的 `PORT`） |
 | `lib/foreground/bilirec_service.dart` | FFI 封装与原生启动参数 |
 | `lib/foreground/bilirec_task_handler.dart` | 前台任务处理器 |
 | `lib/foreground/bilirec_sse_handler.dart` | SSE 事件与本地通知 |
